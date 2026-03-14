@@ -118,4 +118,20 @@ export const queryKeys = {
     all: ["settings"],
     system: () => [...queryKeys.settings.all, "system"],
   },
+
+  // Campaign queries (SA)
+  campaigns: {
+    all: ["campaigns"],
+    metadata: () => [...queryKeys.campaigns.all, "metadata"],
+    lists: () => [...queryKeys.campaigns.all, "list"],
+    list: (filters) => [...queryKeys.campaigns.lists(), filters],
+    details: () => [...queryKeys.campaigns.all, "detail"],
+    detail: (id) => [...queryKeys.campaigns.details(), id],
+    recipients: (id, filters = {}) => [
+      ...queryKeys.campaigns.all,
+      "recipients",
+      id,
+      filters,
+    ],
+  },
 };

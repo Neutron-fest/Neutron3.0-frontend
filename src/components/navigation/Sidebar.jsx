@@ -72,7 +72,11 @@ export function getAdminNavigation(role) {
 
 export function getAdminSettingsLink(role) {
   if (role === "SA") {
-    return { name: "Settings", href: "/admin/sa/settings", icon: UserCog };
+    return {
+      name: "Platform Settings",
+      href: "/admin/sa/settings",
+      icon: UserCog,
+    };
   }
 
   return null;
@@ -335,6 +339,17 @@ export function Sidebar({ user, onLogout, mobileOpen, onMobileClose }) {
             </Typography>
           </Box>
         </Box>
+
+        {settingsLink && (
+          <Box sx={{ mb: 1 }}>
+            <SidebarNavItem
+              href={settingsLink.href}
+              icon={settingsLink.icon}
+              label={settingsLink.name}
+              onClick={isMobile ? onMobileClose : undefined}
+            />
+          </Box>
+        )}
 
         {personalSettingsLink && (
           <Box sx={{ mb: 1 }}>

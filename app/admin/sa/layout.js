@@ -58,7 +58,7 @@ export default function SALayout({ children }) {
   const currentPage = pathname.startsWith("/admin/settings")
     ? "Personal Settings"
     : pathname.startsWith("/admin/sa/settings")
-      ? "Settings"
+      ? "Platform Settings"
       : navigation.find((item) => pathname.startsWith(item.href))?.name ||
         "Dashboard";
 

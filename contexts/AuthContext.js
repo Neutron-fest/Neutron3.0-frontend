@@ -5,6 +5,49 @@ import apiClient from "@/lib/axios";
 import { useRouter } from "next/navigation";
 
 const AuthContext = createContext(null);
+const AUTH_USER_CACHE_KEY = "neutron.auth.user";
+const AUTH_REJECTION_ERRORS = new Set([
+  "UNAUTHORIZED",
+  "INVALID_ACCESS_TOKEN",
+  "ACCESS_TOKEN_EXPIRED",
+  "INVALID_REFRESH_TOKEN",
+  "REFRESH_TOKEN_EXPIRED",
+  "SESSION_NOT_FOUND",
+  "SESSION_REVOKED",
+  "SESSION_EXPIRED",
+  "USER_NOT_FOUND",
+  "ACCOUNT_REVOKED",
+]);
+
+const isExplicitAuthRejection = (error) => {
+  const status = error?.response?.status;
+  const code = error?.response?.data?.error;
+
+  if (status !== 401) return false;
+  return AUTH_REJECTION_ERRORS.has(code);
+};
+
+const getCachedUser = () => {
+  if (typeof window === "undefined") return null;
+
+  try {
+    const raw = window.localStorage.getItem(AUTH_USER_CACHE_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+};
+
+const cacheUser = (user) => {
+  if (typeof window === "undefined") return;
+
+  if (!user) {
+    window.localStorage.removeItem(AUTH_USER_CACHE_KEY);
+    return;
+  }
+
+  window.localStorage.setItem(AUTH_USER_CACHE_KEY, JSON.stringify(user));
+};
 
 const buildFallbackDeviceName = (userAgent = "") => {
   const ua = userAgent.toLowerCase();
@@ -78,27 +121,56 @@ const getClientDeviceName = async () => {
 };
 
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState(() => getCachedUser());
   const [loading, setLoading] = useState(true);
   const router = useRouter();
+
+  const clearUserAndRedirect = () => {
+    setUser(null);
+    cacheUser(null);
+    router.push("/admin/auth");
+  };
 
   // Fetch current user on mount
   useEffect(() => {
     checkAuth();
   }, []);
 
+  useEffect(() => {
+    const onServerRejectedAuth = () => {
+      clearUserAndRedirect();
+    };
+
+    if (typeof window !== "undefined") {
+      window.addEventListener("auth:server-rejected", onServerRejectedAuth);
+    }
+
+    return () => {
+      if (typeof window !== "undefined") {
+        window.removeEventListener(
+          "auth:server-rejected",
+          onServerRejectedAuth,
+        );
+      }
+    };
+  }, [router]);
+
   const checkAuth = async () => {
     try {
       const response = await apiClient.get("/auth/me");
       if (response.data.success) {
         setUser(response.data.data.user);
+        cacheUser(response.data.data.user);
       }
     } catch (error) {
-      // 401 is expected when not authenticated, so don't log it
-      if (error.response?.status !== 401) {
+      if (isExplicitAuthRejection(error)) {
+        setUser(null);
+        cacheUser(null);
+      } else if (error.response?.status >= 500 || !error.response) {
+        console.warn("Auth check skipped due to backend/network issue.");
+      } else if (error.response?.status !== 401) {
         console.error("Auth check failed:", error);
       }
-      setUser(null);
     } finally {
       setLoading(false);
     }
@@ -113,6 +185,7 @@ export function AuthProvider({ children }) {
       });
       if (response.data.success) {
         setUser(response.data.data.user);
+        cacheUser(response.data.data.user);
         return { success: true, user: response.data.data.user };
       }
     } catch (error) {
@@ -133,6 +206,7 @@ export function AuthProvider({ children }) {
       }
     } finally {
       setUser(null);
+      cacheUser(null);
       router.push("/admin/auth");
     }
   };

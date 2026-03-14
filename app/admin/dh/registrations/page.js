@@ -239,11 +239,6 @@ export default function RegistrationsPage() {
             borderRadius: "12px",
           }}
         >
-          <ClipboardList
-            size={40}
-            color="#3f3f46"
-            style={{ marginBottom: 12 }}
-          />
           <Typography sx={{ color: "#71717a" }}>
             No pending registrations
             {competitionId ? " for this competition" : ""}

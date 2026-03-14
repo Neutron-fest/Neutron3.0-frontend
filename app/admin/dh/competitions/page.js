@@ -1384,11 +1384,6 @@ export default function CompetitionsPage() {
 
           {filtered.length === 0 ? (
             <Box sx={{ py: 8, textAlign: "center" }}>
-              <Trophy
-                size={32}
-                color="rgba(255,255,255,0.08)"
-                style={{ marginBottom: 12 }}
-              />
               <Typography
                 sx={{
                   color: "rgba(255,255,255,0.18)",
