@@ -36,6 +36,7 @@ const SA_NAVIGATION = [
 ];
 
 const DH_NAVIGATION = [
+  { name: "My Department", href: "/admin/dh/users", icon: Users },
   {
     name: "Registrations",
     href: "/admin/dh/registrations",

@@ -275,3 +275,17 @@ export function useInviteUser() {
     },
   });
 }
+
+/**
+ * DH: Fetch own department members (backend enforces the scope — DH cannot
+ * supply an arbitrary departmentId, the server derives it from their session).
+ */
+export function useDHDepartmentMembers() {
+  return useQuery({
+    queryKey: ["dh", "my-department", "members"],
+    queryFn: async () => {
+      const { data } = await apiClient.get("/sa/dh/my-department/members");
+      return data.data; // { department, members }
+    },
+  });
+}

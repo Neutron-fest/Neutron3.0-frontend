@@ -83,3 +83,16 @@ export function useRejectRequest() {
     },
   });
 }
+
+/**
+ * Fetch approval stats (pending count, breakdown by status+type)
+ */
+export function useApprovalStats() {
+  return useQuery({
+    queryKey: [...queryKeys.approvals.all, "stats"],
+    queryFn: async () => {
+      const { data } = await apiClient.get("/sa/approvals/stats");
+      return data?.data;
+    },
+  });
+}
