@@ -41,7 +41,11 @@ export const queryKeys = {
   // Registration queries (DH)
   registrations: {
     all: ["registrations"],
-    pending: (filters = {}) => [...queryKeys.registrations.all, "pending", filters],
+    pending: (filters = {}) => [
+      ...queryKeys.registrations.all,
+      "pending",
+      filters,
+    ],
   },
 
   // Competition queries (DH)
@@ -55,15 +59,40 @@ export const queryKeys = {
     volunteers: (id) => [...queryKeys.competitions.all, "volunteers", id],
   },
 
+  // Competition forms queries (DH/SA)
+  forms: {
+    all: ["forms"],
+    lists: () => [...queryKeys.forms.all, "list"],
+    list: () => [...queryKeys.forms.lists()],
+    details: () => [...queryKeys.forms.all, "detail"],
+    detail: (id) => [...queryKeys.forms.details(), id],
+  },
+
   // Judging queries (DH)
   judging: {
     all: ["judging"],
     myCompetitions: () => [...queryKeys.judging.all, "my-competitions"],
-    rounds: (competitionId) => [...queryKeys.judging.all, "rounds", competitionId],
-    participants: (roundId) => [...queryKeys.judging.all, "participants", roundId],
+    rounds: (competitionId) => [
+      ...queryKeys.judging.all,
+      "rounds",
+      competitionId,
+    ],
+    participants: (roundId) => [
+      ...queryKeys.judging.all,
+      "participants",
+      roundId,
+    ],
     criteria: (roundId) => [...queryKeys.judging.all, "criteria", roundId],
-    leaderboard: (roundId) => [...queryKeys.judging.all, "leaderboard", roundId],
-    pendingJudges: (roundId) => [...queryKeys.judging.all, "pending-judges", roundId],
+    leaderboard: (roundId) => [
+      ...queryKeys.judging.all,
+      "leaderboard",
+      roundId,
+    ],
+    pendingJudges: (roundId) => [
+      ...queryKeys.judging.all,
+      "pending-judges",
+      roundId,
+    ],
     allScored: (roundId) => [...queryKeys.judging.all, "all-scored", roundId],
   },
 
@@ -71,8 +100,16 @@ export const queryKeys = {
   attendance: {
     all: ["attendance"],
     festStats: () => [...queryKeys.attendance.all, "fest-stats"],
-    competitionStats: (id) => [...queryKeys.attendance.all, "competition-stats", id],
-    participants: (query) => [...queryKeys.attendance.all, "participants", query],
+    competitionStats: (id) => [
+      ...queryKeys.attendance.all,
+      "competition-stats",
+      id,
+    ],
+    participants: (query) => [
+      ...queryKeys.attendance.all,
+      "participants",
+      query,
+    ],
     participant: (id) => [...queryKeys.attendance.all, "participant", id],
   },
 

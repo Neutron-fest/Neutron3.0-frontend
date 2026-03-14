@@ -125,16 +125,43 @@ export default function RegistrationsPage() {
   }
 
   return (
-    <Box>
+    <Box sx={{ p: { xs: 2, md: 4 }, maxWidth: 1200 }}>
       {/* Header */}
       <Box sx={{ mb: 4 }}>
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 0.5 }}>
+          <Box
+            sx={{
+              width: 32,
+              height: 32,
+              borderRadius: "9px",
+              background: "#111",
+              border: "1px solid rgba(255,255,255,0.1)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <ClipboardList size={15} color="rgba(255,255,255,0.7)" />
+          </Box>
+          <Typography
+            sx={{
+              fontSize: 18,
+              fontWeight: 600,
+              color: "#f4f4f5",
+              fontFamily: "'Syne', sans-serif",
+            }}
+          >
+            Registrations
+          </Typography>
+        </Box>
         <Typography
-          variant="h4"
-          sx={{ color: "#fff", fontWeight: 700, mb: 0.5 }}
+          sx={{
+            fontSize: 12,
+            color: "rgba(255,255,255,0.3)",
+            fontFamily: "'Syne', sans-serif",
+            ml: 0.5,
+          }}
         >
-          Registrations
-        </Typography>
-        <Typography variant="body2" sx={{ color: "#71717a" }}>
           Review and approve or reject pending competition registrations
         </Typography>
       </Box>
@@ -144,9 +171,9 @@ export default function RegistrationsPage() {
         sx={{
           p: 2,
           mb: 3,
-          backgroundColor: "#18181b",
-          border: "1px solid #27272a",
-          borderRadius: 3,
+          background: "#0c0c0c",
+          border: "1px solid rgba(255,255,255,0.06)",
+          borderRadius: "12px",
           display: "flex",
           flexWrap: "wrap",
           gap: 2,
@@ -207,9 +234,9 @@ export default function RegistrationsPage() {
           sx={{
             p: 6,
             textAlign: "center",
-            backgroundColor: "#18181b",
-            border: "1px solid #27272a",
-            borderRadius: 3,
+            background: "#0c0c0c",
+            border: "1px solid rgba(255,255,255,0.06)",
+            borderRadius: "12px",
           }}
         >
           <ClipboardList
@@ -226,9 +253,9 @@ export default function RegistrationsPage() {
         <TableContainer
           component={Paper}
           sx={{
-            backgroundColor: "#18181b",
-            border: "1px solid #27272a",
-            borderRadius: 3,
+            background: "#0c0c0c",
+            border: "1px solid rgba(255,255,255,0.06)",
+            borderRadius: "12px",
           }}
         >
           <Table>
@@ -260,7 +287,9 @@ export default function RegistrationsPage() {
                 return (
                   <TableRow
                     key={row.id}
-                    sx={{ "&:hover": { backgroundColor: "#1f1f23" } }}
+                    sx={{
+                      "&:hover": { backgroundColor: "rgba(255,255,255,0.02)" },
+                    }}
                   >
                     {/* Participant */}
                     <TableCell sx={cellSx}>
@@ -419,17 +448,35 @@ export default function RegistrationsPage() {
         onClose={() => setRejectDialog({ open: false, registration: null })}
         PaperProps={{
           sx: {
-            backgroundColor: "#18181b",
-            border: "1px solid #27272a",
+            background: "#0e0e0e",
+            border: "1px solid rgba(255,255,255,0.08)",
+            borderRadius: "16px",
+            boxShadow: "0 32px 80px rgba(0,0,0,0.8)",
             minWidth: 420,
           },
         }}
       >
-        <DialogTitle sx={{ color: "#fff", fontWeight: 700 }}>
+        <DialogTitle
+          sx={{
+            color: "#f4f4f5",
+            fontWeight: 600,
+            fontFamily: "'Syne', sans-serif",
+            fontSize: 16,
+            borderBottom: "1px solid rgba(255,255,255,0.06)",
+          }}
+        >
           Reject Registration
         </DialogTitle>
-        <DialogContent>
-          <Typography variant="body2" sx={{ color: "#a1a1aa", mb: 2 }}>
+        <DialogContent sx={{ pt: "18px !important" }}>
+          <Typography
+            variant="body2"
+            sx={{
+              color: "rgba(255,255,255,0.65)",
+              mb: 2,
+              fontFamily: "'Syne', sans-serif",
+              fontSize: 13,
+            }}
+          >
             Provide a reason for rejecting{" "}
             <strong style={{ color: "#fff" }}>
               {rejectDialog.registration?.user?.name ||
@@ -448,29 +495,51 @@ export default function RegistrationsPage() {
             sx={inputSx}
           />
         </DialogContent>
-        <DialogActions sx={{ px: 3, pb: 2 }}>
+        <DialogActions
+          sx={{
+            px: 3,
+            py: 2,
+            borderTop: "1px solid rgba(255,255,255,0.06)",
+            gap: 1,
+          }}
+        >
           <Button
             onClick={() => setRejectDialog({ open: false, registration: null })}
-            sx={{ color: "#71717a", textTransform: "none" }}
+            sx={{
+              textTransform: "none",
+              fontFamily: "'Syne', sans-serif",
+              borderRadius: "8px",
+              color: "rgba(255,255,255,0.55)",
+              border: "1px solid rgba(255,255,255,0.1)",
+              px: 2,
+              "&:hover": {
+                background: "rgba(255,255,255,0.05)",
+                borderColor: "rgba(255,255,255,0.2)",
+              },
+            }}
           >
             Cancel
           </Button>
           <Button
-            variant="contained"
             onClick={handleReject}
             disabled={!rejectReason.trim() || isRejecting}
-            startIcon={
+            endIcon={
               isRejecting ? (
-                <CircularProgress size={14} />
+                <CircularProgress size={14} sx={{ color: "#fff" }} />
               ) : (
                 <XCircle size={14} />
               )
             }
             sx={{
-              backgroundColor: "#ef4444",
-              "&:hover": { backgroundColor: "#dc2626" },
               textTransform: "none",
               fontWeight: 600,
+              fontFamily: "'Syne', sans-serif",
+              borderRadius: "8px",
+              px: 2,
+              background: "rgba(239,68,68,0.9)",
+              border: "1px solid rgba(239,68,68,0.5)",
+              color: "#fff",
+              "&:hover": { background: "rgba(220,38,38,0.95)" },
             }}
           >
             Reject
@@ -484,12 +553,26 @@ export default function RegistrationsPage() {
 // Shared dark-theme input styles
 const inputSx = {
   "& .MuiOutlinedInput-root": {
-    color: "#fff",
-    "& fieldset": { borderColor: "#3f3f46" },
-    "&:hover fieldset": { borderColor: "#71717a" },
-    "&.Mui-focused fieldset": { borderColor: "#a855f7" },
+    background: "rgba(255,255,255,0.04)",
+    borderRadius: "8px",
+    color: "rgba(255,255,255,0.9)",
+    fontFamily: "'Syne', sans-serif",
+    fontSize: 13,
+    "& fieldset": { borderColor: "rgba(255,255,255,0.1)" },
+    "&:hover fieldset": { borderColor: "rgba(255,255,255,0.18)" },
+    "&.Mui-focused fieldset": { borderColor: "rgba(168,85,247,0.75)" },
+    "& input": {
+      color: "rgba(255,255,255,0.9)",
+      fontFamily: "'Syne', sans-serif",
+      fontSize: 13,
+    },
   },
-  "& .MuiInputLabel-root": { color: "#71717a" },
-  "& .MuiSelect-icon": { color: "#71717a" },
+  "& .MuiInputLabel-root": {
+    color: "rgba(255,255,255,0.38)",
+    fontFamily: "'Syne', sans-serif",
+    fontSize: 12,
+    "&.Mui-focused": { color: "rgba(192,132,252,0.95)" },
+  },
+  "& .MuiSelect-icon": { color: "rgba(255,255,255,0.45)" },
   "& .MuiMenuItem-root": { color: "#fff" },
 };

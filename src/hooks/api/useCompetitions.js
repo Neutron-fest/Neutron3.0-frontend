@@ -62,10 +62,12 @@ export function useCreateCompetition() {
 export function useUpdateCompetition() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async ({ competitionId, ...payload }) => {
+    mutationFn: async ({ competitionId, formData, ...rest }) => {
+      // Accept either a FormData instance (for file uploads) or a plain object
+      const body = formData instanceof FormData ? formData : rest;
       const { data } = await apiClient.put(
         `/competitions/${competitionId}`,
-        payload,
+        body,
       );
       return data;
     },
@@ -166,10 +168,16 @@ export function useToggleReadOnlyMode() {
 export function useCancelOrPostpone() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async ({ competitionId, status, autoNotify = false }) => {
+    mutationFn: async ({
+      competitionId,
+      status,
+      autoNotify = false,
+      newDate,
+      notes,
+    }) => {
       const { data } = await apiClient.patch(
         `/competitions/${competitionId}/cancel-postpone`,
-        { status, autoNotify },
+        { status, autoNotify, newDate, notes },
       );
       return data;
     },
@@ -271,10 +279,11 @@ export function useCompetitionVolunteers(competitionId) {
 export function useAssignVolunteer() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async ({ competitionId, userId, role }) => {
+    mutationFn: async ({ competitionId, volunteerUserId, userId, role }) => {
+      const resolvedVolunteerUserId = volunteerUserId ?? userId;
       const { data } = await apiClient.post(
         `/competitions/${competitionId}/volunteers`,
-        { userId, role },
+        { volunteerUserId: resolvedVolunteerUserId, role },
       );
       return data;
     },

@@ -1,55 +1,40 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import {
   Box,
   Typography,
-  Paper,
-  Button,
-  IconButton,
-  Chip,
-  Switch,
-  FormControlLabel,
-  TextField,
-  MenuItem,
   Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
   CircularProgress,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
   Avatar,
-  Tooltip,
-  Tabs,
-  Tab,
-  Divider,
-  Alert,
 } from "@mui/material";
 import {
+  Trophy,
+  Search,
+  Plus,
+  Send,
   Users,
   UserPlus,
   Trash2,
-  Trophy,
   Lock,
   Unlock,
   AlertTriangle,
   XCircle,
   Clock,
+  Pencil,
 } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useSnackbar } from "notistack";
 import {
   useCompetitions,
+  useDeleteCompetition,
   useCompetitionJudges,
   useCompetitionVolunteers,
   useToggleRegistrations,
   useFreezeChanges,
   useToggleReadOnlyMode,
   useCancelOrPostpone,
+  useUpdateCompetition,
   useAssignJudge,
   useRemoveJudge,
   useAssignVolunteer,
@@ -57,35 +42,337 @@ import {
 } from "@/src/hooks/api/useCompetitions";
 import { useUsers } from "@/src/hooks/api/useUsers";
 import { LoadingState } from "@/src/components/LoadingState";
+import CompetitionFormModal from "@/src/components/forms/CompetitionFormModal";
 
-// ─────────────────────────────────────────────────────────── helpers ──
-
-const inputSx = {
-  "& .MuiOutlinedInput-root": {
-    color: "#fff",
-    "& fieldset": { borderColor: "#3f3f46" },
-    "&:hover fieldset": { borderColor: "#71717a" },
-    "&.Mui-focused fieldset": { borderColor: "#a855f7" },
-  },
-  "& .MuiInputLabel-root": { color: "#71717a" },
-  "& .MuiSelect-icon": { color: "#71717a" },
-};
-
-const cellSx = { color: "#d4d4d8", borderColor: "#27272a" };
-const headSx = { color: "#a1a1aa", borderColor: "#27272a", fontWeight: 600 };
+// ── Status / type config ──────────────────────────────────────────────────────
 
 const STATUS_CONFIG = {
-  DRAFT: { label: "Draft", bgColor: "#3f3f4622", color: "#a1a1aa" },
-  OPEN: { label: "Open", bgColor: "#16a34a22", color: "#4ade80" },
-  CLOSED: { label: "Closed", bgColor: "#ca8a0422", color: "#fbbf24" },
-  ARCHIVED: { label: "Archived", bgColor: "#0369a122", color: "#38bdf8" },
-  CANCELLED: { label: "Cancelled", bgColor: "#dc262622", color: "#f87171" },
-  POSTPONED: { label: "Postponed", bgColor: "#92400e22", color: "#fb923c" },
+  DRAFT: {
+    label: "Draft",
+    bg: "rgba(161,161,170,0.1)",
+    text: "#a1a1aa",
+    border: "rgba(161,161,170,0.2)",
+  },
+  OPEN: {
+    label: "Open",
+    bg: "rgba(34,197,94,0.1)",
+    text: "#4ade80",
+    border: "rgba(34,197,94,0.2)",
+  },
+  CLOSED: {
+    label: "Closed",
+    bg: "rgba(234,179,8,0.1)",
+    text: "#fbbf24",
+    border: "rgba(234,179,8,0.2)",
+  },
+  ARCHIVED: {
+    label: "Archived",
+    bg: "rgba(59,130,246,0.1)",
+    text: "#60a5fa",
+    border: "rgba(59,130,246,0.2)",
+  },
+  CANCELLED: {
+    label: "Cancelled",
+    bg: "rgba(239,68,68,0.1)",
+    text: "#f87171",
+    border: "rgba(239,68,68,0.2)",
+  },
+  POSTPONED: {
+    label: "Postponed",
+    bg: "rgba(249,115,22,0.1)",
+    text: "#fb923c",
+    border: "rgba(249,115,22,0.2)",
+  },
 };
 
-// ─────────────────────────────────────── sub-component: toggle switch ──
+const EVENT_TYPE_CONFIG = {
+  COMPETITION: {
+    bg: "rgba(168,85,247,0.1)",
+    text: "#c084fc",
+    border: "rgba(168,85,247,0.2)",
+  },
+  WORKSHOP: {
+    bg: "rgba(59,130,246,0.1)",
+    text: "#60a5fa",
+    border: "rgba(59,130,246,0.2)",
+  },
+  EVENT: {
+    bg: "rgba(34,197,94,0.1)",
+    text: "#4ade80",
+    border: "rgba(34,197,94,0.2)",
+  },
+};
 
-function CompetitionToggles({ competition, onRefresh }) {
+// ── Shared primitive components ───────────────────────────────────────────────
+
+function Pill({ bg, text, border, children }) {
+  return (
+    <Box
+      component="span"
+      sx={{
+        px: 1.25,
+        py: 0.35,
+        borderRadius: "5px",
+        fontSize: 10,
+        fontWeight: 600,
+        fontFamily: "'DM Mono', monospace",
+        letterSpacing: "0.04em",
+        textTransform: "uppercase",
+        background: bg,
+        color: text,
+        border: `1px solid ${border}`,
+        display: "inline-block",
+        lineHeight: 1.6,
+        whiteSpace: "nowrap",
+      }}
+    >
+      {children}
+    </Box>
+  );
+}
+
+function StatusPill({ status }) {
+  const c = STATUS_CONFIG[status] || STATUS_CONFIG.DRAFT;
+  return (
+    <Pill bg={c.bg} text={c.text} border={c.border}>
+      {c.label}
+    </Pill>
+  );
+}
+
+function EventTypePill({ type }) {
+  const c = EVENT_TYPE_CONFIG[type] || EVENT_TYPE_CONFIG.COMPETITION;
+  return (
+    <Pill bg={c.bg} text={c.text} border={c.border}>
+      {type || "—"}
+    </Pill>
+  );
+}
+
+const RowDivider = () => (
+  <Box sx={{ height: "1px", background: "rgba(255,255,255,0.05)" }} />
+);
+
+const btnBase = {
+  border: "none",
+  borderRadius: 7,
+  cursor: "pointer",
+  fontSize: 12,
+  fontFamily: "'Syne', sans-serif",
+  fontWeight: 500,
+  padding: "7px 14px",
+  letterSpacing: "0.02em",
+  transition: "all 0.15s",
+  display: "flex",
+  alignItems: "center",
+  gap: 5,
+};
+
+function GhostBtn({ onClick, children, disabled }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      style={{
+        ...btnBase,
+        background: "transparent",
+        border: "1px solid rgba(255,255,255,0.08)",
+        color: "rgba(255,255,255,0.45)",
+        opacity: disabled ? 0.4 : 1,
+        cursor: disabled ? "not-allowed" : "pointer",
+      }}
+      onMouseEnter={(e) => {
+        if (!disabled) {
+          e.currentTarget.style.borderColor = "rgba(255,255,255,0.18)";
+          e.currentTarget.style.color = "rgba(255,255,255,0.7)";
+        }
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.borderColor = "rgba(255,255,255,0.08)";
+        e.currentTarget.style.color = "rgba(255,255,255,0.45)";
+      }}
+    >
+      {children}
+    </button>
+  );
+}
+
+function PurpleBtn({ onClick, children, disabled }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      style={{
+        ...btnBase,
+        background: disabled ? "rgba(168,85,247,0.2)" : "rgba(168,85,247,0.85)",
+        border: "1px solid rgba(168,85,247,0.35)",
+        color: disabled ? "rgba(255,255,255,0.3)" : "#fff",
+        cursor: disabled ? "not-allowed" : "pointer",
+        padding: "8px 18px",
+        fontSize: 13,
+      }}
+      onMouseEnter={(e) => {
+        if (!disabled) e.currentTarget.style.background = "rgba(168,85,247,1)";
+      }}
+      onMouseLeave={(e) => {
+        if (!disabled)
+          e.currentTarget.style.background = "rgba(168,85,247,0.85)";
+      }}
+    >
+      {children}
+    </button>
+  );
+}
+
+function DangerBtn({ onClick, children, disabled }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      style={{
+        ...btnBase,
+        background: "rgba(239,68,68,0.1)",
+        border: "1px solid rgba(239,68,68,0.2)",
+        color: "#f87171",
+        opacity: disabled ? 0.5 : 1,
+        cursor: disabled ? "not-allowed" : "pointer",
+      }}
+      onMouseEnter={(e) => {
+        if (!disabled)
+          e.currentTarget.style.background = "rgba(239,68,68,0.18)";
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.background = "rgba(239,68,68,0.1)";
+      }}
+    >
+      {children}
+    </button>
+  );
+}
+
+function SmallActionBtn({ onClick, children, color, hoverBg, disabled }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      style={{
+        ...btnBase,
+        padding: "5px 10px",
+        fontSize: 11,
+        background: "transparent",
+        border: `1px solid ${color}30`,
+        color,
+        opacity: disabled ? 0.5 : 1,
+        cursor: disabled ? "not-allowed" : "pointer",
+      }}
+      onMouseEnter={(e) => {
+        if (!disabled) e.currentTarget.style.background = hoverBg;
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.background = "transparent";
+      }}
+    >
+      {children}
+    </button>
+  );
+}
+
+function NativeSelect({ value, onChange, children }) {
+  return (
+    <select
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      style={{
+        padding: "8px 12px",
+        background: "rgba(255,255,255,0.04)",
+        border: "1px solid rgba(255,255,255,0.08)",
+        borderRadius: 8,
+        color: "rgba(255,255,255,0.65)",
+        fontSize: 13,
+        fontFamily: "'Syne', sans-serif",
+        outline: "none",
+        cursor: "pointer",
+      }}
+    >
+      {children}
+    </select>
+  );
+}
+
+function Label({ children }) {
+  return (
+    <Typography
+      sx={{
+        fontSize: 9.5,
+        letterSpacing: "0.18em",
+        textTransform: "uppercase",
+        color: "rgba(255,255,255,0.2)",
+        fontFamily: "'Syne', sans-serif",
+        mb: 0.5,
+      }}
+    >
+      {children}
+    </Typography>
+  );
+}
+
+// ── InlineToggle ──────────────────────────────────────────────────────────────
+
+function InlineToggle({ label, checked, onChange, disabled }) {
+  return (
+    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+      <button
+        type="button"
+        onClick={() => !disabled && onChange(!checked)}
+        disabled={disabled}
+        style={{
+          width: 32,
+          height: 18,
+          borderRadius: 9,
+          border: "none",
+          background: checked
+            ? "rgba(168,85,247,0.7)"
+            : "rgba(255,255,255,0.1)",
+          position: "relative",
+          cursor: disabled ? "not-allowed" : "pointer",
+          transition: "background 0.2s",
+          padding: 0,
+          flexShrink: 0,
+        }}
+      >
+        <span
+          style={{
+            position: "absolute",
+            top: 2,
+            left: checked ? 14 : 2,
+            width: 14,
+            height: 14,
+            borderRadius: "50%",
+            background: "#fff",
+            transition: "left 0.2s",
+          }}
+        />
+      </button>
+      <Typography
+        sx={{
+          fontSize: 11,
+          color: "rgba(255,255,255,0.35)",
+          fontFamily: "'DM Mono', monospace",
+        }}
+      >
+        {label}
+      </Typography>
+    </Box>
+  );
+}
+
+// ── CompetitionToggles (inline row controls) ──────────────────────────────────
+
+function CompetitionToggles({ competition }) {
   const { enqueueSnackbar } = useSnackbar();
   const { mutate: toggleReg, isPending: togglingReg } =
     useToggleRegistrations();
@@ -93,82 +380,81 @@ function CompetitionToggles({ competition, onRefresh }) {
   const { mutate: toggleReadonly, isPending: togglingRO } =
     useToggleReadOnlyMode();
 
-  function toggle(action, label) {
-    action(competition.id, {
-      onSuccess: () => {
-        enqueueSnackbar(`${label} updated`, { variant: "success" });
-        onRefresh?.();
+  function handleToggleRegistrations(nextValue) {
+    toggleReg(
+      { competitionId: competition.id, registrationsOpen: nextValue },
+      {
+        onSuccess: () =>
+          enqueueSnackbar("Registrations updated", { variant: "success" }),
+        onError: (err) =>
+          enqueueSnackbar(
+            err?.response?.data?.message || "Failed to update registrations",
+            { variant: "error" },
+          ),
       },
-      onError: (err) => {
-        enqueueSnackbar(
-          err?.response?.data?.message ||
-            err?.message ||
-            `Failed to update ${label}`,
-          { variant: "error" },
-        );
+    );
+  }
+
+  function handleToggleFrozen(nextValue) {
+    freeze(
+      { competitionId: competition.id, frozen: nextValue },
+      {
+        onSuccess: () =>
+          enqueueSnackbar("Changes freeze updated", { variant: "success" }),
+        onError: (err) =>
+          enqueueSnackbar(
+            err?.response?.data?.message || "Failed to update freeze state",
+            { variant: "error" },
+          ),
       },
-    });
+    );
+  }
+
+  function handleToggleReadOnly(nextValue) {
+    toggleReadonly(
+      { competitionId: competition.id, readOnly: nextValue },
+      {
+        onSuccess: () =>
+          enqueueSnackbar("Read-only mode updated", { variant: "success" }),
+        onError: (err) =>
+          enqueueSnackbar(
+            err?.response?.data?.message || "Failed to update read-only mode",
+            { variant: "error" },
+          ),
+      },
+    );
   }
 
   return (
-    <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
-      <FormControlLabel
-        control={
-          <Switch
-            checked={!!competition.registrationsOpen}
-            onChange={() => toggle(toggleReg, "Registrations")}
-            disabled={togglingReg}
-            size="small"
-            sx={{ "& .MuiSwitch-thumb": { backgroundColor: "#a855f7" } }}
-          />
-        }
-        label={
-          <Typography variant="caption" sx={{ color: "#a1a1aa" }}>
-            Reg. Open
-          </Typography>
-        }
+    <Box sx={{ display: "flex", flexDirection: "column", gap: 0.75 }}>
+      <InlineToggle
+        label="Reg. Open"
+        checked={!!competition.registrationsOpen}
+        onChange={handleToggleRegistrations}
+        disabled={togglingReg}
       />
-      <FormControlLabel
-        control={
-          <Switch
-            checked={!!competition.changesFrozen}
-            onChange={() => toggle(freeze, "Changes freeze")}
-            disabled={freezing}
-            size="small"
-          />
-        }
-        label={
-          <Typography variant="caption" sx={{ color: "#a1a1aa" }}>
-            Frozen
-          </Typography>
-        }
+      <InlineToggle
+        label="Frozen"
+        checked={!!competition.changesFrozen}
+        onChange={handleToggleFrozen}
+        disabled={freezing}
       />
-      <FormControlLabel
-        control={
-          <Switch
-            checked={!!competition.readOnlyMode}
-            onChange={() => toggle(toggleReadonly, "Read-only mode")}
-            disabled={togglingRO}
-            size="small"
-          />
-        }
-        label={
-          <Typography variant="caption" sx={{ color: "#a1a1aa" }}>
-            Read-only
-          </Typography>
-        }
+      <InlineToggle
+        label="Read-only"
+        checked={!!competition.readOnlyMode}
+        onChange={handleToggleReadOnly}
+        disabled={togglingRO}
       />
     </Box>
   );
 }
 
-// ──────────────────────────────────── sub-component: manage dialog ──
+// ── ManageDialog ──────────────────────────────────────────────────────────────
 
 function ManageDialog({ competition, open, onClose }) {
   const { enqueueSnackbar } = useSnackbar();
-  const [tab, setTab] = useState(0);
+  const [tab, setTab] = useState("judges");
 
-  // Judge management
   const [judgeUserId, setJudgeUserId] = useState("");
   const { data: judges = [], isLoading: judgesLoading } = useCompetitionJudges(
     open ? competition?.id : null,
@@ -178,7 +464,6 @@ function ManageDialog({ competition, open, onClose }) {
   const { mutate: removeJudge } = useRemoveJudge();
   const [removingJudgeId, setRemovingJudgeId] = useState(null);
 
-  // Volunteer management
   const [volunteerUserId, setVolunteerUserId] = useState("");
   const { data: volunteers = [], isLoading: volunteersLoading } =
     useCompetitionVolunteers(open ? competition?.id : null);
@@ -191,107 +476,23 @@ function ManageDialog({ competition, open, onClose }) {
   const { mutate: removeVolunteer } = useRemoveVolunteer();
   const [removingVolId, setRemovingVolId] = useState(null);
 
-  // Cancel / postpone
   const [dangerAction, setDangerAction] = useState("");
   const [dangerDate, setDangerDate] = useState("");
-  const [dangerNote, setDangerNote] = useState("");
   const { mutate: cancelOrPostpone, isPending: dangerPending } =
     useCancelOrPostpone();
 
-  function handleAssignJudge() {
-    if (!judgeUserId) return;
-    assignJudge(
-      { competitionId: competition.id, judgeUserId },
-      {
-        onSuccess: () => {
-          enqueueSnackbar("Judge assigned", { variant: "success" });
-          setJudgeUserId("");
-        },
-        onError: (err) =>
-          enqueueSnackbar(
-            err?.response?.data?.message || "Failed to assign judge",
-            { variant: "error" },
-          ),
-      },
-    );
-  }
-
-  function handleRemoveJudge(assignmentId) {
-    setRemovingJudgeId(assignmentId);
-    removeJudge(assignmentId, {
-      onSuccess: () => enqueueSnackbar("Judge removed", { variant: "success" }),
-      onError: (err) =>
-        enqueueSnackbar(
-          err?.response?.data?.message || "Failed to remove judge",
-          { variant: "error" },
-        ),
-      onSettled: () => setRemovingJudgeId(null),
-    });
-  }
-
-  function handleAssignVolunteer() {
-    if (!volunteerUserId) return;
-    assignVolunteer(
-      { competitionId: competition.id, userId: volunteerUserId },
-      {
-        onSuccess: () => {
-          enqueueSnackbar("Volunteer assigned", { variant: "success" });
-          setVolunteerUserId("");
-        },
-        onError: (err) =>
-          enqueueSnackbar(
-            err?.response?.data?.message || "Failed to assign volunteer",
-            { variant: "error" },
-          ),
-      },
-    );
-  }
-
-  function handleRemoveVolunteer(assignmentId) {
-    setRemovingVolId(assignmentId);
-    removeVolunteer(assignmentId, {
-      onSuccess: () =>
-        enqueueSnackbar("Volunteer removed", { variant: "success" }),
-      onError: (err) =>
-        enqueueSnackbar(
-          err?.response?.data?.message || "Failed to remove volunteer",
-          { variant: "error" },
-        ),
-      onSettled: () => setRemovingVolId(null),
-    });
-  }
-
-  function handleDangerAction() {
-    cancelOrPostpone(
-      {
-        competitionId: competition.id,
-        action: dangerAction,
-        newDate: dangerDate || undefined,
-        notes: dangerNote || undefined,
-      },
-      {
-        onSuccess: () => {
-          enqueueSnackbar(
-            `Competition ${dangerAction === "cancel" ? "cancelled" : "postponed"}`,
-            { variant: "success" },
-          );
-          onClose();
-        },
-        onError: (err) =>
-          enqueueSnackbar(err?.response?.data?.message || "Action failed", {
-            variant: "error",
-          }),
-      },
-    );
-  }
-
   if (!competition) return null;
 
-  // Determine which judgeUsers/volunteerUsers are not yet assigned
   const assignedJudgeIds = new Set(judges.map((j) => j.userId || j.user?.id));
   const availableJudges = judgeUsers.filter((u) => !assignedJudgeIds.has(u.id));
   const assignedVolIds = new Set(volunteers.map((v) => v.userId || v.user?.id));
   const availableVols = volunteerUsers.filter((u) => !assignedVolIds.has(u.id));
+
+  const tabList = [
+    { key: "judges", label: "Judges" },
+    { key: "volunteers", label: "Volunteers" },
+    { key: "controls", label: "Controls" },
+  ];
 
   return (
     <Dialog
@@ -301,622 +502,1171 @@ function ManageDialog({ competition, open, onClose }) {
       fullWidth
       PaperProps={{
         sx: {
-          backgroundColor: "#18181b",
-          border: "1px solid #27272a",
-          borderRadius: 3,
+          background: "#0e0e0e",
+          border: "1px solid rgba(255,255,255,0.08)",
+          borderRadius: "14px",
+          boxShadow: "0 24px 64px rgba(0,0,0,0.7)",
         },
       }}
     >
-      <DialogTitle sx={{ color: "#fff", fontWeight: 700, pb: 0 }}>
-        {competition.name || competition.title}
+      {/* Dialog header */}
+      <Box
+        sx={{
+          px: 3,
+          pt: 2.5,
+          pb: 1.5,
+          borderBottom: "1px solid rgba(255,255,255,0.06)",
+        }}
+      >
         <Typography
-          variant="caption"
-          sx={{ color: "#71717a", display: "block" }}
+          sx={{
+            fontSize: 15,
+            fontWeight: 600,
+            color: "#f4f4f5",
+            fontFamily: "'Syne', sans-serif",
+          }}
+        >
+          {competition.title || competition.name}
+        </Typography>
+        <Typography
+          sx={{
+            fontSize: 11,
+            color: "rgba(255,255,255,0.25)",
+            fontFamily: "'DM Mono', monospace",
+            mt: 0.25,
+          }}
         >
           Manage judges, volunteers and controls
         </Typography>
-      </DialogTitle>
 
-      <Tabs
-        value={tab}
-        onChange={(_, v) => setTab(v)}
-        sx={{
-          px: 3,
-          "& .MuiTab-root": {
-            color: "#71717a",
-            textTransform: "none",
-            fontWeight: 500,
-          },
-          "& .Mui-selected": { color: "#fff" },
-          "& .MuiTabs-indicator": { backgroundColor: "#a855f7" },
-        }}
-      >
-        <Tab label="Judges" />
-        <Tab label="Volunteers" />
-        <Tab label="Controls" />
-      </Tabs>
-      <Divider sx={{ borderColor: "#27272a" }} />
+        {/* Tab switcher */}
+        <Box
+          sx={{
+            display: "flex",
+            gap: 0.5,
+            mt: 2,
+            p: 0.5,
+            background: "#0c0c0c",
+            border: "1px solid rgba(255,255,255,0.06)",
+            borderRadius: "8px",
+            width: "fit-content",
+          }}
+        >
+          {tabList.map((t) => (
+            <button
+              key={t.key}
+              onClick={() => setTab(t.key)}
+              style={{
+                padding: "6px 14px",
+                background:
+                  tab === t.key ? "rgba(255,255,255,0.08)" : "transparent",
+                border:
+                  tab === t.key
+                    ? "1px solid rgba(255,255,255,0.12)"
+                    : "1px solid transparent",
+                borderRadius: "6px",
+                color:
+                  tab === t.key
+                    ? "rgba(255,255,255,0.85)"
+                    : "rgba(255,255,255,0.3)",
+                fontSize: 12,
+                fontFamily: "'Syne', sans-serif",
+                cursor: "pointer",
+                transition: "all 0.15s",
+              }}
+            >
+              {t.label}
+            </button>
+          ))}
+        </Box>
+      </Box>
 
-      <DialogContent sx={{ pt: 2 }}>
-        {/* ── JUDGES TAB ── */}
-        {tab === 0 && (
+      <Box sx={{ px: 3, py: 2.5, minHeight: 240 }}>
+        {/* Judges tab */}
+        {tab === "judges" && (
           <Box>
             <Box sx={{ display: "flex", gap: 1, mb: 2 }}>
-              <TextField
-                select
-                label="Add judge"
+              <select
                 value={judgeUserId}
                 onChange={(e) => setJudgeUserId(e.target.value)}
-                size="small"
-                fullWidth
-                sx={inputSx}
-              >
-                <MenuItem value="">Select a judge…</MenuItem>
-                {availableJudges.map((u) => (
-                  <MenuItem key={u.id} value={u.id}>
-                    {u.name} — {u.email}
-                  </MenuItem>
-                ))}
-              </TextField>
-              <Button
-                variant="contained"
-                onClick={handleAssignJudge}
-                disabled={!judgeUserId || assigningJudge}
-                startIcon={
-                  assigningJudge ? (
-                    <CircularProgress size={14} />
-                  ) : (
-                    <UserPlus size={14} />
-                  )
-                }
-                sx={{
-                  backgroundColor: "#a855f7",
-                  "&:hover": { backgroundColor: "#9333ea" },
-                  textTransform: "none",
-                  whiteSpace: "nowrap",
+                style={{
+                  flex: 1,
+                  padding: "8px 12px",
+                  background: "rgba(255,255,255,0.04)",
+                  border: "1px solid rgba(255,255,255,0.08)",
+                  borderRadius: 8,
+                  color: "rgba(255,255,255,0.65)",
+                  fontSize: 13,
+                  fontFamily: "'Syne', sans-serif",
+                  outline: "none",
                 }}
               >
+                <option value="">Select a judge…</option>
+                {availableJudges.map((u) => (
+                  <option
+                    key={u.id}
+                    value={u.id}
+                    style={{ background: "#0e0e0e" }}
+                  >
+                    {u.name} — {u.email}
+                  </option>
+                ))}
+              </select>
+              <SmallActionBtn
+                onClick={() => {
+                  if (!judgeUserId) return;
+                  assignJudge(
+                    { competitionId: competition.id, judgeUserId },
+                    {
+                      onSuccess: () => {
+                        enqueueSnackbar("Judge assigned", {
+                          variant: "success",
+                        });
+                        setJudgeUserId("");
+                      },
+                      onError: (err) =>
+                        enqueueSnackbar(
+                          err?.response?.data?.message || "Failed",
+                          { variant: "error" },
+                        ),
+                    },
+                  );
+                }}
+                color="#a855f7"
+                hoverBg="rgba(168,85,247,0.1)"
+                disabled={!judgeUserId || assigningJudge}
+              >
+                {assigningJudge ? (
+                  <CircularProgress size={11} sx={{ color: "#a855f7" }} />
+                ) : (
+                  <UserPlus size={11} />
+                )}
                 Add
-              </Button>
+              </SmallActionBtn>
             </Box>
             {judgesLoading ? (
-              <LoadingState message="Loading judges…" size="small" />
+              <LoadingState message="Loading…" size="small" />
             ) : judges.length === 0 ? (
-              <Typography variant="body2" sx={{ color: "#52525b", py: 2 }}>
+              <Typography
+                sx={{
+                  color: "rgba(255,255,255,0.15)",
+                  fontSize: 12,
+                  fontFamily: "'DM Mono', monospace",
+                  py: 2,
+                }}
+              >
                 No judges assigned yet
               </Typography>
             ) : (
-              <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
-                {judges.map((j) => {
-                  const name = j.user?.name || j.userName || j.name || "—";
-                  const email = j.user?.email || j.userEmail || j.email || "";
-                  const isRemoving = removingJudgeId === j.id;
-                  return (
-                    <Box
-                      key={j.id}
+              judges.map((j) => {
+                const name = j.user?.name || j.userName || j.name || "—";
+                const email = j.user?.email || j.userEmail || j.email || "";
+                return (
+                  <Box
+                    key={j.id}
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 1.5,
+                      py: 1.25,
+                      borderBottom: "1px solid rgba(255,255,255,0.04)",
+                    }}
+                  >
+                    <Avatar
                       sx={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 1.5,
-                        p: 1.5,
-                        borderRadius: 2,
-                        backgroundColor: "#1f1f23",
+                        width: 28,
+                        height: 28,
+                        background: "rgba(168,85,247,0.35)",
+                        fontSize: 11,
                       }}
                     >
-                      <Avatar
+                      {name.charAt(0).toUpperCase()}
+                    </Avatar>
+                    <Box sx={{ flex: 1, minWidth: 0 }}>
+                      <Typography
                         sx={{
-                          width: 32,
-                          height: 32,
-                          backgroundColor: "#7c3aed",
                           fontSize: 13,
+                          color: "#e4e4e7",
+                          fontFamily: "'Syne', sans-serif",
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                          whiteSpace: "nowrap",
                         }}
                       >
-                        {name.charAt(0).toUpperCase()}
-                      </Avatar>
-                      <Box sx={{ flex: 1 }}>
-                        <Typography
-                          variant="body2"
-                          sx={{ color: "#fff", fontWeight: 500 }}
-                        >
-                          {name}
-                        </Typography>
-                        <Typography variant="caption" sx={{ color: "#71717a" }}>
-                          {email}
-                        </Typography>
-                      </Box>
-                      {j.isHeadJudge && (
-                        <Chip
-                          label="Head"
-                          size="small"
-                          sx={{
-                            backgroundColor: "#a855f720",
-                            color: "#c084fc",
-                            fontSize: 10,
-                          }}
-                        />
-                      )}
-                      <IconButton
-                        size="small"
-                        onClick={() => handleRemoveJudge(j.id)}
-                        disabled={isRemoving}
+                        {name}
+                      </Typography>
+                      <Typography
                         sx={{
-                          color: "#f87171",
-                          "&:hover": { backgroundColor: "#ef444420" },
+                          fontSize: 11,
+                          color: "rgba(255,255,255,0.25)",
+                          fontFamily: "'DM Mono', monospace",
                         }}
                       >
-                        {isRemoving ? (
-                          <CircularProgress size={14} />
-                        ) : (
-                          <Trash2 size={14} />
-                        )}
-                      </IconButton>
+                        {email}
+                      </Typography>
                     </Box>
-                  );
-                })}
-              </Box>
+                    {j.isHeadJudge && (
+                      <Pill
+                        bg="rgba(168,85,247,0.1)"
+                        text="#c084fc"
+                        border="rgba(168,85,247,0.2)"
+                      >
+                        Head
+                      </Pill>
+                    )}
+                    <button
+                      type="button"
+                      disabled={removingJudgeId === j.id}
+                      onClick={() => {
+                        setRemovingJudgeId(j.id);
+                        removeJudge(
+                          {
+                            judgeAssignmentId: j.id,
+                            competitionId: competition.id,
+                          },
+                          {
+                            onSuccess: () =>
+                              enqueueSnackbar("Judge removed", {
+                                variant: "success",
+                              }),
+                            onError: (e) =>
+                              enqueueSnackbar(
+                                e?.response?.data?.message || "Failed",
+                                { variant: "error" },
+                              ),
+                            onSettled: () => setRemovingJudgeId(null),
+                          },
+                        );
+                      }}
+                      style={{
+                        background: "transparent",
+                        border: "none",
+                        cursor: "pointer",
+                        color: "#f87171",
+                        padding: 4,
+                        lineHeight: 0,
+                      }}
+                    >
+                      {removingJudgeId === j.id ? (
+                        <CircularProgress size={11} sx={{ color: "#f87171" }} />
+                      ) : (
+                        <Trash2 size={13} />
+                      )}
+                    </button>
+                  </Box>
+                );
+              })
             )}
           </Box>
         )}
 
-        {/* ── VOLUNTEERS TAB ── */}
-        {tab === 1 && (
+        {/* Volunteers tab */}
+        {tab === "volunteers" && (
           <Box>
             <Box sx={{ display: "flex", gap: 1, mb: 2 }}>
-              <TextField
-                select
-                label="Add volunteer"
+              <select
                 value={volunteerUserId}
                 onChange={(e) => setVolunteerUserId(e.target.value)}
-                size="small"
-                fullWidth
-                sx={inputSx}
-              >
-                <MenuItem value="">Select a volunteer…</MenuItem>
-                {availableVols.map((u) => (
-                  <MenuItem key={u.id} value={u.id}>
-                    {u.name} — {u.email}
-                  </MenuItem>
-                ))}
-              </TextField>
-              <Button
-                variant="contained"
-                onClick={handleAssignVolunteer}
-                disabled={!volunteerUserId || assigningVol}
-                startIcon={
-                  assigningVol ? (
-                    <CircularProgress size={14} />
-                  ) : (
-                    <UserPlus size={14} />
-                  )
-                }
-                sx={{
-                  backgroundColor: "#a855f7",
-                  "&:hover": { backgroundColor: "#9333ea" },
-                  textTransform: "none",
-                  whiteSpace: "nowrap",
+                style={{
+                  flex: 1,
+                  padding: "8px 12px",
+                  background: "rgba(255,255,255,0.04)",
+                  border: "1px solid rgba(255,255,255,0.08)",
+                  borderRadius: 8,
+                  color: "rgba(255,255,255,0.65)",
+                  fontSize: 13,
+                  fontFamily: "'Syne', sans-serif",
+                  outline: "none",
                 }}
               >
+                <option value="">Select a volunteer…</option>
+                {availableVols.map((u) => (
+                  <option
+                    key={u.id}
+                    value={u.id}
+                    style={{ background: "#0e0e0e" }}
+                  >
+                    {u.name} — {u.email}
+                  </option>
+                ))}
+              </select>
+              <SmallActionBtn
+                onClick={() => {
+                  if (!volunteerUserId) return;
+                  assignVolunteer(
+                    {
+                      competitionId: competition.id,
+                      volunteerUserId,
+                    },
+                    {
+                      onSuccess: () => {
+                        enqueueSnackbar("Volunteer assigned", {
+                          variant: "success",
+                        });
+                        setVolunteerUserId("");
+                      },
+                      onError: (err) =>
+                        enqueueSnackbar(
+                          err?.response?.data?.message || "Failed",
+                          { variant: "error" },
+                        ),
+                    },
+                  );
+                }}
+                color="#60a5fa"
+                hoverBg="rgba(59,130,246,0.1)"
+                disabled={!volunteerUserId || assigningVol}
+              >
+                {assigningVol ? (
+                  <CircularProgress size={11} sx={{ color: "#60a5fa" }} />
+                ) : (
+                  <UserPlus size={11} />
+                )}
                 Add
-              </Button>
+              </SmallActionBtn>
             </Box>
             {volunteersLoading ? (
-              <LoadingState message="Loading volunteers…" size="small" />
+              <LoadingState message="Loading…" size="small" />
             ) : volunteers.length === 0 ? (
-              <Typography variant="body2" sx={{ color: "#52525b", py: 2 }}>
+              <Typography
+                sx={{
+                  color: "rgba(255,255,255,0.15)",
+                  fontSize: 12,
+                  fontFamily: "'DM Mono', monospace",
+                  py: 2,
+                }}
+              >
                 No volunteers assigned yet
               </Typography>
             ) : (
-              <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
-                {volunteers.map((v) => {
-                  const name = v.user?.name || v.userName || v.name || "—";
-                  const email = v.user?.email || v.userEmail || v.email || "";
-                  const isRemoving = removingVolId === v.id;
-                  return (
-                    <Box
-                      key={v.id}
+              volunteers.map((v) => {
+                const name = v.user?.name || v.userName || v.name || "—";
+                const email = v.user?.email || v.userEmail || v.email || "";
+                return (
+                  <Box
+                    key={v.id}
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 1.5,
+                      py: 1.25,
+                      borderBottom: "1px solid rgba(255,255,255,0.04)",
+                    }}
+                  >
+                    <Avatar
                       sx={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 1.5,
-                        p: 1.5,
-                        borderRadius: 2,
-                        backgroundColor: "#1f1f23",
+                        width: 28,
+                        height: 28,
+                        background: "rgba(59,130,246,0.35)",
+                        fontSize: 11,
                       }}
                     >
-                      <Avatar
+                      {name.charAt(0).toUpperCase()}
+                    </Avatar>
+                    <Box sx={{ flex: 1, minWidth: 0 }}>
+                      <Typography
                         sx={{
-                          width: 32,
-                          height: 32,
-                          backgroundColor: "#0369a1",
                           fontSize: 13,
+                          color: "#e4e4e7",
+                          fontFamily: "'Syne', sans-serif",
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                          whiteSpace: "nowrap",
                         }}
                       >
-                        {name.charAt(0).toUpperCase()}
-                      </Avatar>
-                      <Box sx={{ flex: 1 }}>
-                        <Typography
-                          variant="body2"
-                          sx={{ color: "#fff", fontWeight: 500 }}
-                        >
-                          {name}
-                        </Typography>
-                        <Typography variant="caption" sx={{ color: "#71717a" }}>
-                          {email}
-                        </Typography>
-                      </Box>
-                      <IconButton
-                        size="small"
-                        onClick={() => handleRemoveVolunteer(v.id)}
-                        disabled={isRemoving}
+                        {name}
+                      </Typography>
+                      <Typography
                         sx={{
-                          color: "#f87171",
-                          "&:hover": { backgroundColor: "#ef444420" },
+                          fontSize: 11,
+                          color: "rgba(255,255,255,0.25)",
+                          fontFamily: "'DM Mono', monospace",
                         }}
                       >
-                        {isRemoving ? (
-                          <CircularProgress size={14} />
-                        ) : (
-                          <Trash2 size={14} />
-                        )}
-                      </IconButton>
+                        {email}
+                      </Typography>
                     </Box>
-                  );
-                })}
-              </Box>
+                    <button
+                      type="button"
+                      disabled={removingVolId === v.id}
+                      onClick={() => {
+                        setRemovingVolId(v.id);
+                        removeVolunteer(
+                          {
+                            volunteerAssignmentId: v.id,
+                            competitionId: competition.id,
+                          },
+                          {
+                            onSuccess: () =>
+                              enqueueSnackbar("Volunteer removed", {
+                                variant: "success",
+                              }),
+                            onError: (e) =>
+                              enqueueSnackbar(
+                                e?.response?.data?.message || "Failed",
+                                { variant: "error" },
+                              ),
+                            onSettled: () => setRemovingVolId(null),
+                          },
+                        );
+                      }}
+                      style={{
+                        background: "transparent",
+                        border: "none",
+                        cursor: "pointer",
+                        color: "#f87171",
+                        padding: 4,
+                        lineHeight: 0,
+                      }}
+                    >
+                      {removingVolId === v.id ? (
+                        <CircularProgress size={11} sx={{ color: "#f87171" }} />
+                      ) : (
+                        <Trash2 size={13} />
+                      )}
+                    </button>
+                  </Box>
+                );
+              })
             )}
           </Box>
         )}
 
-        {/* ── CONTROLS TAB ── */}
-        {tab === 2 && (
+        {/* Controls tab */}
+        {tab === "controls" && (
           <Box>
-            <Alert
-              severity="warning"
-              icon={<AlertTriangle size={16} />}
+            <Box
               sx={{
-                backgroundColor: "#92400e22",
-                color: "#fbbf24",
-                border: "1px solid #92400e",
-                mb: 3,
-                "& .MuiAlert-icon": { color: "#fbbf24" },
+                p: 1.5,
+                borderRadius: "8px",
+                background: "rgba(234,179,8,0.06)",
+                border: "1px solid rgba(234,179,8,0.15)",
+                mb: 2.5,
               }}
             >
-              These actions are irreversible. Proceed with caution.
-            </Alert>
-
-            <Typography
-              variant="subtitle2"
-              sx={{ color: "#a1a1aa", mb: 1.5, fontWeight: 600 }}
-            >
-              Cancel or Postpone Competition
-            </Typography>
-
-            <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-              <TextField
-                select
-                label="Action"
-                value={dangerAction}
-                onChange={(e) => setDangerAction(e.target.value)}
-                size="small"
-                fullWidth
-                sx={inputSx}
+              <Typography
+                sx={{
+                  fontSize: 12,
+                  color: "#fbbf24",
+                  fontFamily: "'Syne', sans-serif",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 1,
+                }}
               >
-                <MenuItem value="">Select action…</MenuItem>
-                <MenuItem value="cancel">Cancel competition</MenuItem>
-                <MenuItem value="postpone">Postpone competition</MenuItem>
-              </TextField>
+                <AlertTriangle size={13} /> These actions are irreversible.
+                Proceed with caution.
+              </Typography>
+            </Box>
+
+            <Label>Cancel or Postpone</Label>
+            <Box
+              sx={{ display: "flex", flexDirection: "column", gap: 1.5, mt: 1 }}
+            >
+              <select
+                value={dangerAction}
+                onChange={(e) => {
+                  setDangerAction(e.target.value);
+                  if (e.target.value !== "postpone") {
+                    setDangerDate("");
+                  }
+                }}
+                style={{
+                  width: "100%",
+                  padding: "9px 12px",
+                  background: "rgba(255,255,255,0.04)",
+                  border: "1px solid rgba(255,255,255,0.1)",
+                  borderRadius: 8,
+                  color: "rgba(255,255,255,0.75)",
+                  fontSize: 13,
+                  fontFamily: "'Syne', sans-serif",
+                  outline: "none",
+                }}
+              >
+                <option value="">Select action…</option>
+                <option value="cancel">Cancel competition</option>
+                <option value="postpone">Postpone competition</option>
+              </select>
 
               {dangerAction === "postpone" && (
-                <TextField
-                  label="New Date"
+                <input
                   type="datetime-local"
                   value={dangerDate}
                   onChange={(e) => setDangerDate(e.target.value)}
-                  size="small"
-                  fullWidth
-                  InputLabelProps={{ shrink: true }}
-                  sx={inputSx}
+                  style={{
+                    width: "100%",
+                    padding: "9px 12px",
+                    background: "rgba(255,255,255,0.04)",
+                    border: "1px solid rgba(255,255,255,0.1)",
+                    borderRadius: 8,
+                    color: "rgba(255,255,255,0.75)",
+                    fontSize: 13,
+                    fontFamily: "'Syne', sans-serif",
+                    outline: "none",
+                    colorScheme: "dark",
+                    boxSizing: "border-box",
+                  }}
                 />
               )}
 
-              <TextField
-                label="Notes (optional)"
-                multiline
-                rows={2}
-                value={dangerNote}
-                onChange={(e) => setDangerNote(e.target.value)}
-                size="small"
-                fullWidth
-                sx={inputSx}
-              />
+              <DangerBtn
+                onClick={() => {
+                  const mappedStatus =
+                    dangerAction === "cancel"
+                      ? "CANCELLED"
+                      : dangerAction === "postpone"
+                        ? "POSTPONED"
+                        : "";
 
-              <Button
-                variant="contained"
-                onClick={handleDangerAction}
-                disabled={!dangerAction || dangerPending}
-                startIcon={
-                  dangerPending ? (
-                    <CircularProgress size={14} />
-                  ) : dangerAction === "cancel" ? (
-                    <XCircle size={14} />
-                  ) : (
-                    <Clock size={14} />
-                  )
-                }
-                sx={{
-                  backgroundColor: "#dc2626",
-                  "&:hover": { backgroundColor: "#b91c1c" },
-                  textTransform: "none",
-                  fontWeight: 600,
-                  alignSelf: "flex-start",
+                  if (!mappedStatus) return;
+
+                  cancelOrPostpone(
+                    {
+                      competitionId: competition.id,
+                      status: mappedStatus,
+                      autoNotify: true,
+                      newDate:
+                        dangerAction === "postpone" ? dangerDate : undefined,
+                    },
+                    {
+                      onSuccess: () => {
+                        enqueueSnackbar(
+                          `Competition ${dangerAction === "cancel" ? "cancelled" : "postponed"}`,
+                          { variant: "success" },
+                        );
+                        onClose();
+                      },
+                      onError: (err) =>
+                        enqueueSnackbar(
+                          err?.response?.data?.message || "Action failed",
+                          { variant: "error" },
+                        ),
+                    },
+                  );
                 }}
+                disabled={
+                  !dangerAction ||
+                  dangerPending ||
+                  (dangerAction === "postpone" && !dangerDate)
+                }
               >
+                {dangerPending ? (
+                  <CircularProgress size={11} sx={{ color: "#f87171" }} />
+                ) : dangerAction === "cancel" ? (
+                  <XCircle size={13} />
+                ) : (
+                  <Clock size={13} />
+                )}
                 {dangerAction === "postpone"
                   ? "Postpone"
                   : "Cancel Competition"}
-              </Button>
+              </DangerBtn>
             </Box>
           </Box>
         )}
-      </DialogContent>
+      </Box>
 
-      <DialogActions sx={{ px: 3, pb: 2 }}>
-        <Button
-          onClick={onClose}
-          sx={{ color: "#71717a", textTransform: "none" }}
-        >
-          Close
-        </Button>
-      </DialogActions>
+      <Box sx={{ px: 3, pb: 2.5, display: "flex", justifyContent: "flex-end" }}>
+        <GhostBtn onClick={onClose}>Close</GhostBtn>
+      </Box>
     </Dialog>
   );
 }
 
-// ─────────────────────────────────────────────────── main page ──
+// ── Main page ─────────────────────────────────────────────────────────────────
 
 export default function CompetitionsPage() {
+  const router = useRouter();
+  const { enqueueSnackbar } = useSnackbar();
   const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [eventTypeFilter, setEventTypeFilter] = useState("all");
   const [manageTarget, setManageTarget] = useState(null);
+  const [createOpen, setCreateOpen] = useState(false);
+  const [editTarget, setEditTarget] = useState(null);
+  const [deleteTarget, setDeleteTarget] = useState(null);
 
-  const { data: competitions = [], isLoading, refetch } = useCompetitions();
+  const { mutate: updateCompetition, isPending: publishingCompetition } =
+    useUpdateCompetition();
+  const { mutate: deleteCompetition, isPending: deletingCompetition } =
+    useDeleteCompetition();
+  const [publishingId, setPublishingId] = useState(null);
+  const [deletingId, setDeletingId] = useState(null);
 
-  const filtered = competitions.filter((c) => {
-    const name = (c.name || c.title || "").toLowerCase();
-    const matchesSearch = !search || name.includes(search.toLowerCase());
-    const matchesStatus = !statusFilter || c.status === statusFilter;
-    return matchesSearch && matchesStatus;
-  });
+  const { data: competitions = [], isLoading } = useCompetitions();
+
+  function handlePublishCompetition(comp) {
+    setPublishingId(comp.id);
+    updateCompetition(
+      {
+        competitionId: comp.id,
+        status: "OPEN",
+        registrationsOpen: true,
+      },
+      {
+        onSuccess: () => {
+          enqueueSnackbar("Competition published", { variant: "success" });
+        },
+        onError: (err) =>
+          enqueueSnackbar(
+            err?.response?.data?.message || "Failed to publish competition",
+            { variant: "error" },
+          ),
+        onSettled: () => setPublishingId(null),
+      },
+    );
+  }
+
+  function handleDeleteCompetition(comp) {
+    setDeleteTarget(comp);
+  }
+
+  function confirmDeleteCompetition() {
+    if (!deleteTarget) return;
+
+    setDeletingId(deleteTarget.id);
+    deleteCompetition(deleteTarget.id, {
+      onSuccess: () => {
+        enqueueSnackbar("Competition deleted", { variant: "success" });
+        setDeleteTarget(null);
+      },
+      onError: (err) =>
+        enqueueSnackbar(
+          err?.response?.data?.message || "Failed to delete competition",
+          { variant: "error" },
+        ),
+      onSettled: () => {
+        setDeletingId(null);
+      },
+    });
+  }
+
+  const filtered = useMemo(() => {
+    return competitions.filter((c) => {
+      const title = (c.title || c.name || "").toLowerCase();
+      const matchSearch = !search || title.includes(search.toLowerCase());
+      const matchStatus = statusFilter === "all" || c.status === statusFilter;
+      const matchType =
+        eventTypeFilter === "all" || c.eventType === eventTypeFilter;
+      return matchSearch && matchStatus && matchType;
+    });
+  }, [competitions, search, statusFilter, eventTypeFilter]);
+
+  const totalCount = competitions.length;
+  const openCount = competitions.filter((c) => c.status === "OPEN").length;
+  const draftCount = competitions.filter((c) => c.status === "DRAFT").length;
 
   return (
-    <Box>
+    <Box sx={{ p: { xs: 2, md: 4 }, maxWidth: 1400 }}>
       {/* Header */}
       <Box sx={{ mb: 4 }}>
-        <Typography
-          variant="h4"
-          sx={{ color: "#fff", fontWeight: 700, mb: 0.5 }}
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            mb: 0.5,
+          }}
         >
-          Competitions
-        </Typography>
-        <Typography variant="body2" sx={{ color: "#71717a" }}>
-          Manage competition settings, judges, volunteers and controls
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+            <Box
+              sx={{
+                width: 32,
+                height: 32,
+                borderRadius: "9px",
+                background: "#111",
+                border: "1px solid rgba(255,255,255,0.1)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <Trophy size={15} color="rgba(255,255,255,0.7)" />
+            </Box>
+            <Typography
+              sx={{
+                fontSize: 18,
+                fontWeight: 600,
+                color: "#f4f4f5",
+                fontFamily: "'Syne', sans-serif",
+                letterSpacing: "0.01em",
+              }}
+            >
+              Competitions
+            </Typography>
+          </Box>
+          <Box sx={{ display: "flex", gap: 1 }}>
+            <PurpleBtn onClick={() => setCreateOpen(true)}>
+              <Plus size={14} />
+              New Competition
+            </PurpleBtn>
+          </Box>
+        </Box>
+        <Typography
+          sx={{
+            fontSize: 12,
+            color: "rgba(255,255,255,0.3)",
+            fontFamily: "'Syne', sans-serif",
+            letterSpacing: "0.03em",
+            ml: 0.5,
+          }}
+        >
+          Manage competitions, judges, volunteers and registration controls
         </Typography>
       </Box>
 
-      {/* Filters */}
-      <Paper
+      {/* Stats */}
+      <Box
         sx={{
-          p: 2,
-          mb: 3,
-          backgroundColor: "#18181b",
-          border: "1px solid #27272a",
-          borderRadius: 3,
-          display: "flex",
-          flexWrap: "wrap",
+          display: "grid",
+          gridTemplateColumns: { xs: "1fr", sm: "repeat(3,1fr)" },
           gap: 2,
-          alignItems: "center",
+          mb: 3,
         }}
       >
-        <TextField
-          placeholder="Search competitions…"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          size="small"
-          sx={{ minWidth: 260, ...inputSx }}
-        />
-        <TextField
-          select
-          label="Status"
-          value={statusFilter}
-          onChange={(e) => setStatusFilter(e.target.value)}
-          size="small"
-          sx={{ minWidth: 180, ...inputSx }}
-        >
-          <MenuItem value="">All Statuses</MenuItem>
-          {Object.entries(STATUS_CONFIG).map(([key, cfg]) => (
-            <MenuItem key={key} value={key}>
-              {cfg.label}
-            </MenuItem>
+        {[
+          { label: "Total", value: totalCount, color: "rgba(255,255,255,0.7)" },
+          { label: "Open", value: openCount, color: "#4ade80" },
+          { label: "Draft", value: draftCount, color: "#a1a1aa" },
+        ].map((s) => (
+          <Box
+            key={s.label}
+            sx={{
+              p: 2.5,
+              borderRadius: "12px",
+              background: "#0c0c0c",
+              border: "1px solid rgba(255,255,255,0.06)",
+            }}
+          >
+            <Typography
+              sx={{
+                fontSize: 9.5,
+                letterSpacing: "0.2em",
+                textTransform: "uppercase",
+                color: "rgba(255,255,255,0.22)",
+                fontFamily: "'Syne', sans-serif",
+                mb: 1,
+              }}
+            >
+              {s.label}
+            </Typography>
+            <Typography
+              sx={{
+                fontSize: 28,
+                fontWeight: 700,
+                color: s.color,
+                fontFamily: "'Syne', sans-serif",
+                lineHeight: 1,
+              }}
+            >
+              {s.value}
+            </Typography>
+          </Box>
+        ))}
+      </Box>
+
+      {/* Filters */}
+      <Box
+        sx={{
+          p: 2,
+          mb: 2,
+          borderRadius: "12px",
+          background: "#0c0c0c",
+          border: "1px solid rgba(255,255,255,0.06)",
+          display: "flex",
+          gap: 1.5,
+          alignItems: "center",
+          flexWrap: "wrap",
+        }}
+      >
+        <Box sx={{ position: "relative", flex: "1 1 220px", minWidth: 180 }}>
+          <Box
+            sx={{
+              position: "absolute",
+              left: 11,
+              top: "50%",
+              transform: "translateY(-50%)",
+              pointerEvents: "none",
+            }}
+          >
+            <Search size={13} color="rgba(255,255,255,0.25)" />
+          </Box>
+          <input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search competitions…"
+            style={{
+              width: "100%",
+              padding: "8px 12px 8px 32px",
+              background: "rgba(255,255,255,0.04)",
+              border: "1px solid rgba(255,255,255,0.08)",
+              borderRadius: 8,
+              color: "rgba(255,255,255,0.75)",
+              fontSize: 13,
+              fontFamily: "'Syne', sans-serif",
+              outline: "none",
+              boxSizing: "border-box",
+            }}
+          />
+        </Box>
+        <NativeSelect value={statusFilter} onChange={setStatusFilter}>
+          <option value="all">All Statuses</option>
+          {Object.entries(STATUS_CONFIG).map(([k, v]) => (
+            <option key={k} value={k}>
+              {v.label}
+            </option>
           ))}
-        </TextField>
-      </Paper>
+        </NativeSelect>
+        <NativeSelect value={eventTypeFilter} onChange={setEventTypeFilter}>
+          <option value="all">All Types</option>
+          <option value="COMPETITION">Competition</option>
+          <option value="WORKSHOP">Workshop</option>
+          <option value="EVENT">Event</option>
+        </NativeSelect>
+        <Typography
+          sx={{
+            fontSize: 11,
+            color: "rgba(255,255,255,0.18)",
+            fontFamily: "'DM Mono', monospace",
+            ml: "auto",
+          }}
+        >
+          {filtered.length} result{filtered.length !== 1 ? "s" : ""}
+        </Typography>
+      </Box>
 
       {/* Table */}
       {isLoading ? (
         <LoadingState message="Loading competitions…" />
-      ) : filtered.length === 0 ? (
-        <Paper
-          sx={{
-            p: 6,
-            textAlign: "center",
-            backgroundColor: "#18181b",
-            border: "1px solid #27272a",
-            borderRadius: 3,
-          }}
-        >
-          <Trophy size={40} color="#3f3f46" style={{ marginBottom: 12 }} />
-          <Typography sx={{ color: "#71717a" }}>
-            No competitions found
-          </Typography>
-        </Paper>
       ) : (
-        <TableContainer
-          component={Paper}
+        <Box
           sx={{
-            backgroundColor: "#18181b",
-            border: "1px solid #27272a",
-            borderRadius: 3,
+            borderRadius: "12px",
+            border: "1px solid rgba(255,255,255,0.06)",
+            overflow: "hidden",
+            background: "#0c0c0c",
           }}
         >
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell sx={headSx}>Competition</TableCell>
-                <TableCell sx={headSx}>Status</TableCell>
-                <TableCell sx={headSx}>Type</TableCell>
-                <TableCell sx={headSx}>Registrations</TableCell>
-                <TableCell sx={headSx}>Controls</TableCell>
-                <TableCell sx={{ ...headSx, textAlign: "right" }}>
-                  Manage
-                </TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {filtered.map((comp) => {
-                const statusCfg =
-                  STATUS_CONFIG[comp.status] || STATUS_CONFIG.DRAFT;
-                return (
-                  <TableRow
-                    key={comp.id}
-                    sx={{ "&:hover": { backgroundColor: "#1f1f23" } }}
-                  >
-                    {/* Name */}
-                    <TableCell sx={cellSx}>
+          {/* Columns header */}
+          <Box
+            sx={{
+              display: "grid",
+              gridTemplateColumns:
+                "minmax(220px,1fr) 130px 110px 120px 170px 360px",
+              px: 3,
+              py: 1.5,
+              background: "rgba(255,255,255,0.02)",
+            }}
+          >
+            {[
+              "Competition",
+              "Event Type",
+              "Status",
+              "Reg.",
+              "Controls",
+              "",
+            ].map((h, i) => (
+              <Typography
+                key={i}
+                sx={{
+                  fontSize: 9.5,
+                  letterSpacing: "0.2em",
+                  textTransform: "uppercase",
+                  color: "rgba(255,255,255,0.2)",
+                  fontFamily: "'Syne', sans-serif",
+                }}
+              >
+                {h}
+              </Typography>
+            ))}
+          </Box>
+          <RowDivider />
+
+          {filtered.length === 0 ? (
+            <Box sx={{ py: 8, textAlign: "center" }}>
+              <Trophy
+                size={32}
+                color="rgba(255,255,255,0.08)"
+                style={{ marginBottom: 12 }}
+              />
+              <Typography
+                sx={{
+                  color: "rgba(255,255,255,0.18)",
+                  fontSize: 13,
+                  fontFamily: "'Syne', sans-serif",
+                }}
+              >
+                No competitions found
+              </Typography>
+            </Box>
+          ) : (
+            filtered.map((comp, idx) => (
+              <Box key={comp.id}>
+                <Box
+                  sx={{
+                    display: "grid",
+                    gridTemplateColumns:
+                      "minmax(220px,1fr) 130px 110px 120px 170px 360px",
+                    alignItems: "center",
+                    px: 3,
+                    py: 2,
+                    transition: "background 0.12s",
+                    "&:hover": { background: "rgba(255,255,255,0.018)" },
+                  }}
+                >
+                  {/* Title + description */}
+                  <Box sx={{ minWidth: 0, pr: 2 }}>
+                    <Typography
+                      sx={{
+                        fontSize: 13,
+                        fontWeight: 500,
+                        color: "#e4e4e7",
+                        fontFamily: "'Syne', sans-serif",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      {comp.title || comp.name}
+                    </Typography>
+                    {(comp.shortDescription || comp.description) && (
                       <Typography
-                        variant="body2"
-                        sx={{ color: "#fff", fontWeight: 600 }}
+                        sx={{
+                          fontSize: 11,
+                          color: "rgba(255,255,255,0.25)",
+                          fontFamily: "'DM Mono', monospace",
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                          whiteSpace: "nowrap",
+                          mt: 0.25,
+                        }}
                       >
-                        {comp.name || comp.title}
+                        {comp.shortDescription || comp.description}
                       </Typography>
-                      {comp.description && (
-                        <Typography
-                          variant="caption"
-                          sx={{
-                            color: "#52525b",
-                            display: "block",
-                            maxWidth: 260,
-                            overflow: "hidden",
-                            textOverflow: "ellipsis",
-                            whiteSpace: "nowrap",
-                          }}
-                        >
-                          {comp.description}
-                        </Typography>
+                    )}
+                  </Box>
+
+                  {/* Event Type */}
+                  <Box>
+                    <EventTypePill type={comp.eventType} />
+                  </Box>
+
+                  {/* Status */}
+                  <Box>
+                    <StatusPill status={comp.status} />
+                  </Box>
+
+                  {/* Registrations */}
+                  <Box>
+                    <Box
+                      sx={{ display: "flex", alignItems: "center", gap: 0.75 }}
+                    >
+                      {comp.registrationsOpen ? (
+                        <Unlock size={12} color="#4ade80" />
+                      ) : (
+                        <Lock size={12} color="rgba(255,255,255,0.25)" />
                       )}
-                    </TableCell>
-
-                    {/* Status */}
-                    <TableCell sx={cellSx}>
-                      <Chip
-                        label={statusCfg.label}
-                        size="small"
+                      <Typography
                         sx={{
-                          backgroundColor: statusCfg.bgColor,
-                          color: statusCfg.color,
-                          fontWeight: 600,
-                          fontSize: 11,
-                        }}
-                      />
-                    </TableCell>
-
-                    {/* Type */}
-                    <TableCell sx={cellSx}>
-                      {comp.type && (
-                        <Chip
-                          label={comp.type}
-                          size="small"
-                          sx={{
-                            backgroundColor:
-                              comp.type === "TEAM" ? "#7c3aed22" : "#0369a122",
-                            color: comp.type === "TEAM" ? "#a78bfa" : "#38bdf8",
-                            fontWeight: 600,
-                            fontSize: 11,
-                          }}
-                        />
-                      )}
-                    </TableCell>
-
-                    {/* Registrations open indicator */}
-                    <TableCell sx={cellSx}>
-                      <Chip
-                        label={comp.registrationsOpen ? "Open" : "Closed"}
-                        size="small"
-                        icon={
-                          comp.registrationsOpen ? (
-                            <Unlock size={12} />
-                          ) : (
-                            <Lock size={12} />
-                          )
-                        }
-                        sx={{
-                          backgroundColor: comp.registrationsOpen
-                            ? "#16a34a22"
-                            : "#3f3f4622",
-                          color: comp.registrationsOpen ? "#4ade80" : "#71717a",
-                          fontSize: 11,
-                          "& .MuiChip-icon": {
-                            color: comp.registrationsOpen
-                              ? "#4ade80"
-                              : "#71717a",
-                          },
-                        }}
-                      />
-                    </TableCell>
-
-                    {/* Inline toggle controls */}
-                    <TableCell sx={cellSx}>
-                      <CompetitionToggles
-                        competition={comp}
-                        onRefresh={refetch}
-                      />
-                    </TableCell>
-
-                    {/* Manage button */}
-                    <TableCell sx={{ ...cellSx, textAlign: "right" }}>
-                      <Button
-                        size="small"
-                        variant="outlined"
-                        onClick={() => setManageTarget(comp)}
-                        startIcon={<Users size={14} />}
-                        sx={{
-                          borderColor: "#3f3f46",
-                          color: "#a1a1aa",
-                          "&:hover": {
-                            borderColor: "#a855f7",
-                            color: "#a855f7",
-                          },
-                          textTransform: "none",
-                          fontWeight: 500,
                           fontSize: 12,
+                          color: comp.registrationsOpen
+                            ? "#4ade80"
+                            : "rgba(255,255,255,0.25)",
+                          fontFamily: "'DM Mono', monospace",
                         }}
                       >
-                        Manage
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
-            </TableBody>
-          </Table>
-        </TableContainer>
+                        {comp.registrationsOpen ? "Open" : "Closed"}
+                      </Typography>
+                    </Box>
+                    {comp.type && (
+                      <Typography
+                        sx={{
+                          fontSize: 10,
+                          color: "rgba(255,255,255,0.2)",
+                          fontFamily: "'DM Mono', monospace",
+                          mt: 0.5,
+                        }}
+                      >
+                        {comp.type}
+                      </Typography>
+                    )}
+                  </Box>
+
+                  {/* Inline toggles */}
+                  <Box>
+                    <CompetitionToggles competition={comp} />
+                  </Box>
+
+                  {/* Actions */}
+                  <Box
+                    sx={{
+                      display: "flex",
+                      gap: 1,
+                      justifyContent: "flex-end",
+                      alignItems: "center",
+                      flexWrap: "wrap",
+                    }}
+                  >
+                    <SmallActionBtn
+                      onClick={() => handlePublishCompetition(comp)}
+                      disabled={publishingCompetition || deletingCompetition}
+                      color="#4ade80"
+                      hoverBg="rgba(34,197,94,0.1)"
+                    >
+                      {publishingId === comp.id ? (
+                        <CircularProgress size={11} sx={{ color: "#4ade80" }} />
+                      ) : (
+                        <Send size={11} />
+                      )}
+                      Publish
+                    </SmallActionBtn>
+
+                    <SmallActionBtn
+                      onClick={() => handleDeleteCompetition(comp)}
+                      disabled={deletingCompetition || publishingCompetition}
+                      color="#f87171"
+                      hoverBg="rgba(239,68,68,0.1)"
+                    >
+                      {deletingId === comp.id ? (
+                        <CircularProgress size={11} sx={{ color: "#f87171" }} />
+                      ) : (
+                        <Trash2 size={11} />
+                      )}
+                      Delete
+                    </SmallActionBtn>
+
+                    <SmallActionBtn
+                      onClick={() => setEditTarget(comp)}
+                      color="#c084fc"
+                      hoverBg="rgba(168,85,247,0.1)"
+                    >
+                      <Pencil size={11} />
+                      Edit
+                    </SmallActionBtn>
+                    <SmallActionBtn
+                      onClick={() => setManageTarget(comp)}
+                      color="rgba(255,255,255,0.5)"
+                      hoverBg="rgba(255,255,255,0.06)"
+                    >
+                      <Users size={11} />
+                      Manage
+                    </SmallActionBtn>
+                  </Box>
+                </Box>
+                {idx < filtered.length - 1 && <RowDivider />}
+              </Box>
+            ))
+          )}
+        </Box>
       )}
 
-      {/* Manage dialog */}
+      {/* Dialogs */}
       <ManageDialog
         competition={manageTarget}
         open={!!manageTarget}
         onClose={() => setManageTarget(null)}
       />
+      <CompetitionFormModal
+        open={createOpen}
+        onClose={() => setCreateOpen(false)}
+        competition={null}
+      />
+      <CompetitionFormModal
+        open={!!editTarget}
+        onClose={() => setEditTarget(null)}
+        competition={editTarget}
+      />
+
+      <Dialog
+        open={!!deleteTarget}
+        onClose={() =>
+          deletingCompetition || deletingId ? null : setDeleteTarget(null)
+        }
+        maxWidth="xs"
+        fullWidth
+        PaperProps={{
+          sx: {
+            background: "#0e0e0e",
+            border: "1px solid rgba(255,255,255,0.08)",
+            borderRadius: "14px",
+            boxShadow: "0 24px 64px rgba(0,0,0,0.7)",
+          },
+        }}
+      >
+        <Box
+          sx={{
+            borderBottom: "1px solid rgba(255,255,255,0.06)",
+            px: 3,
+            py: 2.25,
+          }}
+        >
+          <Typography
+            sx={{
+              fontSize: 15,
+              fontWeight: 600,
+              color: "#f4f4f5",
+              fontFamily: "'Syne', sans-serif",
+            }}
+          >
+            Delete Competition
+          </Typography>
+        </Box>
+
+        <Box sx={{ px: 3, py: 2.5 }}>
+          <Box
+            sx={{
+              p: 1.5,
+              borderRadius: 2,
+              background: "rgba(239,68,68,0.08)",
+              border: "1px solid rgba(239,68,68,0.15)",
+              mb: 2,
+            }}
+          >
+            <Typography
+              sx={{
+                fontSize: 12,
+                color: "#f87171",
+                fontFamily: "'Syne', sans-serif",
+              }}
+            >
+              This action cannot be undone.
+            </Typography>
+          </Box>
+
+          <Typography
+            sx={{
+              fontSize: 12,
+              color: "rgba(255,255,255,0.35)",
+              fontFamily: "'DM Mono', monospace",
+              mb: 2.5,
+            }}
+          >
+            {deleteTarget
+              ? `Delete \"${deleteTarget.title || deleteTarget.name || "this competition"}\"?`
+              : "Delete this competition?"}
+          </Typography>
+
+          <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 1 }}>
+            <GhostBtn
+              onClick={() => setDeleteTarget(null)}
+              disabled={deletingCompetition || !!deletingId}
+            >
+              Cancel
+            </GhostBtn>
+            <DangerBtn
+              onClick={confirmDeleteCompetition}
+              disabled={deletingCompetition || !!deletingId}
+            >
+              {deletingCompetition || deletingId ? (
+                <CircularProgress size={11} sx={{ color: "#f87171" }} />
+              ) : (
+                <Trash2 size={13} />
+              )}
+              Delete
+            </DangerBtn>
+          </Box>
+        </Box>
+      </Dialog>
     </Box>
   );
 }

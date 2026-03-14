@@ -16,7 +16,6 @@ import {
   ListItemAvatar,
   ListItemText,
   Avatar,
-  IconButton,
   Divider,
   InputAdornment,
   Alert,
@@ -26,7 +25,6 @@ import {
   Search,
   CheckCircle2,
   Users,
-  CalendarDays,
   BarChart3,
   Info,
 } from "lucide-react";
@@ -44,13 +42,27 @@ import { LoadingState } from "@/src/components/LoadingState";
 
 const inputSx = {
   "& .MuiOutlinedInput-root": {
-    color: "#fff",
-    "& fieldset": { borderColor: "#3f3f46" },
-    "&:hover fieldset": { borderColor: "#71717a" },
-    "&.Mui-focused fieldset": { borderColor: "#a855f7" },
+    background: "rgba(255,255,255,0.04)",
+    borderRadius: "8px",
+    color: "rgba(255,255,255,0.9)",
+    fontFamily: "'Syne', sans-serif",
+    fontSize: 13,
+    "& fieldset": { borderColor: "rgba(255,255,255,0.1)" },
+    "&:hover fieldset": { borderColor: "rgba(255,255,255,0.18)" },
+    "&.Mui-focused fieldset": { borderColor: "rgba(168,85,247,0.75)" },
+    "& input": {
+      color: "rgba(255,255,255,0.9)",
+      fontFamily: "'Syne', sans-serif",
+      fontSize: 13,
+    },
   },
-  "& .MuiInputLabel-root": { color: "#71717a" },
-  "& .MuiSelect-icon": { color: "#71717a" },
+  "& .MuiInputLabel-root": {
+    color: "rgba(255,255,255,0.38)",
+    fontFamily: "'Syne', sans-serif",
+    fontSize: 12,
+    "&.Mui-focused": { color: "rgba(192,132,252,0.95)" },
+  },
+  "& .MuiSelect-icon": { color: "rgba(255,255,255,0.45)" },
 };
 
 function pct(attended, total) {
@@ -65,9 +77,9 @@ function StatCard({ icon: Icon, label, value, sub, accent = "#a855f7" }) {
     <Paper
       sx={{
         p: 3,
-        backgroundColor: "#18181b",
-        border: "1px solid #27272a",
-        borderRadius: 3,
+        background: "#0c0c0c",
+        border: "1px solid rgba(255,255,255,0.06)",
+        borderRadius: "12px",
         display: "flex",
         alignItems: "flex-start",
         gap: 2,
@@ -88,17 +100,34 @@ function StatCard({ icon: Icon, label, value, sub, accent = "#a855f7" }) {
         <Icon size={24} color={accent} />
       </Box>
       <Box>
-        <Typography variant="caption" sx={{ color: "#71717a" }}>
+        <Typography
+          variant="caption"
+          sx={{
+            color: "rgba(255,255,255,0.45)",
+            fontFamily: "'Syne', sans-serif",
+          }}
+        >
           {label}
         </Typography>
         <Typography
           variant="h5"
-          sx={{ color: "#fff", fontWeight: 700, lineHeight: 1.3 }}
+          sx={{
+            color: "#fff",
+            fontWeight: 700,
+            lineHeight: 1.3,
+            fontFamily: "'Syne', sans-serif",
+          }}
         >
           {value}
         </Typography>
         {sub && (
-          <Typography variant="caption" sx={{ color: "#a1a1aa" }}>
+          <Typography
+            variant="caption"
+            sx={{
+              color: "rgba(255,255,255,0.6)",
+              fontFamily: "'Syne', sans-serif",
+            }}
+          >
             {sub}
           </Typography>
         )}
@@ -179,16 +208,43 @@ export default function AttendancePage() {
   const compPct = pct(compAttended, compTotal);
 
   return (
-    <Box>
+    <Box sx={{ p: { xs: 2, md: 4 }, maxWidth: 1200 }}>
       {/* Header */}
       <Box sx={{ mb: 4 }}>
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 0.5 }}>
+          <Box
+            sx={{
+              width: 32,
+              height: 32,
+              borderRadius: "9px",
+              background: "#111",
+              border: "1px solid rgba(255,255,255,0.1)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <UserCheck size={15} color="rgba(255,255,255,0.7)" />
+          </Box>
+          <Typography
+            sx={{
+              fontSize: 18,
+              fontWeight: 600,
+              color: "#f4f4f5",
+              fontFamily: "'Syne', sans-serif",
+            }}
+          >
+            Attendance
+          </Typography>
+        </Box>
         <Typography
-          variant="h4"
-          sx={{ color: "#fff", fontWeight: 700, mb: 0.5 }}
+          sx={{
+            fontSize: 12,
+            color: "rgba(255,255,255,0.3)",
+            fontFamily: "'Syne', sans-serif",
+            ml: 0.5,
+          }}
         >
-          Attendance
-        </Typography>
-        <Typography variant="body2" sx={{ color: "#71717a" }}>
           Track participant attendance across the fest and individual
           competitions
         </Typography>
@@ -202,9 +258,9 @@ export default function AttendancePage() {
             <Paper
               sx={{
                 p: 3,
-                backgroundColor: "#18181b",
-                border: "1px solid #27272a",
-                borderRadius: 3,
+                background: "#0c0c0c",
+                border: "1px solid rgba(255,255,255,0.06)",
+                borderRadius: "12px",
                 minHeight: 110,
                 display: "flex",
                 alignItems: "center",
@@ -229,9 +285,9 @@ export default function AttendancePage() {
           <Paper
             sx={{
               p: 3,
-              backgroundColor: "#18181b",
-              border: "1px solid #27272a",
-              borderRadius: 3,
+              background: "#0c0c0c",
+              border: "1px solid rgba(255,255,255,0.06)",
+              borderRadius: "12px",
             }}
           >
             <Box sx={{ display: "flex", alignItems: "center", gap: 2, mb: 2 }}>
@@ -317,9 +373,9 @@ export default function AttendancePage() {
       <Paper
         sx={{
           p: 3,
-          backgroundColor: "#18181b",
-          border: "1px solid #27272a",
-          borderRadius: 3,
+          background: "#0c0c0c",
+          border: "1px solid rgba(255,255,255,0.06)",
+          borderRadius: "12px",
         }}
       >
         <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 3 }}>
@@ -405,9 +461,9 @@ export default function AttendancePage() {
               <Paper
                 variant="outlined"
                 sx={{
-                  backgroundColor: "#0a0a0a",
-                  borderColor: "#27272a",
-                  borderRadius: 2,
+                  background: "#0a0a0a",
+                  borderColor: "rgba(255,255,255,0.08)",
+                  borderRadius: "10px",
                   overflow: "hidden",
                 }}
               >
@@ -425,7 +481,9 @@ export default function AttendancePage() {
                         <ListItem
                           sx={{
                             py: 1.5,
-                            "&:hover": { backgroundColor: "#18181b" },
+                            "&:hover": {
+                              backgroundColor: "rgba(255,255,255,0.02)",
+                            },
                           }}
                           secondaryAction={
                             alreadyMarked ? (
@@ -463,6 +521,8 @@ export default function AttendancePage() {
                                   textTransform: "none",
                                   fontWeight: 600,
                                   fontSize: 12,
+                                  fontFamily: "'Syne', sans-serif",
+                                  borderRadius: "8px",
                                 }}
                               >
                                 Mark Attended

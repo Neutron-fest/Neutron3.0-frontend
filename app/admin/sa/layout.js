@@ -55,9 +55,12 @@ export default function SALayout({ children }) {
   }
 
   const navigation = getAdminNavigation(user.role);
-  const currentPage =
-    navigation.find((item) => pathname.startsWith(item.href))?.name ||
-    "Dashboard";
+  const currentPage = pathname.startsWith("/admin/settings")
+    ? "Personal Settings"
+    : pathname.startsWith("/admin/sa/settings")
+      ? "Settings"
+      : navigation.find((item) => pathname.startsWith(item.href))?.name ||
+        "Dashboard";
 
   return (
     <Box sx={{ display: "flex", minHeight: "100vh", backgroundColor: "#000" }}>

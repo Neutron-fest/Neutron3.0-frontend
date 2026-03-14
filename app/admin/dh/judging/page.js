@@ -21,8 +21,6 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-  Avatar,
-  Alert,
   LinearProgress,
   Divider,
   Tooltip,
@@ -32,10 +30,8 @@ import {
   Star,
   Send,
   Trophy,
-  Users,
   CheckCircle2,
   Clock,
-  AlertCircle,
 } from "lucide-react";
 import { useSnackbar } from "notistack";
 import {
@@ -69,16 +65,25 @@ function LeaderboardDialog({ roundId, roundName, open, onClose }) {
       fullWidth
       PaperProps={{
         sx: {
-          backgroundColor: "#18181b",
-          border: "1px solid #27272a",
-          borderRadius: 3,
+          background: "#0e0e0e",
+          border: "1px solid rgba(255,255,255,0.08)",
+          borderRadius: "16px",
+          boxShadow: "0 32px 80px rgba(0,0,0,0.8)",
         },
       }}
     >
-      <DialogTitle sx={{ color: "#fff", fontWeight: 700 }}>
+      <DialogTitle
+        sx={{
+          color: "#f4f4f5",
+          fontWeight: 600,
+          fontFamily: "'Syne', sans-serif",
+          fontSize: 16,
+          borderBottom: "1px solid rgba(255,255,255,0.06)",
+        }}
+      >
         Leaderboard — {roundName}
       </DialogTitle>
-      <DialogContent>
+      <DialogContent sx={{ pt: "16px !important" }}>
         {isLoading ? (
           <LoadingState message="Loading leaderboard…" />
         ) : leaderboard.length === 0 ? (
@@ -117,7 +122,11 @@ function LeaderboardDialog({ roundId, roundName, open, onClose }) {
                   return (
                     <TableRow
                       key={entry.id || idx}
-                      sx={{ "&:hover": { backgroundColor: "#1f1f23" } }}
+                      sx={{
+                        "&:hover": {
+                          backgroundColor: "rgba(255,255,255,0.02)",
+                        },
+                      }}
                     >
                       <TableCell sx={cellSx}>
                         <Typography
@@ -187,10 +196,27 @@ function LeaderboardDialog({ roundId, roundName, open, onClose }) {
           </TableContainer>
         )}
       </DialogContent>
-      <DialogActions sx={{ px: 3, pb: 2 }}>
+      <DialogActions
+        sx={{
+          px: 3,
+          py: 2,
+          borderTop: "1px solid rgba(255,255,255,0.06)",
+        }}
+      >
         <Button
           onClick={onClose}
-          sx={{ color: "#71717a", textTransform: "none" }}
+          sx={{
+            color: "rgba(255,255,255,0.55)",
+            textTransform: "none",
+            fontFamily: "'Syne', sans-serif",
+            borderRadius: "8px",
+            border: "1px solid rgba(255,255,255,0.1)",
+            px: 2,
+            "&:hover": {
+              background: "rgba(255,255,255,0.05)",
+              borderColor: "rgba(255,255,255,0.2)",
+            },
+          }}
         >
           Close
         </Button>
@@ -236,9 +262,9 @@ function RoundCard({ round }) {
     <Paper
       sx={{
         p: 2,
-        backgroundColor: "#1f1f23",
-        border: "1px solid #27272a",
-        borderRadius: 2,
+        background: "#0a0a0a",
+        border: "1px solid rgba(255,255,255,0.06)",
+        borderRadius: "10px",
       }}
     >
       <Box sx={{ display: "flex", alignItems: "flex-start", gap: 2 }}>
@@ -335,11 +361,13 @@ function RoundCard({ round }) {
             onClick={() => setLeaderboardOpen(true)}
             startIcon={<Trophy size={12} />}
             sx={{
-              borderColor: "#3f3f46",
-              color: "#a1a1aa",
+              borderColor: "rgba(255,255,255,0.12)",
+              color: "rgba(255,255,255,0.65)",
               "&:hover": { borderColor: "#a855f7", color: "#a855f7" },
               textTransform: "none",
               fontSize: 11,
+              fontFamily: "'Syne', sans-serif",
+              borderRadius: "8px",
               whiteSpace: "nowrap",
             }}
           >
@@ -374,6 +402,8 @@ function RoundCard({ round }) {
                   },
                   textTransform: "none",
                   fontSize: 11,
+                  fontFamily: "'Syne', sans-serif",
+                  borderRadius: "8px",
                   whiteSpace: "nowrap",
                 }}
               >
@@ -424,16 +454,43 @@ export default function JudgingPage() {
   const { data: competitions = [], isLoading } = useMyJudgingCompetitions();
 
   return (
-    <Box>
+    <Box sx={{ p: { xs: 2, md: 4 }, maxWidth: 1200 }}>
       {/* Header */}
       <Box sx={{ mb: 4 }}>
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 0.5 }}>
+          <Box
+            sx={{
+              width: 32,
+              height: 32,
+              borderRadius: "9px",
+              background: "#111",
+              border: "1px solid rgba(255,255,255,0.1)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <Star size={15} color="rgba(255,255,255,0.7)" />
+          </Box>
+          <Typography
+            sx={{
+              fontSize: 18,
+              fontWeight: 600,
+              color: "#f4f4f5",
+              fontFamily: "'Syne', sans-serif",
+            }}
+          >
+            Judging
+          </Typography>
+        </Box>
         <Typography
-          variant="h4"
-          sx={{ color: "#fff", fontWeight: 700, mb: 0.5 }}
+          sx={{
+            fontSize: 12,
+            color: "rgba(255,255,255,0.3)",
+            fontFamily: "'Syne', sans-serif",
+            ml: 0.5,
+          }}
         >
-          Judging
-        </Typography>
-        <Typography variant="body2" sx={{ color: "#71717a" }}>
           Monitor scoring progress, view leaderboards and send lock requests
         </Typography>
       </Box>
@@ -445,9 +502,9 @@ export default function JudgingPage() {
           sx={{
             p: 6,
             textAlign: "center",
-            backgroundColor: "#18181b",
-            border: "1px solid #27272a",
-            borderRadius: 3,
+            background: "#0c0c0c",
+            border: "1px solid rgba(255,255,255,0.06)",
+            borderRadius: "12px",
           }}
         >
           <Star size={40} color="#3f3f46" style={{ marginBottom: 12 }} />
@@ -474,11 +531,13 @@ export default function JudgingPage() {
               <Accordion
                 key={comp.id}
                 sx={{
-                  backgroundColor: "#18181b",
-                  border: "1px solid #27272a",
+                  background: "#0c0c0c",
+                  border: "1px solid rgba(255,255,255,0.06)",
                   borderRadius: "12px !important",
                   "&:before": { display: "none" },
-                  "&.Mui-expanded": { border: "1px solid #a855f740" },
+                  "&.Mui-expanded": {
+                    border: "1px solid rgba(168,85,247,0.35)",
+                  },
                 }}
               >
                 <AccordionSummary
@@ -544,7 +603,9 @@ export default function JudgingPage() {
                   )}
                 </AccordionSummary>
                 <AccordionDetails sx={{ px: 3, pb: 3 }}>
-                  <Divider sx={{ borderColor: "#27272a", mb: 2 }} />
+                  <Divider
+                    sx={{ borderColor: "rgba(255,255,255,0.08)", mb: 2 }}
+                  />
                   <CompetitionPanel competition={comp} />
                 </AccordionDetails>
               </Accordion>

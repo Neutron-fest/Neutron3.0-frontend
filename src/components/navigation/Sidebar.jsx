@@ -17,6 +17,7 @@ import {
   Users,
   Building2,
   ShieldCheck,
+  Settings,
   Trophy,
   Star,
   UserCheck,
@@ -25,6 +26,7 @@ import {
   ChevronRight,
   ClipboardList,
   UserCog,
+  FileText,
 } from "lucide-react";
 
 const SA_NAVIGATION = [
@@ -32,7 +34,6 @@ const SA_NAVIGATION = [
   { name: "Departments", href: "/admin/sa/departments", icon: Building2 },
   { name: "Approvals", href: "/admin/sa/approvals", icon: ShieldCheck },
   { name: "Audit Logs", href: "/admin/sa/audit", icon: ClipboardList },
-  { name: "Settings", href: "/admin/sa/settings", icon: UserCog },
 ];
 
 const DH_NAVIGATION = [
@@ -45,21 +46,48 @@ const DH_NAVIGATION = [
   { name: "Competitions", href: "/admin/dh/competitions", icon: Trophy },
   { name: "Judging", href: "/admin/dh/judging", icon: Star },
   { name: "Attendance", href: "/admin/dh/attendance", icon: UserCheck },
-  { name: "Settings", href: "/admin/dh/settings", icon: UserCog },
+];
+
+const SA_DH_NAVIGATION = DH_NAVIGATION.filter(
+  (item) => item.href !== "/admin/dh/users",
+);
+
+const SHARED_NAVIGATION = [
+  { name: "Forms", href: "/admin/dh/competitions/forms", icon: FileText },
 ];
 
 export const SIDEBAR_WIDTH = 272;
 
 export function getAdminNavigation(role) {
   if (role === "SA") {
-    return [...SA_NAVIGATION, ...DH_NAVIGATION];
+    return [...SA_NAVIGATION, ...SA_DH_NAVIGATION, ...SHARED_NAVIGATION];
   }
 
   if (role === "DH") {
-    return DH_NAVIGATION;
+    return [...DH_NAVIGATION, ...SHARED_NAVIGATION];
   }
 
   return [];
+}
+
+export function getAdminSettingsLink(role) {
+  if (role === "SA") {
+    return { name: "Settings", href: "/admin/sa/settings", icon: UserCog };
+  }
+
+  return null;
+}
+
+export function getPersonalSettingsLink(role) {
+  if (role === "SA" || role === "DH") {
+    return {
+      name: "Personal Settings",
+      href: "/admin/settings",
+      icon: Settings,
+    };
+  }
+
+  return null;
 }
 
 // Thin accent line that runs the full height on the right edge
@@ -83,6 +111,8 @@ export function Sidebar({ user, onLogout, mobileOpen, onMobileClose }) {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("lg"));
   const navigation = getAdminNavigation(user?.role);
+  const settingsLink = getAdminSettingsLink(user?.role);
+  const personalSettingsLink = getPersonalSettingsLink(user?.role);
   const roleLabel = user?.role === "SA" ? "Super Admin" : "Department Head";
 
   const drawerContent = (
@@ -304,8 +334,18 @@ export function Sidebar({ user, onLogout, mobileOpen, onMobileClose }) {
               {user?.email || ""}
             </Typography>
           </Box>
-          <ChevronRight size={12} color="rgba(255,255,255,0.15)" />
         </Box>
+
+        {personalSettingsLink && (
+          <Box sx={{ mb: 1 }}>
+            <SidebarNavItem
+              href={personalSettingsLink.href}
+              icon={personalSettingsLink.icon}
+              label={personalSettingsLink.name}
+              onClick={isMobile ? onMobileClose : undefined}
+            />
+          </Box>
+        )}
 
         {/* Logout */}
         <Button
@@ -382,7 +422,13 @@ export function Sidebar({ user, onLogout, mobileOpen, onMobileClose }) {
 // ── Inline nav item (replaces NavLink for full style control) ──
 function SidebarNavItem({ href, icon: Icon, label, onClick }) {
   const pathname = usePathname();
-  const active = pathname === href || pathname.startsWith(`${href}/`);
+  const isFormsRoute = pathname === "/admin/dh/competitions/forms";
+  const isFormsChildRoute = pathname.startsWith(
+    "/admin/dh/competitions/forms/",
+  );
+  const active =
+    (pathname === href || pathname.startsWith(`${href}/`)) &&
+    !(href === "/admin/dh/competitions" && (isFormsRoute || isFormsChildRoute));
 
   return (
     <Box
