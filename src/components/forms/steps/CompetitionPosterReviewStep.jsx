@@ -124,6 +124,10 @@ export default function CompetitionPosterReviewStep({
   };
 
   const boolLabel = (v) => (v ? "Yes" : "No");
+  const statusValue =
+    typeof formValues.status === "object" && formValues.status !== null
+      ? formValues.status.value || formValues.status.label || ""
+      : formValues.status;
 
   return (
     <Box sx={{ display: "grid", gridTemplateColumns: "280px 1fr", gap: 3 }}>
@@ -331,21 +335,7 @@ export default function CompetitionPosterReviewStep({
           <ReviewRow label="Category" value={formValues.category} />
           <ReviewRow label="Event Type" value={formValues.eventType} />
           <ReviewRow label="Participation" value={formValues.type} />
-          <ReviewRow
-            label="Status"
-            value={
-              <Box
-                component="span"
-                sx={{
-                  color: STATUS_CONFIG[formValues.status]?.color || "#a1a1aa",
-                  fontFamily: "'DM Mono', monospace",
-                  fontSize: 12,
-                }}
-              >
-                {formValues.status}
-              </Box>
-            }
-          />
+          <ReviewRow label="Status" value={statusValue} />
         </ReviewSection>
 
         <ReviewSection title="Schedule & Venue">

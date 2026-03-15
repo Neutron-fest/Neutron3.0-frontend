@@ -61,6 +61,33 @@ export function useMarkCompetitionAttendance() {
 }
 
 /**
+ * Mark fest attendance
+ * POST /api/v1/volunteer/attendance/fest
+ */
+export function useMarkFestAttendance() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ userId, qrData }) => {
+      const { data } = await apiClient.post("/volunteer/attendance/fest", {
+        ...(userId ? { userId } : {}),
+        ...(qrData ? { qrData } : {}),
+      });
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.attendance.festStats(),
+      });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.attendance.participants(""),
+        exact: false,
+      });
+    },
+  });
+}
+
+/**
  * Search participants by name or email
  * GET /api/v1/volunteer/participants/search?query=...
  */
@@ -100,5 +127,104 @@ export function useParticipantDetails(userId) {
       );
     },
     enabled: !!userId,
+  });
+}
+
+/**
+ * Verify QR payload
+ * POST /api/v1/qr/verify
+ */
+export function useVerifyQRCode() {
+  return useMutation({
+    mutationFn: async ({ qrData }) => {
+      const { data } = await apiClient.post("/qr/verify", { qrData });
+      return data?.data || data;
+    },
+  });
+}
+
+/**
+ * Get volunteer profile/permissions for attendance actions
+ * GET /api/v1/volunteer/my-events
+ */
+export function useVolunteerAttendanceProfile() {
+  return useQuery({
+    queryKey: queryKeys.attendance.volunteerProfile(),
+    queryFn: async () => {
+      const { data } = await apiClient.get("/volunteer/my-events");
+      return data?.data || null;
+    },
+  });
+}
+
+/**
+ * SA: list registration desk (gate) volunteers
+ * GET /api/v1/volunteer/registration-desk
+ */
+export function useRegistrationDeskVolunteers() {
+  return useQuery({
+    queryKey: queryKeys.attendance.registrationDeskVolunteers(),
+    queryFn: async () => {
+      const { data } = await apiClient.get("/volunteer/registration-desk");
+      return (
+        data?.data?.volunteers ||
+        data?.volunteers ||
+        (Array.isArray(data?.data) ? data.data : null) ||
+        (Array.isArray(data) ? data : [])
+      );
+    },
+  });
+}
+
+/**
+ * SA: assign a registration desk volunteer
+ * POST /api/v1/volunteer/registration-desk/assign
+ */
+export function useAssignRegistrationDeskVolunteer() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ userId }) => {
+      const { data } = await apiClient.post(
+        "/volunteer/registration-desk/assign",
+        {
+          userId,
+        },
+      );
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.attendance.registrationDeskVolunteers(),
+      });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.attendance.volunteerProfile(),
+      });
+    },
+  });
+}
+
+/**
+ * SA: remove a registration desk volunteer assignment
+ * DELETE /api/v1/volunteer/registration-desk/:volunteerId
+ */
+export function useRemoveRegistrationDeskVolunteer() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ volunteerId }) => {
+      const { data } = await apiClient.delete(
+        `/volunteer/registration-desk/${volunteerId}`,
+      );
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.attendance.registrationDeskVolunteers(),
+      });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.attendance.volunteerProfile(),
+      });
+    },
   });
 }

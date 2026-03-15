@@ -1,7 +1,8 @@
 "use client";
 
-import { Controller, useWatch } from "react-hook-form";
+import { Controller, useWatch, useFieldArray } from "react-hook-form";
 import { Box, Typography } from "@mui/material";
+import { Plus, Trash2 } from "lucide-react";
 import { FieldGroup, FieldLabel, inputCss } from "./CompetitionBasicInfoStep";
 
 const TOGGLE_LABELS = [
@@ -75,14 +76,17 @@ export default function CompetitionRegistrationConfigStep({ control, errors }) {
   const competitionType = useWatch({ control, name: "type" });
   const isTeam = competitionType === "TEAM";
 
+  const { fields, append, remove } = useFieldArray({
+    control,
+    name: "prizePool",
+  });
+
   return (
     <Box
       sx={{
         display: "flex",
         flexDirection: "column",
         gap: 3,
-        maxHeight: "100%",
-        overflowY: "auto",
         pr: 0.5,
       }}
     >
@@ -166,7 +170,7 @@ export default function CompetitionRegistrationConfigStep({ control, errors }) {
         sx={{
           borderRadius: "10px",
           border: "1px solid rgba(255,255,255,0.06)",
-          overflow: "hidden",
+          overflow: "visible",
         }}
       >
         {TOGGLE_LABELS.map((item, i) => (
@@ -215,6 +219,204 @@ export default function CompetitionRegistrationConfigStep({ control, errors }) {
               </Box>
             )}
           />
+        ))}
+      </Box>
+
+      {/* Prize Pool Builder */}
+      <Box>
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            mb: 1.5,
+          }}
+        >
+          <Box>
+            <Typography
+              sx={{
+                fontSize: 13,
+                color: "rgba(255,255,255,0.8)",
+                fontFamily: "'Syne', sans-serif",
+                fontWeight: 500,
+              }}
+            >
+              Prize Pool
+            </Typography>
+            <Typography
+              sx={{
+                fontSize: 11,
+                color: "rgba(255,255,255,0.3)",
+                fontFamily: "'DM Mono', monospace",
+                mt: 0.25,
+              }}
+            >
+              Add prizes — cash, in-kind, or both
+            </Typography>
+          </Box>
+          <button
+            type="button"
+            onClick={() =>
+              append({ rank: "", label: "", cash: "", inkind: "" })
+            }
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 5,
+              background: "rgba(168,85,247,0.12)",
+              border: "1px solid rgba(168,85,247,0.3)",
+              borderRadius: 7,
+              color: "#c084fc",
+              fontSize: 12,
+              fontFamily: "'Syne', sans-serif",
+              padding: "6px 12px",
+              cursor: "pointer",
+            }}
+          >
+            <Plus size={13} />
+            Add Prize
+          </button>
+        </Box>
+
+        {fields.length === 0 && (
+          <Box
+            sx={{
+              borderRadius: "10px",
+              border: "1px dashed rgba(255,255,255,0.08)",
+              p: 2,
+              textAlign: "center",
+            }}
+          >
+            <Typography
+              sx={{
+                fontSize: 12,
+                color: "rgba(255,255,255,0.2)",
+                fontFamily: "'DM Mono', monospace",
+              }}
+            >
+              No prizes added yet
+            </Typography>
+          </Box>
+        )}
+
+        {fields.map((field, index) => (
+          <Box
+            key={field.id}
+            sx={{
+              borderRadius: "10px",
+              border: "1px solid rgba(255,255,255,0.06)",
+              background: "rgba(255,255,255,0.02)",
+              p: 2,
+              mb: 1.5,
+              display: "flex",
+              flexDirection: "column",
+              gap: 1.5,
+            }}
+          >
+            {/* Row header */}
+            <Box
+              sx={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+              }}
+            >
+              <Typography
+                sx={{
+                  fontSize: 11,
+                  color: "rgba(168,85,247,0.7)",
+                  fontFamily: "'DM Mono', monospace",
+                  letterSpacing: "0.08em",
+                }}
+              >
+                PRIZE #{index + 1}
+              </Typography>
+              <button
+                type="button"
+                onClick={() => remove(index)}
+                style={{
+                  background: "transparent",
+                  border: "none",
+                  cursor: "pointer",
+                  color: "rgba(239,68,68,0.5)",
+                  padding: 4,
+                  display: "flex",
+                  alignItems: "center",
+                }}
+              >
+                <Trash2 size={13} />
+              </button>
+            </Box>
+
+            {/* Rank + Label */}
+            <Box
+              sx={{ display: "grid", gridTemplateColumns: "1fr 2fr", gap: 1.5 }}
+            >
+              <FieldGroup label="Rank (optional)">
+                <Controller
+                  name={`prizePool.${index}.rank`}
+                  control={control}
+                  render={({ field: f }) => (
+                    <input
+                      {...f}
+                      placeholder="1st, 2nd, Winner…"
+                      style={inputCss}
+                    />
+                  )}
+                />
+              </FieldGroup>
+              <FieldGroup
+                label="Label *"
+                error={errors.prizePool?.[index]?.label}
+              >
+                <Controller
+                  name={`prizePool.${index}.label`}
+                  control={control}
+                  render={({ field: f }) => (
+                    <input
+                      {...f}
+                      placeholder="First Place, Best Innovation…"
+                      style={inputCss}
+                    />
+                  )}
+                />
+              </FieldGroup>
+            </Box>
+
+            {/* Cash + In-kind */}
+            <Box
+              sx={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 1.5 }}
+            >
+              <FieldGroup label="Cash Prize (₹)">
+                <Controller
+                  name={`prizePool.${index}.cash`}
+                  control={control}
+                  render={({ field: f }) => (
+                    <input
+                      {...f}
+                      type="number"
+                      min="0"
+                      placeholder="e.g. 5000"
+                      style={inputCss}
+                    />
+                  )}
+                />
+              </FieldGroup>
+              <FieldGroup label="In-Kind (comma-separated)">
+                <Controller
+                  name={`prizePool.${index}.inkind`}
+                  control={control}
+                  render={({ field: f }) => (
+                    <input
+                      {...f}
+                      placeholder="Trophy, Certificate, Goodies…"
+                      style={inputCss}
+                    />
+                  )}
+                />
+              </FieldGroup>
+            </Box>
+          </Box>
         ))}
       </Box>
     </Box>

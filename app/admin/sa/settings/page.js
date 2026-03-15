@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useSnackbar } from "notistack";
-import { Box, Typography } from "@mui/material";
+import { Box, Typography, CircularProgress } from "@mui/material";
 import {
   Settings,
   Lock,
@@ -1969,11 +1969,17 @@ export default function SettingsPage() {
                     borderRadius: "8px",
                     px: 2,
                     py: 0.9,
-                    background: "#2563eb",
+                    background: "#a855f7",
                     color: "#fff",
                     fontSize: 12,
                     fontWeight: 600,
                     cursor: "pointer",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: 0.7,
+                    "&:hover": {
+                      background: "#9333ea",
+                    },
                   }}
                 >
                   Next
@@ -1988,15 +1994,24 @@ export default function SettingsPage() {
                     borderRadius: "8px",
                     px: 2,
                     py: 0.9,
-                    background: "#16a34a",
+                    background: "#a855f7",
                     color: "#fff",
                     fontSize: 12,
                     fontWeight: 600,
                     cursor: "pointer",
                     opacity: creatingCampaign ? 0.5 : 1,
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: 0.7,
+                    "&:hover": {
+                      background: creatingCampaign ? "#a855f7" : "#9333ea",
+                    },
                   }}
                 >
                   Create Campaign
+                  {creatingCampaign && (
+                    <CircularProgress size={12} sx={{ color: "#fff" }} />
+                  )}
                 </Box>
               )}
             </Box>

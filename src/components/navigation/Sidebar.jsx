@@ -27,6 +27,7 @@ import {
   ClipboardList,
   UserCog,
   FileText,
+  AlertTriangle,
 } from "lucide-react";
 
 const SA_NAVIGATION = [
@@ -46,6 +47,7 @@ const DH_NAVIGATION = [
   { name: "Competitions", href: "/admin/dh/competitions", icon: Trophy },
   { name: "Judging", href: "/admin/dh/judging", icon: Star },
   { name: "Attendance", href: "/admin/dh/attendance", icon: UserCheck },
+  { name: "Issues", href: "/admin/dh/issues", icon: AlertTriangle },
 ];
 
 const SA_DH_NAVIGATION = DH_NAVIGATION.filter(

@@ -38,6 +38,13 @@ export const queryKeys = {
     pending: () => [...queryKeys.approvals.all, "pending"],
   },
 
+  // Issues queries (DH/SA resolution view)
+  issues: {
+    all: ["issues"],
+    lists: () => [...queryKeys.issues.all, "list"],
+    list: (filters = {}) => [...queryKeys.issues.lists(), filters],
+  },
+
   // Registration queries (DH)
   registrations: {
     all: ["registrations"],
@@ -94,12 +101,32 @@ export const queryKeys = {
       roundId,
     ],
     allScored: (roundId) => [...queryKeys.judging.all, "all-scored", roundId],
+    adminRounds: (competitionId) => [
+      ...queryKeys.judging.all,
+      "admin-rounds",
+      competitionId,
+    ],
+    adminTeams: (competitionId) => [
+      ...queryKeys.judging.all,
+      "admin-teams",
+      competitionId,
+    ],
+    adminRoundTeams: (roundId) => [
+      ...queryKeys.judging.all,
+      "admin-round-teams",
+      roundId,
+    ],
   },
 
   // Attendance queries (DH)
   attendance: {
     all: ["attendance"],
     festStats: () => [...queryKeys.attendance.all, "fest-stats"],
+    volunteerProfile: () => [...queryKeys.attendance.all, "volunteer-profile"],
+    registrationDeskVolunteers: () => [
+      ...queryKeys.attendance.all,
+      "registration-desk-volunteers",
+    ],
     competitionStats: (id) => [
       ...queryKeys.attendance.all,
       "competition-stats",

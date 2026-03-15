@@ -343,6 +343,22 @@ export default function CompetitionFormModal({ open, onClose, competition }) {
     fd.append("isPaid", String(data.isPaid ?? false));
     fd.append("perPerson", String(data.perPerson ?? false));
 
+    // Serialize prize pool as JSON (backend parses it)
+    if (Array.isArray(data.prizePool) && data.prizePool.length > 0) {
+      const normalized = data.prizePool.map((p) => ({
+        rank: p.rank || undefined,
+        label: p.label,
+        cash: p.cash !== "" && p.cash != null ? Number(p.cash) : undefined,
+        inkind: p.inkind
+          ? p.inkind
+              .split(",")
+              .map((s) => s.trim())
+              .filter(Boolean)
+          : undefined,
+      }));
+      fd.append("prizePool", JSON.stringify(normalized));
+    }
+
     // Poster file
     if (poster) {
       fd.append("poster", poster);
@@ -358,10 +374,17 @@ export default function CompetitionFormModal({ open, onClose, competition }) {
       updateCompetition(
         { competitionId: resolvedCompetition.id, formData: fd },
         {
-          onSuccess: () => {
-            enqueueSnackbar("Competition updated successfully", {
-              variant: "success",
-            });
+          onSuccess: (res) => {
+            if (res?.pendingApproval) {
+              enqueueSnackbar(
+                "Changes submitted for SA approval — sensitive fields (fee / prize pool) require review before going live.",
+                { variant: "info", autoHideDuration: 6000 },
+              );
+            } else {
+              enqueueSnackbar("Competition updated successfully", {
+                variant: "success",
+              });
+            }
             handleClose();
           },
           onError: (err) =>

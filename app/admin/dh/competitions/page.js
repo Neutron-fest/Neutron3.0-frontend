@@ -1343,8 +1343,17 @@ export default function CompetitionsPage() {
           sx={{
             borderRadius: "12px",
             border: "1px solid rgba(255,255,255,0.06)",
-            overflow: "hidden",
+            overflowX: "auto",
+            overflowY: "hidden",
             background: "#0c0c0c",
+            "&::-webkit-scrollbar": { height: 8 },
+            "&::-webkit-scrollbar-track": {
+              background: "rgba(255,255,255,0.03)",
+            },
+            "&::-webkit-scrollbar-thumb": {
+              background: "rgba(168,85,247,0.35)",
+              borderRadius: 999,
+            },
           }}
         >
           {/* Columns header */}
@@ -1352,7 +1361,8 @@ export default function CompetitionsPage() {
             sx={{
               display: "grid",
               gridTemplateColumns:
-                "minmax(220px,1fr) 130px 110px 120px 170px 360px",
+                "minmax(220px,1fr) 120px 100px 110px 160px minmax(240px, 280px)",
+              minWidth: 980,
               px: 3,
               py: 1.5,
               background: "rgba(255,255,255,0.02)",
@@ -1401,7 +1411,8 @@ export default function CompetitionsPage() {
                   sx={{
                     display: "grid",
                     gridTemplateColumns:
-                      "minmax(220px,1fr) 130px 110px 120px 170px 360px",
+                      "minmax(220px,1fr) 120px 100px 110px 160px minmax(240px, 280px)",
+                    minWidth: 980,
                     alignItems: "center",
                     px: 3,
                     py: 2,
@@ -1495,11 +1506,21 @@ export default function CompetitionsPage() {
                   {/* Actions */}
                   <Box
                     sx={{
-                      display: "flex",
+                      display: "grid",
+                      gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
                       gap: 1,
-                      justifyContent: "flex-end",
-                      alignItems: "center",
-                      flexWrap: "wrap",
+                      justifyItems: "stretch",
+                      alignItems: "stretch",
+                      width: "100%",
+                      minWidth: 0,
+                      maxWidth: "100%",
+                      overflow: "hidden",
+                      "& > button": {
+                        width: "100%",
+                        justifyContent: "center",
+                        minWidth: 0,
+                        whiteSpace: "nowrap",
+                      },
                     }}
                   >
                     <SmallActionBtn

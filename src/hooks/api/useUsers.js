@@ -284,7 +284,7 @@ export function useDHDepartmentMembers() {
   return useQuery({
     queryKey: ["dh", "my-department", "members"],
     queryFn: async () => {
-      const { data } = await apiClient.get("/sa/dh/my-department/members");
+      const { data } = await apiClient.get("/dh/my-department/members");
       return data.data; // { department, members }
     },
   });

@@ -34,6 +34,7 @@ export const STEP_FIELDS = [
     "attendanceRequired",
     "isPaid",
     "perPerson",
+    "prizePool",
   ],
   [], // poster validated separately in the step component
 ];
@@ -91,6 +92,26 @@ export const competitionSchema = z.object({
   attendanceRequired: z.boolean(),
   isPaid: z.boolean(),
   perPerson: z.boolean(),
+
+  // ── Prize Pool (flexible array of ranked/named prizes)
+  // Each entry: { rank: string, label: string, cash: number|null, inkind: string[] }
+  prizePool: z
+    .array(
+      z.object({
+        rank: z.string().optional(),
+        label: z.string().min(1, "Prize label is required"),
+        cash: z
+          .union([z.number(), z.string(), z.literal(""), z.null()])
+          .transform((v) => {
+            if (v === "" || v === null || v === undefined) return undefined;
+            const n = typeof v === "number" ? v : Number(v);
+            return Number.isNaN(n) ? undefined : n;
+          })
+          .optional(),
+        inkind: z.string().optional(),
+      }),
+    )
+    .optional(),
 });
 
 export const DEFAULT_VALUES = {
@@ -117,6 +138,7 @@ export const DEFAULT_VALUES = {
   attendanceRequired: false,
   isPaid: false,
   perPerson: false,
+  prizePool: [],
 };
 
 /** Build default values pre-filled from an existing competition object */
@@ -146,5 +168,15 @@ export function getEditDefaults(c) {
     attendanceRequired: c.attendanceRequired ?? false,
     isPaid: c.isPaid ?? false,
     perPerson: c.perPerson ?? false,
+    prizePool: Array.isArray(c.prizePool)
+      ? c.prizePool.map((p) => ({
+          rank: p.rank ?? "",
+          label: p.label ?? "",
+          cash: p.cash ?? "",
+          inkind: Array.isArray(p.inkind)
+            ? p.inkind.join(", ")
+            : (p.inkind ?? ""),
+        }))
+      : [],
   };
 }

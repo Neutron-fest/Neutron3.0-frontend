@@ -23,7 +23,12 @@ export default function DHLayout({ children }) {
   const router = useRouter();
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const hasAccess = user?.role === "DH" || user?.role === "SA";
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     if (!loading && (!user || !hasAccess)) {
@@ -35,7 +40,7 @@ export default function DHLayout({ children }) {
     setMobileOpen(!mobileOpen);
   };
 
-  if (loading) {
+  if (!mounted || loading) {
     return (
       <Box
         sx={{
@@ -46,7 +51,7 @@ export default function DHLayout({ children }) {
           backgroundColor: "#000",
         }}
       >
-        <CircularProgress sx={{ color: "#fff" }} />
+        {mounted && <CircularProgress sx={{ color: "#fff" }} />}
       </Box>
     );
   }

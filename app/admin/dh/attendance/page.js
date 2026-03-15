@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import {
   Box,
   Typography,
@@ -19,6 +20,13 @@ import {
   Divider,
   InputAdornment,
   Alert,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Checkbox,
+  FormControlLabel,
+  Stack,
 } from "@mui/material";
 import {
   UserCheck,
@@ -27,6 +35,9 @@ import {
   Users,
   BarChart3,
   Info,
+  QrCode,
+  ShieldCheck,
+  UserPlus,
 } from "lucide-react";
 import { useSnackbar } from "notistack";
 import {
@@ -34,9 +45,14 @@ import {
   useCompetitionAttendanceStats,
   useMarkCompetitionAttendance,
   useSearchParticipants,
+  useRegistrationDeskVolunteers,
+  useAssignRegistrationDeskVolunteer,
+  useRemoveRegistrationDeskVolunteer,
 } from "@/src/hooks/api/useAttendance";
 import { useCompetitions } from "@/src/hooks/api/useCompetitions";
 import { LoadingState } from "@/src/components/LoadingState";
+import { useUsers } from "@/src/hooks/api/useUsers";
+import { useAuth } from "@/contexts/AuthContext";
 
 // ────────────────────────────────────────────────────── helpers ──
 
@@ -68,6 +84,271 @@ const inputSx = {
 function pct(attended, total) {
   if (!total) return 0;
   return Math.round((attended / total) * 100);
+}
+
+function SAGateVolunteerDialog({ open, onClose }) {
+  const { enqueueSnackbar } = useSnackbar();
+  const [search, setSearch] = useState("");
+  const [selectedVolunteerIds, setSelectedVolunteerIds] = useState([]);
+
+  const { data: volunteerUsers = [], isLoading: usersLoading } = useUsers({
+    role: "VOLUNTEER",
+    limit: 200,
+  });
+  const { data: assignedVolunteers = [], isLoading: assignedLoading } =
+    useRegistrationDeskVolunteers();
+
+  const { mutateAsync: assignVolunteer, isPending: assigning } =
+    useAssignRegistrationDeskVolunteer();
+  const { mutateAsync: removeVolunteer, isPending: removing } =
+    useRemoveRegistrationDeskVolunteer();
+
+  const assignedByUserId = new Map(
+    assignedVolunteers.map((volunteer) => [
+      volunteer.userId || volunteer.user?.id,
+      volunteer,
+    ]),
+  );
+
+  const availableVolunteers = volunteerUsers.filter(
+    (volunteer) => !assignedByUserId.has(volunteer.id),
+  );
+
+  const normalizedSearch = search.trim().toLowerCase();
+  const filteredAvailable = normalizedSearch
+    ? availableVolunteers.filter((volunteer) => {
+        const haystack = `${volunteer.name || ""} ${volunteer.email || ""}`
+          .trim()
+          .toLowerCase();
+        return haystack.includes(normalizedSearch);
+      })
+    : availableVolunteers;
+
+  const filteredAssigned = normalizedSearch
+    ? assignedVolunteers.filter((volunteer) => {
+        const haystack =
+          `${volunteer.user?.name || ""} ${volunteer.user?.email || ""}`
+            .trim()
+            .toLowerCase();
+        return haystack.includes(normalizedSearch);
+      })
+    : assignedVolunteers;
+
+  const toggleSelection = (userId) => {
+    setSelectedVolunteerIds((current) =>
+      current.includes(userId)
+        ? current.filter((id) => id !== userId)
+        : [...current, userId],
+    );
+  };
+
+  const handleAssignSelected = async () => {
+    if (!selectedVolunteerIds.length) {
+      enqueueSnackbar("Select at least one volunteer", {
+        variant: "warning",
+      });
+      return;
+    }
+
+    const results = await Promise.allSettled(
+      selectedVolunteerIds.map((userId) => assignVolunteer({ userId })),
+    );
+
+    const successCount = results.filter(
+      (result) => result.status === "fulfilled",
+    ).length;
+    const failedCount = results.length - successCount;
+
+    if (successCount > 0) {
+      enqueueSnackbar(
+        `${successCount} volunteer${successCount > 1 ? "s" : ""} granted gate access`,
+        { variant: "success" },
+      );
+    }
+
+    if (failedCount > 0) {
+      enqueueSnackbar(
+        `${failedCount} assignment${failedCount > 1 ? "s" : ""} failed`,
+        { variant: "warning" },
+      );
+    }
+
+    setSelectedVolunteerIds([]);
+  };
+
+  const handleRemove = async (volunteerId) => {
+    try {
+      await removeVolunteer({ volunteerId });
+      enqueueSnackbar("Gate access removed", { variant: "success" });
+    } catch (error) {
+      enqueueSnackbar(
+        error?.response?.data?.message ||
+          error?.message ||
+          "Failed to remove volunteer",
+        { variant: "error" },
+      );
+    }
+  };
+
+  return (
+    <Dialog
+      open={open}
+      onClose={onClose}
+      fullWidth
+      maxWidth="md"
+      PaperProps={{
+        sx: {
+          background: "#0c0c0c",
+          border: "1px solid rgba(255,255,255,0.08)",
+          color: "#fff",
+        },
+      }}
+    >
+      <DialogTitle sx={{ display: "flex", alignItems: "center", gap: 1.2 }}>
+        <ShieldCheck size={18} color="#a78bfa" />
+        Manage Gate Volunteers
+      </DialogTitle>
+      <DialogContent dividers sx={{ borderColor: "rgba(255,255,255,0.08)" }}>
+        <TextField
+          value={search}
+          onChange={(event) => setSearch(event.target.value)}
+          placeholder="Search volunteers by name or email…"
+          size="small"
+          fullWidth
+          sx={{ mb: 2, ...inputSx }}
+        />
+
+        <Grid container spacing={2}>
+          <Grid item xs={12} md={6}>
+            <Paper
+              variant="outlined"
+              sx={{
+                p: 2,
+                background: "#090909",
+                borderColor: "rgba(255,255,255,0.08)",
+                minHeight: 280,
+              }}
+            >
+              <Typography sx={{ fontWeight: 700, mb: 1.5, color: "#e4e4e7" }}>
+                Available Volunteers
+              </Typography>
+              {usersLoading ? (
+                <LoadingState message="Loading volunteers…" size="small" />
+              ) : filteredAvailable.length === 0 ? (
+                <Typography variant="body2" sx={{ color: "#71717a" }}>
+                  No available volunteers found
+                </Typography>
+              ) : (
+                <Stack spacing={0.6}>
+                  {filteredAvailable.map((volunteer) => (
+                    <FormControlLabel
+                      key={volunteer.id}
+                      control={
+                        <Checkbox
+                          checked={selectedVolunteerIds.includes(volunteer.id)}
+                          onChange={() => toggleSelection(volunteer.id)}
+                          sx={{ color: "#a855f7" }}
+                        />
+                      }
+                      label={
+                        <Box>
+                          <Typography variant="body2" sx={{ color: "#fff" }}>
+                            {volunteer.name || "Unnamed Volunteer"}
+                          </Typography>
+                          <Typography
+                            variant="caption"
+                            sx={{ color: "#71717a" }}
+                          >
+                            {volunteer.email}
+                          </Typography>
+                        </Box>
+                      }
+                    />
+                  ))}
+                </Stack>
+              )}
+            </Paper>
+          </Grid>
+
+          <Grid item xs={12} md={6}>
+            <Paper
+              variant="outlined"
+              sx={{
+                p: 2,
+                background: "#090909",
+                borderColor: "rgba(255,255,255,0.08)",
+                minHeight: 280,
+              }}
+            >
+              <Typography sx={{ fontWeight: 700, mb: 1.5, color: "#e4e4e7" }}>
+                Gate Access Active
+              </Typography>
+              {assignedLoading ? (
+                <LoadingState message="Loading assignments…" size="small" />
+              ) : filteredAssigned.length === 0 ? (
+                <Typography variant="body2" sx={{ color: "#71717a" }}>
+                  No gate volunteers assigned
+                </Typography>
+              ) : (
+                <Stack spacing={1}>
+                  {filteredAssigned.map((assignment) => (
+                    <Box
+                      key={assignment.id}
+                      sx={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                        border: "1px solid rgba(255,255,255,0.08)",
+                        borderRadius: "8px",
+                        p: 1.2,
+                      }}
+                    >
+                      <Box>
+                        <Typography variant="body2" sx={{ color: "#fff" }}>
+                          {assignment.user?.name || "Unnamed Volunteer"}
+                        </Typography>
+                        <Typography variant="caption" sx={{ color: "#71717a" }}>
+                          {assignment.user?.email}
+                        </Typography>
+                      </Box>
+                      <Button
+                        size="small"
+                        color="error"
+                        variant="outlined"
+                        disabled={removing}
+                        onClick={() => handleRemove(assignment.id)}
+                        sx={{ textTransform: "none" }}
+                      >
+                        Remove
+                      </Button>
+                    </Box>
+                  ))}
+                </Stack>
+              )}
+            </Paper>
+          </Grid>
+        </Grid>
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={onClose} sx={{ textTransform: "none" }}>
+          Close
+        </Button>
+        <Button
+          variant="contained"
+          startIcon={<UserPlus size={14} />}
+          onClick={handleAssignSelected}
+          disabled={assigning || selectedVolunteerIds.length === 0}
+          sx={{
+            textTransform: "none",
+            backgroundColor: "#7c3aed",
+            "&:hover": { backgroundColor: "#6d28d9" },
+          }}
+        >
+          Grant Gate Permission
+        </Button>
+      </DialogActions>
+    </Dialog>
+  );
 }
 
 // ─────────────────────────────────── stat card ──
@@ -140,6 +421,9 @@ function StatCard({ icon: Icon, label, value, sub, accent = "#a855f7" }) {
 
 export default function AttendancePage() {
   const { enqueueSnackbar } = useSnackbar();
+  const { user } = useAuth();
+  const isSA = user?.role === "SA";
+  const [gateDialogOpen, setGateDialogOpen] = useState(false);
 
   // Competition selector for per-competition stats
   const [statsCompId, setStatsCompId] = useState("");
@@ -211,31 +495,74 @@ export default function AttendancePage() {
     <Box sx={{ p: { xs: 2, md: 4 }, maxWidth: 1200 }}>
       {/* Header */}
       <Box sx={{ mb: 4 }}>
-        <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 0.5 }}>
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: { xs: "flex-start", sm: "center" },
+            gap: 2,
+            flexWrap: "wrap",
+          }}
+        >
           <Box
-            sx={{
-              width: 32,
-              height: 32,
-              borderRadius: "9px",
-              background: "#111",
-              border: "1px solid rgba(255,255,255,0.1)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-            }}
+            sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 0.5 }}
           >
-            <UserCheck size={15} color="rgba(255,255,255,0.7)" />
+            <Box
+              sx={{
+                width: 32,
+                height: 32,
+                borderRadius: "9px",
+                background: "#111",
+                border: "1px solid rgba(255,255,255,0.1)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <UserCheck size={15} color="rgba(255,255,255,0.7)" />
+            </Box>
+            <Typography
+              sx={{
+                fontSize: 18,
+                fontWeight: 600,
+                color: "#f4f4f5",
+                fontFamily: "'Syne', sans-serif",
+              }}
+            >
+              Attendance
+            </Typography>
           </Box>
-          <Typography
-            sx={{
-              fontSize: 18,
-              fontWeight: 600,
-              color: "#f4f4f5",
-              fontFamily: "'Syne', sans-serif",
-            }}
-          >
-            Attendance
-          </Typography>
+
+          <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
+            <Button
+              component={Link}
+              href="/admin/dh/attendance/scan"
+              variant="outlined"
+              startIcon={<QrCode size={15} />}
+              sx={{
+                textTransform: "none",
+                borderColor: "rgba(255,255,255,0.2)",
+                color: "#e4e4e7",
+              }}
+            >
+              Open QR Scanner
+            </Button>
+
+            {isSA && (
+              <Button
+                variant="contained"
+                onClick={() => setGateDialogOpen(true)}
+                startIcon={<ShieldCheck size={15} />}
+                sx={{
+                  textTransform: "none",
+                  backgroundColor: "#7c3aed",
+                  "&:hover": { backgroundColor: "#6d28d9" },
+                }}
+              >
+                Manage Gate Volunteers
+              </Button>
+            )}
+          </Box>
         </Box>
         <Typography
           sx={{
@@ -590,6 +917,13 @@ export default function AttendancePage() {
           </Box>
         )}
       </Paper>
+
+      {isSA && (
+        <SAGateVolunteerDialog
+          open={gateDialogOpen}
+          onClose={() => setGateDialogOpen(false)}
+        />
+      )}
     </Box>
   );
 }

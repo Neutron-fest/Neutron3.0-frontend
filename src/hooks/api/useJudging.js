@@ -209,3 +209,82 @@ export function useCreateJudgingCriteria() {
     },
   });
 }
+
+/**
+ * Admin: All rounds for a competition (no judge-assignment check)
+ * GET /api/v1/judging/admin/competitions/:competitionId/rounds
+ */
+export function useAdminCompetitionRounds(competitionId) {
+  return useQuery({
+    queryKey: queryKeys.judging.adminRounds(competitionId),
+    queryFn: async () => {
+      const { data } = await apiClient.get(
+        `/judging/admin/competitions/${competitionId}/rounds`,
+      );
+      return (
+        (Array.isArray(data?.data) ? data.data : null) ||
+        (Array.isArray(data) ? data : [])
+      );
+    },
+    enabled: !!competitionId,
+  });
+}
+
+/**
+ * Admin: Approved teams for a competition with prevRoundStatus
+ * GET /api/v1/judging/admin/competitions/:competitionId/teams
+ */
+export function useAdminCompetitionTeams(competitionId) {
+  return useQuery({
+    queryKey: queryKeys.judging.adminTeams(competitionId),
+    queryFn: async () => {
+      const { data } = await apiClient.get(
+        `/judging/admin/competitions/${competitionId}/teams`,
+      );
+      return (
+        (Array.isArray(data?.data) ? data.data : null) ||
+        (Array.isArray(data) ? data : [])
+      );
+    },
+    enabled: !!competitionId,
+  });
+}
+
+/**
+ * Admin: All teams in a round with scores and qualification status
+ * GET /api/v1/judging/admin/rounds/:roundId/teams
+ */
+export function useAdminRoundTeams(roundId) {
+  return useQuery({
+    queryKey: queryKeys.judging.adminRoundTeams(roundId),
+    queryFn: async () => {
+      const { data } = await apiClient.get(
+        `/judging/admin/rounds/${roundId}/teams`,
+      );
+      return data?.data || data || null;
+    },
+    enabled: !!roundId,
+  });
+}
+
+/**
+ * Admin: Create a new round for a competition
+ * POST /api/v1/judging/admin/competitions/:competitionId/rounds
+ */
+export function useCreateRound() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ competitionId, name, teamIds }) => {
+      const { data } = await apiClient.post(
+        `/judging/admin/competitions/${competitionId}/rounds`,
+        { name, teamIds },
+      );
+      return data;
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.judging.adminRounds(variables.competitionId),
+      });
+    },
+  });
+}
