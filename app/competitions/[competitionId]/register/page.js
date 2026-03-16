@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { Box, CircularProgress, Typography } from "@mui/material";
 import {
   ArrowLeft,
@@ -22,6 +22,7 @@ import {
   useRegisterSoloCompetition,
   useRegisterTeamCompetition,
   useSendTeamInvite,
+  useSubmitTeamMemberForm,
   useUploadRegistrationImage,
 } from "@/src/hooks/api/usePublicRegistration";
 
@@ -51,11 +52,25 @@ const isEmptyFieldValue = (value, fieldType) => {
   return value === undefined || value === null || String(value).trim() === "";
 };
 
+const parsePositiveInt = (...candidates) => {
+  for (const candidate of candidates) {
+    const parsed = Number.parseInt(String(candidate ?? ""), 10);
+    if (Number.isFinite(parsed) && parsed > 0) {
+      return parsed;
+    }
+  }
+
+  return null;
+};
+
 export default function PublicCompetitionRegisterPage() {
   const params = useParams();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { user, loading } = useAuth();
   const competitionId = params?.competitionId;
+  const mode = searchParams.get("mode");
+  const memberModeTeamId = searchParams.get("teamId");
 
   const { data: competition, isLoading: competitionLoading } =
     useCompetition(competitionId);
@@ -68,6 +83,7 @@ export default function PublicCompetitionRegisterPage() {
   const teamMutation = useRegisterTeamCompetition();
   const uploadImageMutation = useUploadRegistrationImage();
   const sendInviteMutation = useSendTeamInvite();
+  const submitTeamMemberFormMutation = useSubmitTeamMemberForm();
 
   const [teamName, setTeamName] = useState("");
   const [teamStep, setTeamStep] = useState(1);
@@ -90,6 +106,12 @@ export default function PublicCompetitionRegisterPage() {
     );
   }, [myRegistrations, competitionId]);
 
+  const isMemberMode = mode === "member" && !!memberModeTeamId;
+  const isExistingTeamMemberRegistration =
+    isMemberMode &&
+    existingRegistration?.team?.id === memberModeTeamId &&
+    existingRegistration?.competition?.id === competitionId;
+
   const canRegister = useMemo(() => {
     if (!competition) return false;
     const beforeDeadline =
@@ -105,26 +127,41 @@ export default function PublicCompetitionRegisterPage() {
 
   const hasConfiguredForm = formId && fields.length > 0;
   const isTeamCompetition = competition?.type === "TEAM";
-  const parsedMinTeamSize = Number.parseInt(
-    String(competition?.minTeamSize ?? ""),
-    10,
-  );
-  const parsedMaxTeamSize = Number.parseInt(
-    String(competition?.maxTeamSize ?? ""),
-    10,
+  const minTeamSizeRaw = parsePositiveInt(
+    competition?.minTeamSize,
+    competition?.min_team_size,
+    competition?.teamMinSize,
+    competition?.team_min_size,
   );
 
-  const minTeamSize =
-    Number.isFinite(parsedMinTeamSize) && parsedMinTeamSize > 0
-      ? parsedMinTeamSize
-      : 1;
-  const maxTeamSize = Number.isFinite(parsedMaxTeamSize)
-    ? Math.max(parsedMaxTeamSize, minTeamSize)
-    : null;
+  const maxTeamSizeRaw = parsePositiveInt(
+    competition?.maxTeamSize,
+    competition?.max_team_size,
+    competition?.teamMaxSize,
+    competition?.team_max_size,
+  );
+
+  const teamSizeConfigured =
+    !isTeamCompetition ||
+    (Number.isFinite(minTeamSizeRaw) && Number.isFinite(maxTeamSizeRaw));
+
+  const minTeamSize = minTeamSizeRaw ?? 0;
+  const maxTeamSize =
+    typeof maxTeamSizeRaw === "number"
+      ? Math.max(maxTeamSizeRaw, minTeamSize || 0)
+      : null;
 
   const minAdditionalMembers = Math.max(minTeamSize - 1, 0);
   const maxAdditionalMembers =
     typeof maxTeamSize === "number" ? Math.max(maxTeamSize - 1, 0) : null;
+
+  const effectiveFields = useMemo(() => {
+    if (isExistingTeamMemberRegistration) {
+      return fields.filter((field) => field.scope === "ALL_MEMBERS");
+    }
+
+    return fields;
+  }, [fields, isExistingTeamMemberRegistration]);
 
   useEffect(() => {
     if (!loading && !user) {
@@ -141,7 +178,7 @@ export default function PublicCompetitionRegisterPage() {
   const validateForm = () => {
     const nextErrors = {};
 
-    for (const field of fields) {
+    for (const field of effectiveFields) {
       if (!field.isRequired) continue;
       const value = valuesByField[field.id];
       if (isEmptyFieldValue(value, field.fieldType)) {
@@ -201,6 +238,13 @@ export default function PublicCompetitionRegisterPage() {
   };
 
   const continueToFormStep = () => {
+    if (!teamSizeConfigured) {
+      setTeamStepError(
+        "Team size is not configured for this competition yet. Please contact organizer.",
+      );
+      return;
+    }
+
     const nextErrors = {};
 
     if (!teamName.trim()) {
@@ -245,7 +289,7 @@ export default function PublicCompetitionRegisterPage() {
       return;
     }
 
-    if (existingRegistration) {
+    if (existingRegistration && !isExistingTeamMemberRegistration) {
       setSubmitError("You are already registered for this competition.");
       return;
     }
@@ -262,7 +306,7 @@ export default function PublicCompetitionRegisterPage() {
     try {
       const formDataResponses = [];
 
-      for (const field of fields) {
+      for (const field of effectiveFields) {
         const rawValue = valuesByField[field.id];
         if (isEmptyFieldValue(rawValue, field.fieldType)) continue;
 
@@ -307,7 +351,12 @@ export default function PublicCompetitionRegisterPage() {
         });
       }
 
-      if (competition?.type === "TEAM") {
+      if (isExistingTeamMemberRegistration) {
+        await submitTeamMemberFormMutation.mutateAsync({
+          teamId: memberModeTeamId,
+          formData: formDataResponses,
+        });
+      } else if (competition?.type === "TEAM") {
         const teamResult = await teamMutation.mutateAsync({
           competitionId,
           teamName: teamName.trim(),
@@ -391,7 +440,7 @@ export default function PublicCompetitionRegisterPage() {
     );
   }
 
-  if (existingRegistration && !success) {
+  if (existingRegistration && !isExistingTeamMemberRegistration && !success) {
     return (
       <Box sx={{ minHeight: "100vh", background: "#050505", py: 7, px: 2 }}>
         <Box
@@ -591,7 +640,9 @@ export default function PublicCompetitionRegisterPage() {
           <Typography
             sx={{ color: "rgba(255,255,255,0.42)", mt: 0.8, mb: 2.5 }}
           >
-            Complete the form below and submit your registration.
+            {isExistingTeamMemberRegistration
+              ? "Complete your member-required fields to finish joining this team."
+              : "Complete the form below and submit your registration."}
           </Typography>
 
           {isTeamCompetition && (
@@ -608,6 +659,13 @@ export default function PublicCompetitionRegisterPage() {
           >
             {isTeamCompetition && teamStep === 1 && (
               <>
+                {!teamSizeConfigured && (
+                  <ErrorText>
+                    Team size settings (min/max) are missing for this
+                    competition, so team registration cannot continue.
+                  </ErrorText>
+                )}
+
                 <FieldLabel label="Team Name" required>
                   <input
                     value={teamName}
@@ -792,8 +850,10 @@ export default function PublicCompetitionRegisterPage() {
               </FieldLabel>
             )}
 
-            {(!isTeamCompetition || teamStep === 2) &&
-              fields.map((field) => (
+            {(!isTeamCompetition ||
+              teamStep === 2 ||
+              isExistingTeamMemberRegistration) &&
+              effectiveFields.map((field) => (
                 <FieldRenderer
                   key={field.id}
                   field={field}
@@ -805,7 +865,9 @@ export default function PublicCompetitionRegisterPage() {
 
             {submitError && <ErrorText>{submitError}</ErrorText>}
 
-            {(!isTeamCompetition || teamStep === 2) && (
+            {(!isTeamCompetition ||
+              teamStep === 2 ||
+              isExistingTeamMemberRegistration) && (
               <Box
                 sx={{
                   display: "flex",
@@ -846,7 +908,8 @@ export default function PublicCompetitionRegisterPage() {
                   disabled={
                     soloMutation.isPending ||
                     teamMutation.isPending ||
-                    uploadImageMutation.isPending
+                    uploadImageMutation.isPending ||
+                    submitTeamMemberFormMutation.isPending
                   }
                   style={{
                     border: "1px solid rgba(168,85,247,0.35)",
@@ -864,7 +927,8 @@ export default function PublicCompetitionRegisterPage() {
                     opacity:
                       soloMutation.isPending ||
                       teamMutation.isPending ||
-                      uploadImageMutation.isPending
+                      uploadImageMutation.isPending ||
+                      submitTeamMemberFormMutation.isPending
                         ? 0.6
                         : 1,
                     display: "inline-flex",
@@ -874,11 +938,14 @@ export default function PublicCompetitionRegisterPage() {
                 >
                   {soloMutation.isPending ||
                   teamMutation.isPending ||
-                  uploadImageMutation.isPending ? (
+                  uploadImageMutation.isPending ||
+                  submitTeamMemberFormMutation.isPending ? (
                     <>
                       <CircularProgress size={14} sx={{ color: "#fff" }} />
                       Submitting...
                     </>
+                  ) : isExistingTeamMemberRegistration ? (
+                    "Submit Member Fields"
                   ) : (
                     "Submit Registration"
                   )}

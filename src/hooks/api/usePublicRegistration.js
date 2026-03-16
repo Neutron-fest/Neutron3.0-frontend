@@ -90,3 +90,40 @@ export function useSendTeamInvite() {
     },
   });
 }
+
+export function useAcceptTeamInvite() {
+  return useMutation({
+    mutationFn: async (inviteToken) => {
+      const { data } = await apiClient.post(
+        `/registration/team/invite/${inviteToken}/accept`,
+      );
+
+      return data?.data || data;
+    },
+  });
+}
+
+export function useDeclineTeamInvite() {
+  return useMutation({
+    mutationFn: async (inviteToken) => {
+      const { data } = await apiClient.post(
+        `/registration/team/invite/${inviteToken}/decline`,
+      );
+
+      return data?.data || data;
+    },
+  });
+}
+
+export function useSubmitTeamMemberForm() {
+  return useMutation({
+    mutationFn: async ({ teamId, formData = [] }) => {
+      const { data } = await apiClient.post(
+        `/registration/team/${teamId}/member-form`,
+        { formData },
+      );
+
+      return data?.data || data;
+    },
+  });
+}
