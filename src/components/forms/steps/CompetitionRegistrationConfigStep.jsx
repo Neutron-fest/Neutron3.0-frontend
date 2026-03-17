@@ -81,6 +81,21 @@ export default function CompetitionRegistrationConfigStep({ control, errors }) {
     name: "prizePool",
   });
 
+  const {
+    fields: promoFields,
+    append: appendPromo,
+    remove: removePromo,
+    update: updatePromo,
+  } = useFieldArray({
+    control,
+    name: "promoCodes",
+  });
+
+  const generatePromoCode = () => {
+    const token = Math.random().toString(36).toUpperCase().slice(2, 8);
+    return `NEUTRON-${token}`;
+  };
+
   return (
     <Box
       sx={{
@@ -416,6 +431,276 @@ export default function CompetitionRegistrationConfigStep({ control, errors }) {
                 />
               </FieldGroup>
             </Box>
+          </Box>
+        ))}
+      </Box>
+
+      {/* Promo Code Generator */}
+      <Box>
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            mb: 1.5,
+          }}
+        >
+          <Box>
+            <Typography
+              sx={{
+                fontSize: 13,
+                color: "rgba(255,255,255,0.8)",
+                fontFamily: "'Syne', sans-serif",
+                fontWeight: 500,
+              }}
+            >
+              Promo Codes
+            </Typography>
+            <Typography
+              sx={{
+                fontSize: 11,
+                color: "rgba(255,255,255,0.3)",
+                fontFamily: "'DM Mono', monospace",
+                mt: 0.25,
+              }}
+            >
+              Generate discount codes for registrations
+            </Typography>
+          </Box>
+          <button
+            type="button"
+            onClick={() =>
+              appendPromo({
+                code: generatePromoCode(),
+                discountType: "PERCENT",
+                discountValue: "",
+                maxUses: "",
+                isActive: true,
+                description: "",
+              })
+            }
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 5,
+              background: "rgba(168,85,247,0.12)",
+              border: "1px solid rgba(168,85,247,0.3)",
+              borderRadius: 7,
+              color: "#c084fc",
+              fontSize: 12,
+              fontFamily: "'Syne', sans-serif",
+              padding: "6px 12px",
+              cursor: "pointer",
+            }}
+          >
+            <Plus size={13} />
+            Add Promo Code
+          </button>
+        </Box>
+
+        {promoFields.length === 0 && (
+          <Box
+            sx={{
+              borderRadius: "10px",
+              border: "1px dashed rgba(255,255,255,0.08)",
+              p: 2,
+              textAlign: "center",
+            }}
+          >
+            <Typography
+              sx={{
+                fontSize: 12,
+                color: "rgba(255,255,255,0.2)",
+                fontFamily: "'DM Mono', monospace",
+              }}
+            >
+              No promo codes added yet
+            </Typography>
+          </Box>
+        )}
+
+        {promoFields.map((field, index) => (
+          <Box
+            key={field.id}
+            sx={{
+              borderRadius: "10px",
+              border: "1px solid rgba(255,255,255,0.06)",
+              background: "rgba(255,255,255,0.02)",
+              p: 2,
+              mb: 1.5,
+              display: "flex",
+              flexDirection: "column",
+              gap: 1.5,
+            }}
+          >
+            <Box
+              sx={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+              }}
+            >
+              <Typography
+                sx={{
+                  fontSize: 11,
+                  color: "rgba(168,85,247,0.7)",
+                  fontFamily: "'DM Mono', monospace",
+                  letterSpacing: "0.08em",
+                }}
+              >
+                PROMO #{index + 1}
+              </Typography>
+              <Box sx={{ display: "flex", gap: 1 }}>
+                <button
+                  type="button"
+                  onClick={() =>
+                    updatePromo(index, {
+                      ...promoFields[index],
+                      code: generatePromoCode(),
+                    })
+                  }
+                  style={{
+                    background: "transparent",
+                    border: "1px solid rgba(255,255,255,0.15)",
+                    borderRadius: 6,
+                    cursor: "pointer",
+                    color: "rgba(255,255,255,0.6)",
+                    padding: "4px 8px",
+                    fontSize: 11,
+                  }}
+                >
+                  Generate
+                </button>
+                <button
+                  type="button"
+                  onClick={() => removePromo(index)}
+                  style={{
+                    background: "transparent",
+                    border: "none",
+                    cursor: "pointer",
+                    color: "rgba(239,68,68,0.5)",
+                    padding: 4,
+                    display: "flex",
+                    alignItems: "center",
+                  }}
+                >
+                  <Trash2 size={13} />
+                </button>
+              </Box>
+            </Box>
+
+            <Box
+              sx={{
+                display: "grid",
+                gridTemplateColumns: "2fr 1fr 1fr",
+                gap: 1.5,
+              }}
+            >
+              <FieldGroup
+                label="Code *"
+                error={errors.promoCodes?.[index]?.code}
+              >
+                <Controller
+                  name={`promoCodes.${index}.code`}
+                  control={control}
+                  render={({ field: f }) => (
+                    <input
+                      {...f}
+                      placeholder="NEUTRON-ABC123"
+                      style={inputCss}
+                    />
+                  )}
+                />
+              </FieldGroup>
+
+              <FieldGroup label="Type">
+                <Controller
+                  name={`promoCodes.${index}.discountType`}
+                  control={control}
+                  render={({ field: f }) => (
+                    <select {...f} style={inputCss}>
+                      <option value="PERCENT" style={{ background: "#0e0e0e" }}>
+                        Percent
+                      </option>
+                      <option value="FLAT" style={{ background: "#0e0e0e" }}>
+                        Flat
+                      </option>
+                    </select>
+                  )}
+                />
+              </FieldGroup>
+
+              <FieldGroup
+                label="Value *"
+                error={errors.promoCodes?.[index]?.discountValue}
+              >
+                <Controller
+                  name={`promoCodes.${index}.discountValue`}
+                  control={control}
+                  render={({ field: f }) => (
+                    <input
+                      {...f}
+                      type="number"
+                      min="0"
+                      placeholder="e.g. 20"
+                      style={inputCss}
+                    />
+                  )}
+                />
+              </FieldGroup>
+            </Box>
+
+            <Box
+              sx={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 1.5 }}
+            >
+              <FieldGroup label="Max Uses">
+                <Controller
+                  name={`promoCodes.${index}.maxUses`}
+                  control={control}
+                  render={({ field: f }) => (
+                    <input
+                      {...f}
+                      type="number"
+                      min="1"
+                      placeholder="Unlimited"
+                      style={inputCss}
+                    />
+                  )}
+                />
+              </FieldGroup>
+
+              <FieldGroup label="Description">
+                <Controller
+                  name={`promoCodes.${index}.description`}
+                  control={control}
+                  render={({ field: f }) => (
+                    <input
+                      {...f}
+                      placeholder="Early bird, Campus ambassador..."
+                      style={inputCss}
+                    />
+                  )}
+                />
+              </FieldGroup>
+            </Box>
+
+            <Controller
+              name={`promoCodes.${index}.isActive`}
+              control={control}
+              render={({ field: f }) => (
+                <Box
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    px: 1,
+                  }}
+                >
+                  <FieldLabel>Active</FieldLabel>
+                  <Toggle checked={!!f.value} onChange={f.onChange} />
+                </Box>
+              )}
+            />
           </Box>
         ))}
       </Box>

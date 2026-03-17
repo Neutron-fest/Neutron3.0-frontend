@@ -325,6 +325,25 @@ export default function CompetitionFormModal({ open, onClose, competition }) {
     append("venueRoom", data.venueRoom);
     append("venueFloor", data.venueFloor);
 
+    if (Array.isArray(data.subVenues) && data.subVenues.length > 0) {
+      const normalizedSubVenues = data.subVenues
+        .map((v) => ({
+          name: String(v?.name || "").trim(),
+          room: String(v?.room || "").trim() || undefined,
+          floor: String(v?.floor || "").trim() || undefined,
+          capacity:
+            v?.capacity !== "" && v?.capacity != null
+              ? Number(v.capacity)
+              : undefined,
+          notes: String(v?.notes || "").trim() || undefined,
+        }))
+        .filter((v) => v.name);
+
+      if (normalizedSubVenues.length > 0) {
+        fd.append("subVenues", JSON.stringify(normalizedSubVenues));
+      }
+    }
+
     // Rules
     if (data.rulesRichText) fd.append("rulesRichText", data.rulesRichText);
 
@@ -357,6 +376,31 @@ export default function CompetitionFormModal({ open, onClose, competition }) {
           : undefined,
       }));
       fd.append("prizePool", JSON.stringify(normalized));
+    }
+
+    if (Array.isArray(data.promoCodes) && data.promoCodes.length > 0) {
+      const normalizedPromoCodes = data.promoCodes
+        .map((pc) => ({
+          code: String(pc?.code || "")
+            .trim()
+            .toUpperCase(),
+          discountType: pc?.discountType || "PERCENT",
+          discountValue:
+            pc?.discountValue !== "" && pc?.discountValue != null
+              ? Number(pc.discountValue)
+              : undefined,
+          maxUses:
+            pc?.maxUses !== "" && pc?.maxUses != null
+              ? Number(pc.maxUses)
+              : undefined,
+          isActive: pc?.isActive ?? true,
+          description: String(pc?.description || "").trim() || undefined,
+        }))
+        .filter((pc) => pc.code && pc.discountValue != null);
+
+      if (normalizedPromoCodes.length > 0) {
+        fd.append("promoCodes", JSON.stringify(normalizedPromoCodes));
+      }
     }
 
     // Poster file

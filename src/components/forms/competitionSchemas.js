@@ -36,6 +36,7 @@ export const STEP_FIELDS = [
     "isPaid",
     "perPerson",
     "prizePool",
+    "promoCodes",
   ],
   [], // poster validated separately in the step component
 ];
@@ -78,6 +79,15 @@ export const competitionSchema = z.object({
         name: z.string().min(1, "Sub venue name is required"),
         room: z.string().optional(),
         floor: z.string().optional(),
+        capacity: z
+          .union([z.literal(""), z.string(), z.number()])
+          .transform((v) => {
+            if (v === "" || v === null || v === undefined) return undefined;
+            const n = typeof v === "number" ? v : parseInt(String(v), 10);
+            return Number.isNaN(n) ? undefined : n;
+          })
+          .optional(),
+        notes: z.string().optional(),
       }),
     )
     .optional(),
@@ -122,6 +132,32 @@ export const competitionSchema = z.object({
       }),
     )
     .optional(),
+
+  promoCodes: z
+    .array(
+      z.object({
+        code: z.string().min(1, "Promo code is required"),
+        discountType: z.enum(["PERCENT", "FLAT"]),
+        discountValue: z
+          .union([z.number(), z.string(), z.literal("")])
+          .transform((v) => {
+            if (v === "" || v === undefined || v === null) return undefined;
+            const n = typeof v === "number" ? v : Number(v);
+            return Number.isNaN(n) ? undefined : n;
+          }),
+        maxUses: z
+          .union([z.literal(""), z.string(), z.number()])
+          .transform((v) => {
+            if (v === "" || v === null || v === undefined) return undefined;
+            const n = typeof v === "number" ? v : parseInt(String(v), 10);
+            return Number.isNaN(n) ? undefined : n;
+          })
+          .optional(),
+        isActive: z.boolean(),
+        description: z.string().optional(),
+      }),
+    )
+    .optional(),
 });
 
 export const DEFAULT_VALUES = {
@@ -150,6 +186,7 @@ export const DEFAULT_VALUES = {
   isPaid: false,
   perPerson: false,
   prizePool: [],
+  promoCodes: [],
 };
 
 /** Build default values pre-filled from an existing competition object */
@@ -173,6 +210,8 @@ export function getEditDefaults(c) {
           name: v.name ?? "",
           room: v.room ?? "",
           floor: v.floor ?? "",
+          capacity: v.capacity ?? "",
+          notes: v.notes ?? "",
         }))
       : [],
     rulesRichText: c.rulesRichText ?? "",
@@ -194,6 +233,16 @@ export function getEditDefaults(c) {
           inkind: Array.isArray(p.inkind)
             ? p.inkind.join(", ")
             : (p.inkind ?? ""),
+        }))
+      : [],
+    promoCodes: Array.isArray(c.promoCodes)
+      ? c.promoCodes.map((pc) => ({
+          code: pc.code ?? "",
+          discountType: pc.discountType ?? "PERCENT",
+          discountValue: pc.discountValue ?? "",
+          maxUses: pc.maxUses ?? "",
+          isActive: pc.isActive ?? true,
+          description: pc.description ?? "",
         }))
       : [],
   };
