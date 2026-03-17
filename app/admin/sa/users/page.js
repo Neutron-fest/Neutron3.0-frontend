@@ -609,109 +609,117 @@ export default function UsersPage() {
             </Typography>
           ))}
         </Box>
-        <RowDivider />
+        <Box
+          sx={{
+            maxHeight: "min(62vh, 620px)",
+            overflowY: "auto",
+            overflowX: "hidden",
+          }}
+        >
+          <RowDivider />
 
-        {filteredUsers.length === 0 ? (
-          <Box sx={{ py: 8, textAlign: "center" }}>
-            <Typography
-              sx={{
-                color: "rgba(255,255,255,0.2)",
-                fontSize: 13,
-                fontFamily: "'Syne', sans-serif",
-              }}
-            >
-              No users found
-            </Typography>
-          </Box>
-        ) : (
-          filteredUsers.map((user, idx) => (
-            <Box key={user.id}>
-              <Box
+          {filteredUsers.length === 0 ? (
+            <Box sx={{ py: 8, textAlign: "center" }}>
+              <Typography
                 sx={{
-                  display: "grid",
-                  gridTemplateColumns:
-                    "minmax(200px,1fr) 130px 120px 110px 44px",
-                  alignItems: "center",
-                  px: 3,
-                  py: 2,
-                  transition: "background 0.12s",
-                  "&:hover": { background: "rgba(255,255,255,0.02)" },
+                  color: "rgba(255,255,255,0.2)",
+                  fontSize: 13,
+                  fontFamily: "'Syne', sans-serif",
                 }}
               >
+                No users found
+              </Typography>
+            </Box>
+          ) : (
+            filteredUsers.map((user, idx) => (
+              <Box key={user.id}>
                 <Box
                   sx={{
-                    display: "flex",
+                    display: "grid",
+                    gridTemplateColumns:
+                      "minmax(200px,1fr) 130px 120px 110px 44px",
                     alignItems: "center",
-                    gap: 1.5,
-                    minWidth: 0,
+                    px: 3,
+                    py: 2,
+                    transition: "background 0.12s",
+                    "&:hover": { background: "rgba(255,255,255,0.02)" },
                   }}
                 >
-                  <UserAvatar name={user.name} />
-                  <Box sx={{ minWidth: 0 }}>
-                    <Typography
-                      sx={{
-                        fontSize: 13,
-                        fontWeight: 500,
-                        color: "#e4e4e7",
-                        fontFamily: "'Syne', sans-serif",
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
-                        whiteSpace: "nowrap",
-                      }}
-                    >
-                      {user.name || "Invited user"}
-                    </Typography>
-                    <Typography
-                      sx={{
-                        fontSize: 11,
-                        color: "rgba(255,255,255,0.28)",
-                        fontFamily: "'DM Mono', monospace",
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
-                        whiteSpace: "nowrap",
-                      }}
-                    >
-                      {user.email || "—"}
-                    </Typography>
+                  <Box
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 1.5,
+                      minWidth: 0,
+                    }}
+                  >
+                    <UserAvatar name={user.name} />
+                    <Box sx={{ minWidth: 0 }}>
+                      <Typography
+                        sx={{
+                          fontSize: 13,
+                          fontWeight: 500,
+                          color: "#e4e4e7",
+                          fontFamily: "'Syne', sans-serif",
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                          whiteSpace: "nowrap",
+                        }}
+                      >
+                        {user.name || "Invited user"}
+                      </Typography>
+                      <Typography
+                        sx={{
+                          fontSize: 11,
+                          color: "rgba(255,255,255,0.28)",
+                          fontFamily: "'DM Mono', monospace",
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                          whiteSpace: "nowrap",
+                        }}
+                      >
+                        {user.email || "—"}
+                      </Typography>
+                    </Box>
                   </Box>
+                  <Box>
+                    <RolePill role={user.role} />
+                  </Box>
+                  <Box>
+                    <StatusDot
+                      isSuspended={user.isSuspended}
+                      isRevoked={user.isRevoked}
+                    />
+                  </Box>
+                  <Typography
+                    sx={{
+                      fontSize: 11,
+                      color: "rgba(255,255,255,0.28)",
+                      fontFamily: "'DM Mono', monospace",
+                    }}
+                  >
+                    {fmtDate(user.createdAt)}
+                  </Typography>
+                  <IconButton
+                    size="small"
+                    onClick={(e) => handleMenuOpen(e, user)}
+                    sx={{
+                      color: "rgba(255,255,255,0.25)",
+                      borderRadius: "7px",
+                      "&:hover": {
+                        background: "rgba(255,255,255,0.06)",
+                        color: "rgba(255,255,255,0.7)",
+                      },
+                    }}
+                  >
+                    <MoreVertical size={15} />
+                  </IconButton>
                 </Box>
-                <Box>
-                  <RolePill role={user.role} />
-                </Box>
-                <Box>
-                  <StatusDot
-                    isSuspended={user.isSuspended}
-                    isRevoked={user.isRevoked}
-                  />
-                </Box>
-                <Typography
-                  sx={{
-                    fontSize: 11,
-                    color: "rgba(255,255,255,0.28)",
-                    fontFamily: "'DM Mono', monospace",
-                  }}
-                >
-                  {fmtDate(user.createdAt)}
-                </Typography>
-                <IconButton
-                  size="small"
-                  onClick={(e) => handleMenuOpen(e, user)}
-                  sx={{
-                    color: "rgba(255,255,255,0.25)",
-                    borderRadius: "7px",
-                    "&:hover": {
-                      background: "rgba(255,255,255,0.06)",
-                      color: "rgba(255,255,255,0.7)",
-                    },
-                  }}
-                >
-                  <MoreVertical size={15} />
-                </IconButton>
+                {idx < filteredUsers.length - 1 && <RowDivider />}
               </Box>
-              {idx < filteredUsers.length - 1 && <RowDivider />}
-            </Box>
-          ))
-        )}
+            ))
+          )}
+        </Box>
       </Box>
 
       {/* Context Menu */}

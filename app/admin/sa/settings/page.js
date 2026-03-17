@@ -38,6 +38,7 @@ import {
   useSendCampaignNow,
   useScheduleCampaign,
   useRetryFailedCampaign,
+  useRerunCampaign,
   useCancelCampaign,
 } from "@/src/hooks/api/useCampaigns";
 import { useUsers } from "@/src/hooks/api/useUsers";
@@ -273,6 +274,8 @@ export default function SettingsPage() {
     useScheduleCampaign();
   const { mutateAsync: retryFailedCampaign, isPending: retryingCampaign } =
     useRetryFailedCampaign();
+  const { mutateAsync: rerunCampaign, isPending: rerunningCampaign } =
+    useRerunCampaign();
   const { mutateAsync: cancelCampaign, isPending: cancellingCampaign } =
     useCancelCampaign();
 
@@ -638,6 +641,20 @@ export default function SettingsPage() {
     }
   };
 
+  const handleCancelCampaign = async (campaignId) => {
+    try {
+      await cancelCampaign(campaignId);
+      enqueueSnackbar("Campaign cancelled.", { variant: "success" });
+    } catch (error) {
+      enqueueSnackbar(
+        error?.response?.data?.message || "Failed to cancel campaign.",
+        {
+          variant: "error",
+        },
+      );
+    }
+  };
+
   const handleRetryFailedCampaign = async (campaignId) => {
     try {
       await retryFailedCampaign(campaignId);
@@ -650,16 +667,16 @@ export default function SettingsPage() {
     }
   };
 
-  const handleCancelCampaign = async (campaignId) => {
+  const handleRerunCampaign = async (campaignId) => {
     try {
-      await cancelCampaign(campaignId);
-      enqueueSnackbar("Campaign cancelled.", { variant: "success" });
+      await rerunCampaign(campaignId);
+      enqueueSnackbar("Campaign re-queued for full rerun.", {
+        variant: "success",
+      });
     } catch (error) {
       enqueueSnackbar(
-        error?.response?.data?.message || "Failed to cancel campaign.",
-        {
-          variant: "error",
-        },
+        error?.response?.data?.message || "Failed to rerun campaign.",
+        { variant: "error" },
       );
     }
   };
@@ -2238,6 +2255,40 @@ export default function SettingsPage() {
                     }}
                   >
                     <RotateCcw size={12} /> Retry Failed
+                  </Box>
+
+                  <Box
+                    component="button"
+                    onClick={() => handleRerunCampaign(selectedCampaign.id)}
+                    disabled={
+                      !["FAILED", "PARTIAL", "COMPLETED", "CANCELLED"].includes(
+                        selectedCampaign.status,
+                      ) || rerunningCampaign
+                    }
+                    sx={{
+                      border: "1px solid rgba(255,255,255,0.18)",
+                      borderRadius: "7px",
+                      px: 1.25,
+                      py: 0.65,
+                      background: "transparent",
+                      color: "rgba(255,255,255,0.8)",
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: 0.6,
+                      fontSize: 11,
+                      cursor: "pointer",
+                      opacity:
+                        ![
+                          "FAILED",
+                          "PARTIAL",
+                          "COMPLETED",
+                          "CANCELLED",
+                        ].includes(selectedCampaign.status) || rerunningCampaign
+                          ? 0.5
+                          : 1,
+                    }}
+                  >
+                    <RefreshCw size={12} /> Rerun Campaign
                   </Box>
 
                   <Box

@@ -13,16 +13,7 @@ export const STATUS_OPTS = [
 
 // Fields validated per step (indices map to STEP_LABELS in modal)
 export const STEP_FIELDS = [
-  [
-    "title",
-    "shortDescription",
-    "category",
-    "eventType",
-    "type",
-    "status",
-    "isCampaignRerun",
-    "rerunCampaignId",
-  ],
+  ["title", "shortDescription", "category", "eventType", "type", "status"],
   [
     "startTime",
     "endTime",
@@ -58,93 +49,80 @@ const optCoercedInt = z
   })
   .optional();
 
-export const competitionSchema = z
-  .object({
+export const competitionSchema = z.object({
   // ── Step 1: Basic Info
   title: z.string().min(1, "Title is required"),
   shortDescription: z.string().optional(),
   category: z.string().optional(),
   eventType: z.enum(["COMPETITION", "WORKSHOP", "EVENT"]),
   type: z.enum(["SOLO", "TEAM"]),
-    status: z.enum([
-      "DRAFT",
-      "OPEN",
-      "CLOSED",
-      "ARCHIVED",
-      "CANCELLED",
-      "POSTPONED",
-    ]),
-    isCampaignRerun: z.boolean(),
-    rerunCampaignId: z.string().optional(),
+  status: z.enum([
+    "DRAFT",
+    "OPEN",
+    "CLOSED",
+    "ARCHIVED",
+    "CANCELLED",
+    "POSTPONED",
+  ]),
 
   // ── Step 2: Schedule & Venue
-    startTime: z.string().optional(),
-    endTime: z.string().optional(),
-    registrationDeadline: z.string().optional(),
-    venueName: z.string().optional(),
-    venueRoom: z.string().optional(),
-    venueFloor: z.string().optional(),
-    subVenues: z
-      .array(
-        z.object({
-          name: z.string().min(1, "Sub venue name is required"),
-          room: z.string().optional(),
-          floor: z.string().optional(),
-        }),
-      )
-      .optional(),
+  startTime: z.string().optional(),
+  endTime: z.string().optional(),
+  registrationDeadline: z.string().optional(),
+  venueName: z.string().optional(),
+  venueRoom: z.string().optional(),
+  venueFloor: z.string().optional(),
+  subVenues: z
+    .array(
+      z.object({
+        name: z.string().min(1, "Sub venue name is required"),
+        room: z.string().optional(),
+        floor: z.string().optional(),
+      }),
+    )
+    .optional(),
 
   // ── Step 3: Rules
-    rulesRichText: z.string().optional(),
+  rulesRichText: z.string().optional(),
 
   // ── Step 4: Registration Config
-    registrationFee: z
-      .union([z.literal(""), z.string(), z.number()])
-      .transform((v) => {
-        if (v === "" || v === undefined || v === null) return 0;
-        const n = typeof v === "number" ? v : parseInt(String(v), 10);
-        return isNaN(n) ? 0 : n;
-      }),
-    maxRegistrations: optCoercedInt,
-    minTeamSize: optCoercedInt,
-    maxTeamSize: optCoercedInt,
-    registrationsOpen: z.boolean(),
-    requiresApproval: z.boolean(),
-    autoApproveTeams: z.boolean(),
-    attendanceRequired: z.boolean(),
-    isPaid: z.boolean(),
-    perPerson: z.boolean(),
+  registrationFee: z
+    .union([z.literal(""), z.string(), z.number()])
+    .transform((v) => {
+      if (v === "" || v === undefined || v === null) return 0;
+      const n = typeof v === "number" ? v : parseInt(String(v), 10);
+      return isNaN(n) ? 0 : n;
+    }),
+  maxRegistrations: optCoercedInt,
+  minTeamSize: optCoercedInt,
+  maxTeamSize: optCoercedInt,
+  registrationsOpen: z.boolean(),
+  requiresApproval: z.boolean(),
+  autoApproveTeams: z.boolean(),
+  attendanceRequired: z.boolean(),
+  isPaid: z.boolean(),
+  perPerson: z.boolean(),
 
   // ── Prize Pool (flexible array of ranked/named prizes)
   // Each entry: { rank: string, label: string, cash: number|null, inkind: string[] }
-    prizePool: z
-      .array(
-        z.object({
-          rank: z.string().optional(),
-          label: z.string().min(1, "Prize label is required"),
-          cash: z
-            .union([z.number(), z.string(), z.literal(""), z.null()])
-            .transform((v) => {
-              if (v === "" || v === null || v === undefined)
-                return undefined;
-              const n = typeof v === "number" ? v : Number(v);
-              return Number.isNaN(n) ? undefined : n;
-            })
-            .optional(),
-          inkind: z.string().optional(),
-        }),
-      )
-      .optional(),
-  })
-  .superRefine((data, ctx) => {
-    if (data.isCampaignRerun && !String(data.rerunCampaignId || "").trim()) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ["rerunCampaignId"],
-        message: "Campaign ID is required for rerun",
-      });
-    }
-  });
+  prizePool: z
+    .array(
+      z.object({
+        rank: z.string().optional(),
+        label: z.string().min(1, "Prize label is required"),
+        cash: z
+          .union([z.number(), z.string(), z.literal(""), z.null()])
+          .transform((v) => {
+            if (v === "" || v === null || v === undefined) return undefined;
+            const n = typeof v === "number" ? v : Number(v);
+            return Number.isNaN(n) ? undefined : n;
+          })
+          .optional(),
+        inkind: z.string().optional(),
+      }),
+    )
+    .optional(),
+});
 
 export const DEFAULT_VALUES = {
   title: "",
@@ -153,8 +131,6 @@ export const DEFAULT_VALUES = {
   eventType: "COMPETITION",
   type: "SOLO",
   status: "DRAFT",
-  isCampaignRerun: false,
-  rerunCampaignId: "",
   startTime: "",
   endTime: "",
   registrationDeadline: "",
@@ -186,8 +162,6 @@ export function getEditDefaults(c) {
     eventType: c.eventType ?? "COMPETITION",
     type: c.type ?? "SOLO",
     status: c.status ?? "DRAFT",
-    isCampaignRerun: c.isCampaignRerun ?? false,
-    rerunCampaignId: c.rerunCampaignId ?? "",
     startTime: fmt(c.startTime),
     endTime: fmt(c.endTime),
     registrationDeadline: fmt(c.registrationDeadline),

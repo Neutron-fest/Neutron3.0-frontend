@@ -245,6 +245,28 @@ export function useRetryFailedCampaign() {
   });
 }
 
+export function useRerunCampaign() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (campaignId) => {
+      const { data } = await apiClient.post(
+        `/sa/campaigns/${campaignId}/rerun`,
+      );
+      return data?.data;
+    },
+    onSuccess: (_, campaignId) => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.campaigns.all });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.campaigns.detail(campaignId),
+      });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.campaigns.recipients(campaignId),
+      });
+    },
+  });
+}
+
 export function useCancelCampaign() {
   const queryClient = useQueryClient();
 

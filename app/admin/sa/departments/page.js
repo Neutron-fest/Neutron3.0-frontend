@@ -500,164 +500,174 @@ export default function DepartmentsPage() {
             </Typography>
           ))}
         </Box>
-        <RowDivider />
+        <Box
+          sx={{
+            maxHeight: "min(62vh, 620px)",
+            overflowY: "auto",
+            overflowX: "hidden",
+          }}
+        >
+          <RowDivider />
 
-        {filteredDepartments.length === 0 ? (
-          <Box sx={{ py: 8, textAlign: "center" }}>
-            <Typography
-              sx={{
-                color: "rgba(255,255,255,0.2)",
-                fontSize: 13,
-                fontFamily: "'Syne', sans-serif",
-              }}
-            >
-              No departments found
-            </Typography>
-          </Box>
-        ) : (
-          filteredDepartments.map((dept, idx) => (
-            <Box key={dept.id}>
-              <Box
-                onClick={() => handleOpenDepartmentMembers(dept)}
+          {filteredDepartments.length === 0 ? (
+            <Box sx={{ py: 8, textAlign: "center" }}>
+              <Typography
                 sx={{
-                  display: "grid",
-                  gridTemplateColumns:
-                    "minmax(180px,1fr) minmax(120px,1fr) 160px 80px 44px",
-                  alignItems: "center",
-                  px: 3,
-                  py: 2,
-                  cursor: "pointer",
-                  transition: "background 0.12s",
-                  "&:hover": { background: "rgba(255,255,255,0.02)" },
+                  color: "rgba(255,255,255,0.2)",
+                  fontSize: 13,
+                  fontFamily: "'Syne', sans-serif",
                 }}
               >
-                {/* Name */}
+                No departments found
+              </Typography>
+            </Box>
+          ) : (
+            filteredDepartments.map((dept, idx) => (
+              <Box key={dept.id}>
                 <Box
+                  onClick={() => handleOpenDepartmentMembers(dept)}
                   sx={{
-                    display: "flex",
+                    display: "grid",
+                    gridTemplateColumns:
+                      "minmax(180px,1fr) minmax(120px,1fr) 160px 80px 44px",
                     alignItems: "center",
-                    gap: 1.5,
-                    minWidth: 0,
+                    px: 3,
+                    py: 2,
+                    cursor: "pointer",
+                    transition: "background 0.12s",
+                    "&:hover": { background: "rgba(255,255,255,0.02)" },
                   }}
                 >
+                  {/* Name */}
                   <Box
                     sx={{
-                      width: 32,
-                      height: 32,
-                      borderRadius: "9px",
-                      flexShrink: 0,
-                      background: "rgba(168,85,247,0.08)",
-                      border: "1px solid rgba(168,85,247,0.15)",
                       display: "flex",
                       alignItems: "center",
-                      justifyContent: "center",
+                      gap: 1.5,
+                      minWidth: 0,
                     }}
                   >
-                    <Building2 size={14} color="#c084fc" />
+                    <Box
+                      sx={{
+                        width: 32,
+                        height: 32,
+                        borderRadius: "9px",
+                        flexShrink: 0,
+                        background: "rgba(168,85,247,0.08)",
+                        border: "1px solid rgba(168,85,247,0.15)",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                      }}
+                    >
+                      <Building2 size={14} color="#c084fc" />
+                    </Box>
+                    <Typography
+                      sx={{
+                        fontSize: 13,
+                        fontWeight: 500,
+                        color: "#e4e4e7",
+                        fontFamily: "'Syne', sans-serif",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      {dept.name}
+                    </Typography>
                   </Box>
+
+                  {/* Description */}
                   <Typography
                     sx={{
-                      fontSize: 13,
-                      fontWeight: 500,
-                      color: "#e4e4e7",
+                      fontSize: 12,
+                      color: "rgba(255,255,255,0.28)",
                       fontFamily: "'Syne', sans-serif",
                       overflow: "hidden",
                       textOverflow: "ellipsis",
                       whiteSpace: "nowrap",
+                      pr: 2,
                     }}
                   >
-                    {dept.name}
+                    {dept.description || "—"}
                   </Typography>
-                </Box>
 
-                {/* Description */}
-                <Typography
-                  sx={{
-                    fontSize: 12,
-                    color: "rgba(255,255,255,0.28)",
-                    fontFamily: "'Syne', sans-serif",
-                    overflow: "hidden",
-                    textOverflow: "ellipsis",
-                    whiteSpace: "nowrap",
-                    pr: 2,
-                  }}
-                >
-                  {dept.description || "—"}
-                </Typography>
-
-                {/* Head */}
-                <Box>
-                  {dept.deptHead ? (
-                    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                  {/* Head */}
+                  <Box>
+                    {dept.deptHead ? (
                       <Box
-                        sx={{
-                          width: 6,
-                          height: 6,
-                          borderRadius: "50%",
-                          background: "#c084fc",
-                          flexShrink: 0,
-                        }}
-                      />
+                        sx={{ display: "flex", alignItems: "center", gap: 1 }}
+                      >
+                        <Box
+                          sx={{
+                            width: 6,
+                            height: 6,
+                            borderRadius: "50%",
+                            background: "#c084fc",
+                            flexShrink: 0,
+                          }}
+                        />
+                        <Typography
+                          sx={{
+                            fontSize: 12,
+                            color: "#c084fc",
+                            fontFamily: "'DM Mono', monospace",
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                            whiteSpace: "nowrap",
+                          }}
+                        >
+                          {dept.deptHead.name || dept.deptHead.email}
+                        </Typography>
+                      </Box>
+                    ) : (
                       <Typography
                         sx={{
-                          fontSize: 12,
-                          color: "#c084fc",
+                          fontSize: 11,
+                          color: "rgba(255,255,255,0.18)",
                           fontFamily: "'DM Mono', monospace",
-                          overflow: "hidden",
-                          textOverflow: "ellipsis",
-                          whiteSpace: "nowrap",
                         }}
                       >
-                        {dept.deptHead.name || dept.deptHead.email}
+                        Unassigned
                       </Typography>
-                    </Box>
-                  ) : (
-                    <Typography
-                      sx={{
-                        fontSize: 11,
-                        color: "rgba(255,255,255,0.18)",
-                        fontFamily: "'DM Mono', monospace",
-                      }}
-                    >
-                      Unassigned
-                    </Typography>
-                  )}
+                    )}
+                  </Box>
+
+                  {/* Members count */}
+                  <Typography
+                    sx={{
+                      fontSize: 13,
+                      color: "rgba(255,255,255,0.45)",
+                      fontFamily: "'DM Mono', monospace",
+                    }}
+                  >
+                    {dept.membersCount ?? dept.members?.length ?? 0}
+                  </Typography>
+
+                  {/* Actions */}
+                  <IconButton
+                    size="small"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleMenuOpen(e, dept);
+                    }}
+                    sx={{
+                      color: "rgba(255,255,255,0.25)",
+                      borderRadius: "7px",
+                      "&:hover": {
+                        background: "rgba(255,255,255,0.06)",
+                        color: "rgba(255,255,255,0.7)",
+                      },
+                    }}
+                  >
+                    <MoreVertical size={15} />
+                  </IconButton>
                 </Box>
-
-                {/* Members count */}
-                <Typography
-                  sx={{
-                    fontSize: 13,
-                    color: "rgba(255,255,255,0.45)",
-                    fontFamily: "'DM Mono', monospace",
-                  }}
-                >
-                  {dept.membersCount ?? dept.members?.length ?? 0}
-                </Typography>
-
-                {/* Actions */}
-                <IconButton
-                  size="small"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleMenuOpen(e, dept);
-                  }}
-                  sx={{
-                    color: "rgba(255,255,255,0.25)",
-                    borderRadius: "7px",
-                    "&:hover": {
-                      background: "rgba(255,255,255,0.06)",
-                      color: "rgba(255,255,255,0.7)",
-                    },
-                  }}
-                >
-                  <MoreVertical size={15} />
-                </IconButton>
+                {idx < filteredDepartments.length - 1 && <RowDivider />}
               </Box>
-              {idx < filteredDepartments.length - 1 && <RowDivider />}
-            </Box>
-          ))
-        )}
+            ))
+          )}
+        </Box>
       </Box>
 
       {/* Context Menu */}

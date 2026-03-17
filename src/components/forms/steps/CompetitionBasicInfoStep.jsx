@@ -1,6 +1,6 @@
 "use client";
 
-import { Controller, useWatch } from "react-hook-form";
+import { Controller } from "react-hook-form";
 import { Box, Typography } from "@mui/material";
 import {
   EVENT_TYPES,
@@ -76,11 +76,6 @@ export function FieldGroup({ label, error, children, span = 1 }) {
 // ── Step Component ────────────────────────────────────────────────────────────
 
 export default function CompetitionBasicInfoStep({ control, errors }) {
-  const isCampaignRerun = useWatch({
-    control,
-    name: "isCampaignRerun",
-  });
-
   return (
     <Box
       sx={{
@@ -198,52 +193,6 @@ export default function CompetitionBasicInfoStep({ control, errors }) {
           )}
         />
       </FieldGroup>
-
-      <FieldGroup label="Rerun Existing Campaign" span={2}>
-        <Controller
-          name="isCampaignRerun"
-          control={control}
-          render={({ field }) => (
-            <label
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 8,
-                color: "rgba(255,255,255,0.75)",
-                fontSize: 12,
-                fontFamily: "'Syne', sans-serif",
-              }}
-            >
-              <input
-                type="checkbox"
-                checked={!!field.value}
-                onChange={(e) => field.onChange(e.target.checked)}
-              />
-              Mark this competition as a campaign rerun
-            </label>
-          )}
-        />
-      </FieldGroup>
-
-      {isCampaignRerun && (
-        <FieldGroup
-          label="Campaign ID *"
-          error={errors.rerunCampaignId}
-          span={2}
-        >
-          <Controller
-            name="rerunCampaignId"
-            control={control}
-            render={({ field }) => (
-              <input
-                {...field}
-                placeholder="Paste previous campaign ID"
-                style={inputCss}
-              />
-            )}
-          />
-        </FieldGroup>
-      )}
     </Box>
   );
 }

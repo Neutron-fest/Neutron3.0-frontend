@@ -1390,189 +1390,207 @@ export default function CompetitionsPage() {
               </Typography>
             ))}
           </Box>
-          <RowDivider />
+          <Box
+            sx={{
+              maxHeight: "min(62vh, 620px)",
+              overflowY: "auto",
+              overflowX: "hidden",
+            }}
+          >
+            <RowDivider />
 
-          {filtered.length === 0 ? (
-            <Box sx={{ py: 8, textAlign: "center" }}>
-              <Typography
-                sx={{
-                  color: "rgba(255,255,255,0.18)",
-                  fontSize: 13,
-                  fontFamily: "'Syne', sans-serif",
-                }}
-              >
-                No competitions found
-              </Typography>
-            </Box>
-          ) : (
-            filtered.map((comp, idx) => (
-              <Box key={comp.id}>
-                <Box
+            {filtered.length === 0 ? (
+              <Box sx={{ py: 8, textAlign: "center" }}>
+                <Typography
                   sx={{
-                    display: "grid",
-                    gridTemplateColumns:
-                      "minmax(220px,1fr) 120px 100px 110px 160px minmax(240px, 280px)",
-                    minWidth: 980,
-                    alignItems: "center",
-                    px: 3,
-                    py: 2,
-                    transition: "background 0.12s",
-                    "&:hover": { background: "rgba(255,255,255,0.018)" },
+                    color: "rgba(255,255,255,0.18)",
+                    fontSize: 13,
+                    fontFamily: "'Syne', sans-serif",
                   }}
                 >
-                  {/* Title + description */}
-                  <Box sx={{ minWidth: 0, pr: 2 }}>
-                    <Typography
-                      sx={{
-                        fontSize: 13,
-                        fontWeight: 500,
-                        color: "#e4e4e7",
-                        fontFamily: "'Syne', sans-serif",
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
-                        whiteSpace: "nowrap",
-                      }}
-                    >
-                      {comp.title || comp.name}
-                    </Typography>
-                    {(comp.shortDescription || comp.description) && (
-                      <Typography
-                        sx={{
-                          fontSize: 11,
-                          color: "rgba(255,255,255,0.25)",
-                          fontFamily: "'DM Mono', monospace",
-                          overflow: "hidden",
-                          textOverflow: "ellipsis",
-                          whiteSpace: "nowrap",
-                          mt: 0.25,
-                        }}
-                      >
-                        {comp.shortDescription || comp.description}
-                      </Typography>
-                    )}
-                  </Box>
-
-                  {/* Event Type */}
-                  <Box>
-                    <EventTypePill type={comp.eventType} />
-                  </Box>
-
-                  {/* Status */}
-                  <Box>
-                    <StatusPill status={comp.status} />
-                  </Box>
-
-                  {/* Registrations */}
-                  <Box>
-                    <Box
-                      sx={{ display: "flex", alignItems: "center", gap: 0.75 }}
-                    >
-                      {comp.registrationsOpen ? (
-                        <Unlock size={12} color="#4ade80" />
-                      ) : (
-                        <Lock size={12} color="rgba(255,255,255,0.25)" />
-                      )}
-                      <Typography
-                        sx={{
-                          fontSize: 12,
-                          color: comp.registrationsOpen
-                            ? "#4ade80"
-                            : "rgba(255,255,255,0.25)",
-                          fontFamily: "'DM Mono', monospace",
-                        }}
-                      >
-                        {comp.registrationsOpen ? "Open" : "Closed"}
-                      </Typography>
-                    </Box>
-                    {comp.type && (
-                      <Typography
-                        sx={{
-                          fontSize: 10,
-                          color: "rgba(255,255,255,0.2)",
-                          fontFamily: "'DM Mono', monospace",
-                          mt: 0.5,
-                        }}
-                      >
-                        {comp.type}
-                      </Typography>
-                    )}
-                  </Box>
-
-                  {/* Inline toggles */}
-                  <Box>
-                    <CompetitionToggles competition={comp} />
-                  </Box>
-
-                  {/* Actions */}
+                  No competitions found
+                </Typography>
+              </Box>
+            ) : (
+              filtered.map((comp, idx) => (
+                <Box key={comp.id}>
                   <Box
                     sx={{
                       display: "grid",
-                      gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
-                      gap: 1,
-                      justifyItems: "stretch",
-                      alignItems: "stretch",
-                      width: "100%",
-                      minWidth: 0,
-                      maxWidth: "100%",
-                      overflow: "hidden",
-                      "& > button": {
-                        width: "100%",
-                        justifyContent: "center",
-                        minWidth: 0,
-                        whiteSpace: "nowrap",
-                      },
+                      gridTemplateColumns:
+                        "minmax(220px,1fr) 120px 100px 110px 160px minmax(240px, 280px)",
+                      minWidth: 980,
+                      alignItems: "center",
+                      px: 3,
+                      py: 2,
+                      transition: "background 0.12s",
+                      "&:hover": { background: "rgba(255,255,255,0.018)" },
                     }}
                   >
-                    <SmallActionBtn
-                      onClick={() => handlePublishCompetition(comp)}
-                      disabled={publishingCompetition || deletingCompetition}
-                      color="#4ade80"
-                      hoverBg="rgba(34,197,94,0.1)"
-                    >
-                      {publishingId === comp.id ? (
-                        <CircularProgress size={11} sx={{ color: "#4ade80" }} />
-                      ) : (
-                        <Send size={11} />
+                    {/* Title + description */}
+                    <Box sx={{ minWidth: 0, pr: 2 }}>
+                      <Typography
+                        sx={{
+                          fontSize: 13,
+                          fontWeight: 500,
+                          color: "#e4e4e7",
+                          fontFamily: "'Syne', sans-serif",
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                          whiteSpace: "nowrap",
+                        }}
+                      >
+                        {comp.title || comp.name}
+                      </Typography>
+                      {(comp.shortDescription || comp.description) && (
+                        <Typography
+                          sx={{
+                            fontSize: 11,
+                            color: "rgba(255,255,255,0.25)",
+                            fontFamily: "'DM Mono', monospace",
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                            whiteSpace: "nowrap",
+                            mt: 0.25,
+                          }}
+                        >
+                          {comp.shortDescription || comp.description}
+                        </Typography>
                       )}
-                      Publish
-                    </SmallActionBtn>
+                    </Box>
 
-                    <SmallActionBtn
-                      onClick={() => handleDeleteCompetition(comp)}
-                      disabled={deletingCompetition || publishingCompetition}
-                      color="#f87171"
-                      hoverBg="rgba(239,68,68,0.1)"
-                    >
-                      {deletingId === comp.id ? (
-                        <CircularProgress size={11} sx={{ color: "#f87171" }} />
-                      ) : (
-                        <Trash2 size={11} />
+                    {/* Event Type */}
+                    <Box>
+                      <EventTypePill type={comp.eventType} />
+                    </Box>
+
+                    {/* Status */}
+                    <Box>
+                      <StatusPill status={comp.status} />
+                    </Box>
+
+                    {/* Registrations */}
+                    <Box>
+                      <Box
+                        sx={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 0.75,
+                        }}
+                      >
+                        {comp.registrationsOpen ? (
+                          <Unlock size={12} color="#4ade80" />
+                        ) : (
+                          <Lock size={12} color="rgba(255,255,255,0.25)" />
+                        )}
+                        <Typography
+                          sx={{
+                            fontSize: 12,
+                            color: comp.registrationsOpen
+                              ? "#4ade80"
+                              : "rgba(255,255,255,0.25)",
+                            fontFamily: "'DM Mono', monospace",
+                          }}
+                        >
+                          {comp.registrationsOpen ? "Open" : "Closed"}
+                        </Typography>
+                      </Box>
+                      {comp.type && (
+                        <Typography
+                          sx={{
+                            fontSize: 10,
+                            color: "rgba(255,255,255,0.2)",
+                            fontFamily: "'DM Mono', monospace",
+                            mt: 0.5,
+                          }}
+                        >
+                          {comp.type}
+                        </Typography>
                       )}
-                      Delete
-                    </SmallActionBtn>
+                    </Box>
 
-                    <SmallActionBtn
-                      onClick={() => setEditTarget(comp)}
-                      color="#c084fc"
-                      hoverBg="rgba(168,85,247,0.1)"
+                    {/* Inline toggles */}
+                    <Box>
+                      <CompetitionToggles competition={comp} />
+                    </Box>
+
+                    {/* Actions */}
+                    <Box
+                      sx={{
+                        display: "grid",
+                        gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
+                        gap: 1,
+                        justifyItems: "stretch",
+                        alignItems: "stretch",
+                        width: "100%",
+                        minWidth: 0,
+                        maxWidth: "100%",
+                        overflow: "hidden",
+                        "& > button": {
+                          width: "100%",
+                          justifyContent: "center",
+                          minWidth: 0,
+                          whiteSpace: "nowrap",
+                        },
+                      }}
                     >
-                      <Pencil size={11} />
-                      Edit
-                    </SmallActionBtn>
-                    <SmallActionBtn
-                      onClick={() => setManageTarget(comp)}
-                      color="rgba(255,255,255,0.5)"
-                      hoverBg="rgba(255,255,255,0.06)"
-                    >
-                      <Users size={11} />
-                      Manage
-                    </SmallActionBtn>
+                      <SmallActionBtn
+                        onClick={() => handlePublishCompetition(comp)}
+                        disabled={publishingCompetition || deletingCompetition}
+                        color="#4ade80"
+                        hoverBg="rgba(34,197,94,0.1)"
+                      >
+                        {publishingId === comp.id ? (
+                          <CircularProgress
+                            size={11}
+                            sx={{ color: "#4ade80" }}
+                          />
+                        ) : (
+                          <Send size={11} />
+                        )}
+                        Publish
+                      </SmallActionBtn>
+
+                      <SmallActionBtn
+                        onClick={() => handleDeleteCompetition(comp)}
+                        disabled={deletingCompetition || publishingCompetition}
+                        color="#f87171"
+                        hoverBg="rgba(239,68,68,0.1)"
+                      >
+                        {deletingId === comp.id ? (
+                          <CircularProgress
+                            size={11}
+                            sx={{ color: "#f87171" }}
+                          />
+                        ) : (
+                          <Trash2 size={11} />
+                        )}
+                        Delete
+                      </SmallActionBtn>
+
+                      <SmallActionBtn
+                        onClick={() => setEditTarget(comp)}
+                        color="#c084fc"
+                        hoverBg="rgba(168,85,247,0.1)"
+                      >
+                        <Pencil size={11} />
+                        Edit
+                      </SmallActionBtn>
+                      <SmallActionBtn
+                        onClick={() => setManageTarget(comp)}
+                        color="rgba(255,255,255,0.5)"
+                        hoverBg="rgba(255,255,255,0.06)"
+                      >
+                        <Users size={11} />
+                        Manage
+                      </SmallActionBtn>
+                    </Box>
                   </Box>
+                  {idx < filtered.length - 1 && <RowDivider />}
                 </Box>
-                {idx < filtered.length - 1 && <RowDivider />}
-              </Box>
-            ))
-          )}
+              ))
+            )}
+          </Box>
         </Box>
       )}
 

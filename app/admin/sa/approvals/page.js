@@ -470,156 +470,166 @@ export default function ApprovalsPage() {
             ),
           )}
         </Box>
-        <RowDivider />
+        <Box
+          sx={{
+            maxHeight: "min(62vh, 620px)",
+            overflowY: "auto",
+            overflowX: "hidden",
+          }}
+        >
+          <RowDivider />
 
-        {filtered.length === 0 ? (
-          <Box sx={{ py: 8, textAlign: "center" }}>
-            <Typography
-              sx={{
-                color: "rgba(255,255,255,0.2)",
-                fontSize: 13,
-                fontFamily: "'Syne', sans-serif",
-              }}
-            >
-              No approvals found
-            </Typography>
-          </Box>
-        ) : (
-          filtered.map((approval, idx) => (
-            <Box key={approval.id}>
-              <Box
+          {filtered.length === 0 ? (
+            <Box sx={{ py: 8, textAlign: "center" }}>
+              <Typography
                 sx={{
-                  display: "grid",
-                  gridTemplateColumns:
-                    "minmax(200px,1fr) 130px 160px 100px 110px 160px",
-                  alignItems: "center",
-                  px: 3,
-                  py: 2,
-                  transition: "background 0.12s",
-                  "&:hover": { background: "rgba(255,255,255,0.02)" },
+                  color: "rgba(255,255,255,0.2)",
+                  fontSize: 13,
+                  fontFamily: "'Syne', sans-serif",
                 }}
               >
-                {/* Title + description */}
+                No approvals found
+              </Typography>
+            </Box>
+          ) : (
+            filtered.map((approval, idx) => (
+              <Box key={approval.id}>
                 <Box
-                  sx={{ cursor: "pointer", minWidth: 0 }}
-                  onClick={() => openDetail(approval)}
+                  sx={{
+                    display: "grid",
+                    gridTemplateColumns:
+                      "minmax(200px,1fr) 130px 160px 100px 110px 160px",
+                    alignItems: "center",
+                    px: 3,
+                    py: 2,
+                    transition: "background 0.12s",
+                    "&:hover": { background: "rgba(255,255,255,0.02)" },
+                  }}
                 >
-                  <Typography
-                    sx={{
-                      fontSize: 13,
-                      fontWeight: 500,
-                      color: "#e4e4e7",
-                      fontFamily: "'Syne', sans-serif",
-                      overflow: "hidden",
-                      textOverflow: "ellipsis",
-                      whiteSpace: "nowrap",
-                    }}
+                  {/* Title + description */}
+                  <Box
+                    sx={{ cursor: "pointer", minWidth: 0 }}
+                    onClick={() => openDetail(approval)}
                   >
-                    {approval.title}
-                  </Typography>
-                  {approval.description && (
+                    <Typography
+                      sx={{
+                        fontSize: 13,
+                        fontWeight: 500,
+                        color: "#e4e4e7",
+                        fontFamily: "'Syne', sans-serif",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      {approval.title}
+                    </Typography>
+                    {approval.description && (
+                      <Typography
+                        sx={{
+                          fontSize: 11,
+                          color: "rgba(255,255,255,0.28)",
+                          fontFamily: "'DM Mono', monospace",
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                          whiteSpace: "nowrap",
+                        }}
+                      >
+                        {approval.description}
+                      </Typography>
+                    )}
+                  </Box>
+
+                  <Box>
+                    <TypePill type={approval.type} />
+                  </Box>
+
+                  {/* Requestor */}
+                  <Box sx={{ minWidth: 0, pr: 1 }}>
+                    <Typography
+                      sx={{
+                        fontSize: 12,
+                        color: "#e4e4e7",
+                        fontFamily: "'Syne', sans-serif",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      {approval.requestedBy?.name || "—"}
+                    </Typography>
                     <Typography
                       sx={{
                         fontSize: 11,
-                        color: "rgba(255,255,255,0.28)",
+                        color: "rgba(255,255,255,0.25)",
                         fontFamily: "'DM Mono', monospace",
                         overflow: "hidden",
                         textOverflow: "ellipsis",
                         whiteSpace: "nowrap",
                       }}
                     >
-                      {approval.description}
+                      {approval.requestedBy?.email || ""}
                     </Typography>
-                  )}
-                </Box>
+                  </Box>
 
-                <Box>
-                  <TypePill type={approval.type} />
-                </Box>
-
-                {/* Requestor */}
-                <Box sx={{ minWidth: 0, pr: 1 }}>
-                  <Typography
-                    sx={{
-                      fontSize: 12,
-                      color: "#e4e4e7",
-                      fontFamily: "'Syne', sans-serif",
-                      overflow: "hidden",
-                      textOverflow: "ellipsis",
-                      whiteSpace: "nowrap",
-                    }}
-                  >
-                    {approval.requestedBy?.name || "—"}
-                  </Typography>
                   <Typography
                     sx={{
                       fontSize: 11,
-                      color: "rgba(255,255,255,0.25)",
+                      color: "rgba(255,255,255,0.28)",
                       fontFamily: "'DM Mono', monospace",
-                      overflow: "hidden",
-                      textOverflow: "ellipsis",
-                      whiteSpace: "nowrap",
                     }}
                   >
-                    {approval.requestedBy?.email || ""}
+                    {fmtDate(approval.createdAt)}
                   </Typography>
-                </Box>
 
-                <Typography
-                  sx={{
-                    fontSize: 11,
-                    color: "rgba(255,255,255,0.28)",
-                    fontFamily: "'DM Mono', monospace",
-                  }}
-                >
-                  {fmtDate(approval.createdAt)}
-                </Typography>
+                  <Box>
+                    <StatusBadge status={approval.status} />
+                  </Box>
 
-                <Box>
-                  <StatusBadge status={approval.status} />
-                </Box>
-
-                {/* Actions */}
-                <Box
-                  sx={{ display: "flex", gap: 1, justifyContent: "flex-end" }}
-                >
-                  {approval.status === "PENDING" ? (
-                    <>
-                      <ActionBtn
-                        onClick={() => handleApprove(approval)}
-                        color="#4ade80"
-                        hoverBg="rgba(74,222,128,0.1)"
-                        disabled={approveMutation.isPending}
-                        icon={<CheckCheck size={13} />}
+                  {/* Actions */}
+                  <Box
+                    sx={{ display: "flex", gap: 1, justifyContent: "flex-end" }}
+                  >
+                    {approval.status === "PENDING" ? (
+                      <>
+                        <ActionBtn
+                          onClick={() => handleApprove(approval)}
+                          color="#4ade80"
+                          hoverBg="rgba(74,222,128,0.1)"
+                          disabled={approveMutation.isPending}
+                          icon={<CheckCheck size={13} />}
+                        >
+                          Approve
+                        </ActionBtn>
+                        <ActionBtn
+                          onClick={() => openReject(approval)}
+                          color="#f87171"
+                          hoverBg="rgba(239,68,68,0.1)"
+                          icon={<X size={13} />}
+                        >
+                          Reject
+                        </ActionBtn>
+                      </>
+                    ) : (
+                      <Typography
+                        sx={{
+                          fontSize: 11,
+                          color: "rgba(255,255,255,0.15)",
+                          fontFamily: "'DM Mono', monospace",
+                        }}
                       >
-                        Approve
-                      </ActionBtn>
-                      <ActionBtn
-                        onClick={() => openReject(approval)}
-                        color="#f87171"
-                        hoverBg="rgba(239,68,68,0.1)"
-                        icon={<X size={13} />}
-                      >
-                        Reject
-                      </ActionBtn>
-                    </>
-                  ) : (
-                    <Typography
-                      sx={{
-                        fontSize: 11,
-                        color: "rgba(255,255,255,0.15)",
-                        fontFamily: "'DM Mono', monospace",
-                      }}
-                    >
-                      {approval.reviewedAt ? fmtDate(approval.reviewedAt) : "—"}
-                    </Typography>
-                  )}
+                        {approval.reviewedAt
+                          ? fmtDate(approval.reviewedAt)
+                          : "—"}
+                      </Typography>
+                    )}
+                  </Box>
                 </Box>
+                {idx < filtered.length - 1 && <RowDivider />}
               </Box>
-              {idx < filtered.length - 1 && <RowDivider />}
-            </Box>
-          ))
-        )}
+            ))
+          )}
+        </Box>
       </Box>
 
       {/* Score lock approvals */}
@@ -723,46 +733,93 @@ export default function ApprovalsPage() {
               ),
             )}
           </Box>
-          <RowDivider />
+          <Box
+            sx={{
+              maxHeight: "min(62vh, 620px)",
+              overflowY: "auto",
+              overflowX: "hidden",
+            }}
+          >
+            <RowDivider />
 
-          {isLockRequestsLoading ? (
-            <Box sx={{ py: 4 }}>
-              <LoadingState message="Loading score lock requests..." />
-            </Box>
-          ) : lockRequests.length === 0 ? (
-            <Box sx={{ py: 6, textAlign: "center" }}>
-              <Typography
-                sx={{
-                  color: "rgba(255,255,255,0.22)",
-                  fontSize: 13,
-                  fontFamily: "'Syne', sans-serif",
-                }}
-              >
-                No pending score lock requests
-              </Typography>
-            </Box>
-          ) : (
-            lockRequests.map((request, idx) => (
-              <Box key={request.id}>
-                <Box
+            {isLockRequestsLoading ? (
+              <Box sx={{ py: 4 }}>
+                <LoadingState message="Loading score lock requests..." />
+              </Box>
+            ) : lockRequests.length === 0 ? (
+              <Box sx={{ py: 6, textAlign: "center" }}>
+                <Typography
                   sx={{
-                    display: "grid",
-                    gridTemplateColumns:
-                      "minmax(200px,1fr) 160px 140px 100px 200px",
-                    alignItems: "center",
-                    px: 3,
-                    py: 2,
-                    transition: "background 0.12s",
-                    "&:hover": { background: "rgba(255,255,255,0.02)" },
+                    color: "rgba(255,255,255,0.22)",
+                    fontSize: 13,
+                    fontFamily: "'Syne', sans-serif",
                   }}
                 >
-                  <Box sx={{ minWidth: 0, pr: 1 }}>
-                    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                      <Trophy size={13} color="#52525b" />
+                  No pending score lock requests
+                </Typography>
+              </Box>
+            ) : (
+              lockRequests.map((request, idx) => (
+                <Box key={request.id}>
+                  <Box
+                    sx={{
+                      display: "grid",
+                      gridTemplateColumns:
+                        "minmax(200px,1fr) 160px 140px 100px 200px",
+                      alignItems: "center",
+                      px: 3,
+                      py: 2,
+                      transition: "background 0.12s",
+                      "&:hover": { background: "rgba(255,255,255,0.02)" },
+                    }}
+                  >
+                    <Box sx={{ minWidth: 0, pr: 1 }}>
+                      <Box
+                        sx={{ display: "flex", alignItems: "center", gap: 1 }}
+                      >
+                        <Trophy size={13} color="#52525b" />
+                        <Typography
+                          sx={{
+                            fontSize: 13,
+                            fontWeight: 500,
+                            color: "#e4e4e7",
+                            fontFamily: "'Syne', sans-serif",
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                            whiteSpace: "nowrap",
+                          }}
+                        >
+                          {request.competition?.title || "—"}
+                        </Typography>
+                      </Box>
+                      <Box
+                        sx={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 1,
+                          mt: 0.5,
+                        }}
+                      >
+                        <Star size={12} color="#71717a" />
+                        <Typography
+                          sx={{
+                            fontSize: 11,
+                            color: "rgba(255,255,255,0.35)",
+                            fontFamily: "'DM Mono', monospace",
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                            whiteSpace: "nowrap",
+                          }}
+                        >
+                          {request.round?.name || "Round"}
+                        </Typography>
+                      </Box>
+                    </Box>
+
+                    <Box sx={{ minWidth: 0, pr: 1 }}>
                       <Typography
                         sx={{
-                          fontSize: 13,
-                          fontWeight: 500,
+                          fontSize: 12,
                           color: "#e4e4e7",
                           fontFamily: "'Syne', sans-serif",
                           overflow: "hidden",
@@ -770,88 +827,51 @@ export default function ApprovalsPage() {
                           whiteSpace: "nowrap",
                         }}
                       >
-                        {request.competition?.title || "—"}
+                        {request.requestedByUser?.name || "—"}
                       </Typography>
-                    </Box>
-                    <Box
-                      sx={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 1,
-                        mt: 0.5,
-                      }}
-                    >
-                      <Star size={12} color="#71717a" />
                       <Typography
                         sx={{
                           fontSize: 11,
-                          color: "rgba(255,255,255,0.35)",
+                          color: "rgba(255,255,255,0.25)",
                           fontFamily: "'DM Mono', monospace",
                           overflow: "hidden",
                           textOverflow: "ellipsis",
                           whiteSpace: "nowrap",
                         }}
                       >
-                        {request.round?.name || "Round"}
+                        {request.requestedByUser?.email || ""}
                       </Typography>
                     </Box>
-                  </Box>
 
-                  <Box sx={{ minWidth: 0, pr: 1 }}>
-                    <Typography
-                      sx={{
-                        fontSize: 12,
-                        color: "#e4e4e7",
-                        fontFamily: "'Syne', sans-serif",
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
-                        whiteSpace: "nowrap",
-                      }}
-                    >
-                      {request.requestedByUser?.name || "—"}
-                    </Typography>
                     <Typography
                       sx={{
                         fontSize: 11,
-                        color: "rgba(255,255,255,0.25)",
+                        color: "rgba(255,255,255,0.28)",
                         fontFamily: "'DM Mono', monospace",
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
-                        whiteSpace: "nowrap",
                       }}
                     >
-                      {request.requestedByUser?.email || ""}
+                      {request.createdAt ? fmtDate(request.createdAt) : "—"}
                     </Typography>
+
+                    <StatusBadge status={request.status || "PENDING"} />
+
+                    <Box sx={{ display: "flex", justifyContent: "flex-end" }}>
+                      <ActionBtn
+                        onClick={() => openLockReview(request)}
+                        color="#a78bfa"
+                        hoverBg="rgba(168,85,247,0.12)"
+                        disabled={reviewLockRequestMutation.isPending}
+                        icon={<Gavel size={13} />}
+                      >
+                        Review
+                      </ActionBtn>
+                    </Box>
                   </Box>
-
-                  <Typography
-                    sx={{
-                      fontSize: 11,
-                      color: "rgba(255,255,255,0.28)",
-                      fontFamily: "'DM Mono', monospace",
-                    }}
-                  >
-                    {request.createdAt ? fmtDate(request.createdAt) : "—"}
-                  </Typography>
-
-                  <StatusBadge status={request.status || "PENDING"} />
-
-                  <Box sx={{ display: "flex", justifyContent: "flex-end" }}>
-                    <ActionBtn
-                      onClick={() => openLockReview(request)}
-                      color="#a78bfa"
-                      hoverBg="rgba(168,85,247,0.12)"
-                      disabled={reviewLockRequestMutation.isPending}
-                      icon={<Gavel size={13} />}
-                    >
-                      Review
-                    </ActionBtn>
-                  </Box>
+                  {idx < lockRequests.length - 1 && <RowDivider />}
                 </Box>
-                {idx < lockRequests.length - 1 && <RowDivider />}
-              </Box>
-            ))
-          )}
+              ))
+            )}
+          </Box>
         </Box>
       </Box>
 

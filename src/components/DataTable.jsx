@@ -23,6 +23,7 @@ export function DataTable({
   onRowClick,
   rowsPerPageOptions = [10, 25, 50, 100],
   emptyMessage = "No data available",
+  maxTableHeight = 560,
 }) {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(rowsPerPageOptions[0]);
@@ -90,8 +91,8 @@ export function DataTable({
 
   return (
     <Paper>
-      <TableContainer>
-        <Table>
+      <TableContainer sx={{ maxHeight: maxTableHeight, overflowY: "auto" }}>
+        <Table stickyHeader>
           <TableHead>
             <TableRow>
               {columns.map((column) => (

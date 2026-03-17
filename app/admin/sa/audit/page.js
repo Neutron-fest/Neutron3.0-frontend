@@ -658,61 +658,103 @@ function LogsTab() {
                 ),
               )}
             </Box>
-            <RowDivider />
+            <Box
+              sx={{
+                maxHeight: "min(62vh, 620px)",
+                overflowY: "auto",
+                overflowX: "hidden",
+              }}
+            >
+              <RowDivider />
 
-            {logs.length === 0 ? (
-              <Box sx={{ py: 8, textAlign: "center" }}>
-                <Typography
-                  sx={{
-                    color: "rgba(255,255,255,0.2)",
-                    fontSize: 13,
-                    fontFamily: "'Syne', sans-serif",
-                  }}
-                >
-                  No logs found
-                </Typography>
-              </Box>
-            ) : (
-              logs.map((log, idx) => (
-                <Box key={log.id}>
-                  <Box
-                    onClick={() => openDetail(log)}
+              {logs.length === 0 ? (
+                <Box sx={{ py: 8, textAlign: "center" }}>
+                  <Typography
                     sx={{
-                      display: "grid",
-                      gridTemplateColumns:
-                        "155px minmax(140px,1fr) 60px minmax(140px,1.2fr) 110px 100px",
-                      alignItems: "center",
-                      px: 3,
-                      py: 1.75,
-                      cursor: "pointer",
-                      transition: "background 0.1s",
-                      "&:hover": { background: "rgba(255,255,255,0.02)" },
+                      color: "rgba(255,255,255,0.2)",
+                      fontSize: 13,
+                      fontFamily: "'Syne', sans-serif",
                     }}
                   >
-                    <Typography
+                    No logs found
+                  </Typography>
+                </Box>
+              ) : (
+                logs.map((log, idx) => (
+                  <Box key={log.id}>
+                    <Box
+                      onClick={() => openDetail(log)}
                       sx={{
-                        fontSize: 11,
-                        color: "rgba(255,255,255,0.25)",
-                        fontFamily: "'DM Mono', monospace",
-                        whiteSpace: "nowrap",
+                        display: "grid",
+                        gridTemplateColumns:
+                          "155px minmax(140px,1fr) 60px minmax(140px,1.2fr) 110px 100px",
+                        alignItems: "center",
+                        px: 3,
+                        py: 1.75,
+                        cursor: "pointer",
+                        transition: "background 0.1s",
+                        "&:hover": { background: "rgba(255,255,255,0.02)" },
                       }}
                     >
-                      {fmtTs(log.createdAt)}
-                    </Typography>
-
-                    <Box sx={{ minWidth: 0, pr: 1 }}>
                       <Typography
                         sx={{
-                          fontSize: 12,
-                          color: "#e4e4e7",
-                          fontFamily: "'Syne', sans-serif",
+                          fontSize: 11,
+                          color: "rgba(255,255,255,0.25)",
+                          fontFamily: "'DM Mono', monospace",
+                          whiteSpace: "nowrap",
+                        }}
+                      >
+                        {fmtTs(log.createdAt)}
+                      </Typography>
+
+                      <Box sx={{ minWidth: 0, pr: 1 }}>
+                        <Typography
+                          sx={{
+                            fontSize: 12,
+                            color: "#e4e4e7",
+                            fontFamily: "'Syne', sans-serif",
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                            whiteSpace: "nowrap",
+                          }}
+                        >
+                          {log.userName || "System"}
+                        </Typography>
+                        <Typography
+                          sx={{
+                            fontSize: 10,
+                            color: "rgba(255,255,255,0.2)",
+                            fontFamily: "'DM Mono', monospace",
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                            whiteSpace: "nowrap",
+                          }}
+                        >
+                          {log.userEmail || "—"}
+                        </Typography>
+                      </Box>
+
+                      <Box>
+                        <RolePill role={log.userRole} />
+                      </Box>
+
+                      <Box sx={{ pr: 1 }}>
+                        <ActionPill action={log.action} />
+                      </Box>
+
+                      <Typography
+                        sx={{
+                          fontSize: 11,
+                          color: "rgba(255,255,255,0.3)",
+                          fontFamily: "'DM Mono', monospace",
                           overflow: "hidden",
                           textOverflow: "ellipsis",
                           whiteSpace: "nowrap",
                         }}
                       >
-                        {log.userName || "System"}
+                        {log.entityType || "—"}
                       </Typography>
+
                       <Typography
                         sx={{
                           fontSize: 10,
@@ -723,48 +765,14 @@ function LogsTab() {
                           whiteSpace: "nowrap",
                         }}
                       >
-                        {log.userEmail || "—"}
+                        {log.ipAddress || "—"}
                       </Typography>
                     </Box>
-
-                    <Box>
-                      <RolePill role={log.userRole} />
-                    </Box>
-
-                    <Box sx={{ pr: 1 }}>
-                      <ActionPill action={log.action} />
-                    </Box>
-
-                    <Typography
-                      sx={{
-                        fontSize: 11,
-                        color: "rgba(255,255,255,0.3)",
-                        fontFamily: "'DM Mono', monospace",
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
-                        whiteSpace: "nowrap",
-                      }}
-                    >
-                      {log.entityType || "—"}
-                    </Typography>
-
-                    <Typography
-                      sx={{
-                        fontSize: 10,
-                        color: "rgba(255,255,255,0.2)",
-                        fontFamily: "'DM Mono', monospace",
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
-                        whiteSpace: "nowrap",
-                      }}
-                    >
-                      {log.ipAddress || "—"}
-                    </Typography>
+                    {idx < logs.length - 1 && <RowDivider />}
                   </Box>
-                  {idx < logs.length - 1 && <RowDivider />}
-                </Box>
-              ))
-            )}
+                ))
+              )}
+            </Box>
           </Box>
 
           {/* Pagination */}
@@ -1207,128 +1215,140 @@ function AnomaliesTab() {
                 </Typography>
               ))}
             </Box>
-            <RowDivider />
+            <Box
+              sx={{
+                maxHeight: "min(62vh, 620px)",
+                overflowY: "auto",
+                overflowX: "hidden",
+              }}
+            >
+              <RowDivider />
 
-            {anomalies.length === 0 ? (
-              <Box sx={{ py: 8, textAlign: "center" }}>
-                <Typography
-                  sx={{
-                    color: "rgba(255,255,255,0.2)",
-                    fontSize: 13,
-                    fontFamily: "'Syne', sans-serif",
-                  }}
-                >
-                  No anomalies found
-                </Typography>
-              </Box>
-            ) : (
-              anomalies.map(({ anomaly, auditLog }, idx) => (
-                <Box key={anomaly.id}>
-                  <Box
+              {anomalies.length === 0 ? (
+                <Box sx={{ py: 8, textAlign: "center" }}>
+                  <Typography
                     sx={{
-                      display: "grid",
-                      gridTemplateColumns:
-                        "90px 180px minmax(200px,1fr) 110px 110px 120px",
-                      alignItems: "center",
-                      px: 3,
-                      py: 2,
-                      transition: "background 0.1s",
-                      "&:hover": { background: "rgba(255,255,255,0.02)" },
+                      color: "rgba(255,255,255,0.2)",
+                      fontSize: 13,
+                      fontFamily: "'Syne', sans-serif",
                     }}
                   >
-                    <Box>
-                      <SeverityPill severity={anomaly.severity} />
-                    </Box>
-
-                    <Typography
-                      sx={{
-                        fontSize: 11,
-                        color: "rgba(255,255,255,0.4)",
-                        fontFamily: "'DM Mono', monospace",
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
-                        whiteSpace: "nowrap",
-                        pr: 1,
-                        textTransform: "uppercase",
-                        letterSpacing: "0.03em",
-                      }}
-                    >
-                      {(anomaly.anomalyType || "—").replace(/_/g, " ")}
-                    </Typography>
-
-                    <Typography
-                      onClick={() => openDetail({ anomaly, auditLog })}
-                      sx={{
-                        fontSize: 12,
-                        color: "rgba(255,255,255,0.55)",
-                        fontFamily: "'Syne', sans-serif",
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
-                        whiteSpace: "nowrap",
-                        pr: 2,
-                        cursor: "pointer",
-                        "&:hover": { color: "#e4e4e7" },
-                      }}
-                    >
-                      {anomaly.description}
-                    </Typography>
-
-                    <Typography
-                      sx={{
-                        fontSize: 11,
-                        color: "rgba(255,255,255,0.25)",
-                        fontFamily: "'DM Mono', monospace",
-                      }}
-                    >
-                      {fmtDate(anomaly.createdAt)}
-                    </Typography>
-
-                    {/* Status */}
+                    No anomalies found
+                  </Typography>
+                </Box>
+              ) : (
+                anomalies.map(({ anomaly, auditLog }, idx) => (
+                  <Box key={anomaly.id}>
                     <Box
-                      sx={{ display: "flex", alignItems: "center", gap: 0.75 }}
+                      sx={{
+                        display: "grid",
+                        gridTemplateColumns:
+                          "90px 180px minmax(200px,1fr) 110px 110px 120px",
+                        alignItems: "center",
+                        px: 3,
+                        py: 2,
+                        transition: "background 0.1s",
+                        "&:hover": { background: "rgba(255,255,255,0.02)" },
+                      }}
                     >
-                      {anomaly.resolved ? (
-                        <>
-                          <CheckCircle2 size={12} color="#4ade80" />
-                          <Typography
-                            sx={{
-                              fontSize: 11,
-                              color: "#4ade80",
-                              fontFamily: "'DM Mono', monospace",
-                            }}
-                          >
-                            Resolved
-                          </Typography>
-                        </>
-                      ) : (
-                        <>
-                          <Clock size={12} color="#fbbf24" />
-                          <Typography
-                            sx={{
-                              fontSize: 11,
-                              color: "#fbbf24",
-                              fontFamily: "'DM Mono', monospace",
-                            }}
-                          >
-                            Open
-                          </Typography>
-                        </>
+                      <Box>
+                        <SeverityPill severity={anomaly.severity} />
+                      </Box>
+
+                      <Typography
+                        sx={{
+                          fontSize: 11,
+                          color: "rgba(255,255,255,0.4)",
+                          fontFamily: "'DM Mono', monospace",
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                          whiteSpace: "nowrap",
+                          pr: 1,
+                          textTransform: "uppercase",
+                          letterSpacing: "0.03em",
+                        }}
+                      >
+                        {(anomaly.anomalyType || "—").replace(/_/g, " ")}
+                      </Typography>
+
+                      <Typography
+                        onClick={() => openDetail({ anomaly, auditLog })}
+                        sx={{
+                          fontSize: 12,
+                          color: "rgba(255,255,255,0.55)",
+                          fontFamily: "'Syne', sans-serif",
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                          whiteSpace: "nowrap",
+                          pr: 2,
+                          cursor: "pointer",
+                          "&:hover": { color: "#e4e4e7" },
+                        }}
+                      >
+                        {anomaly.description}
+                      </Typography>
+
+                      <Typography
+                        sx={{
+                          fontSize: 11,
+                          color: "rgba(255,255,255,0.25)",
+                          fontFamily: "'DM Mono', monospace",
+                        }}
+                      >
+                        {fmtDate(anomaly.createdAt)}
+                      </Typography>
+
+                      {/* Status */}
+                      <Box
+                        sx={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 0.75,
+                        }}
+                      >
+                        {anomaly.resolved ? (
+                          <>
+                            <CheckCircle2 size={12} color="#4ade80" />
+                            <Typography
+                              sx={{
+                                fontSize: 11,
+                                color: "#4ade80",
+                                fontFamily: "'DM Mono', monospace",
+                              }}
+                            >
+                              Resolved
+                            </Typography>
+                          </>
+                        ) : (
+                          <>
+                            <Clock size={12} color="#fbbf24" />
+                            <Typography
+                              sx={{
+                                fontSize: 11,
+                                color: "#fbbf24",
+                                fontFamily: "'DM Mono', monospace",
+                              }}
+                            >
+                              Open
+                            </Typography>
+                          </>
+                        )}
+                      </Box>
+
+                      {/* Action */}
+                      {!anomaly.resolved && (
+                        <ResolveBtn
+                          onClick={() => openResolve({ anomaly, auditLog })}
+                        >
+                          Resolve
+                        </ResolveBtn>
                       )}
                     </Box>
-
-                    {/* Action */}
-                    {!anomaly.resolved && (
-                      <ResolveBtn
-                        onClick={() => openResolve({ anomaly, auditLog })}
-                      >
-                        Resolve
-                      </ResolveBtn>
-                    )}
+                    {idx < anomalies.length - 1 && <RowDivider />}
                   </Box>
-                  {idx < anomalies.length - 1 && <RowDivider />}
-                </Box>
-              ))
-            )}
+                ))
+              )}
+            </Box>
           </Box>
 
           {pagination && pagination.totalPages > 1 && (
