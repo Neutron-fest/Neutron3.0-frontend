@@ -202,6 +202,7 @@ export function AuthProvider({ children }) {
     } catch (error) {
       return {
         success: false,
+        errorCode: error.response?.data?.error,
         error: error.response?.data?.message || "Login failed",
       };
     }
