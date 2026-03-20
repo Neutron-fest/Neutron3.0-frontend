@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useState, useMemo } from "react";
+import { Suspense, useState, useMemo, useEffect } from "react";
 import Image from "next/image";
 import {
   useUsers,
@@ -35,6 +35,7 @@ import {
 } from "lucide-react";
 import { useSnackbar } from "notistack";
 import { LoadingState } from "@/src/components/LoadingState";
+import { getSocket } from "@/lib/socket";
 
 const ROLE_OPTIONS = [
   { value: "SA", label: "Super Admin" },
@@ -166,6 +167,33 @@ function StatusDot({ isSuspended, isRevoked }) {
   );
 }
 
+function PresenceDot({ presence }) {
+  const isOnline = presence === "ONLINE";
+
+  return (
+    <Box sx={{ display: "flex", alignItems: "center", gap: 0.75 }}>
+      <Box
+        sx={{
+          width: 8,
+          height: 8,
+          borderRadius: "999px",
+          background: isOnline ? "#4ade80" : "rgba(255,255,255,0.28)",
+          boxShadow: isOnline ? "0 0 10px rgba(74,222,128,0.45)" : "none",
+        }}
+      />
+      <Typography
+        sx={{
+          fontSize: 11,
+          color: isOnline ? "#4ade80" : "rgba(255,255,255,0.4)",
+          fontFamily: "'DM Mono', monospace",
+        }}
+      >
+        {isOnline ? "Online" : "Offline"}
+      </Typography>
+    </Box>
+  );
+}
+
 function UserAvatar({ name }) {
   return (
     <Box sx={{ position: "relative", width: 36, height: 36, flexShrink: 0 }}>
@@ -198,7 +226,10 @@ function UsersPageContent() {
     isError,
     error,
   } = useUsers(
-    {},
+    {
+      includeSuspended: true,
+      includeRevoked: true,
+    },
     {
       suspense: true,
     },
@@ -232,19 +263,56 @@ function UsersPageContent() {
   const [inviteEmail, setInviteEmail] = useState("");
   const [inviteRole, setInviteRole] = useState("USER");
   const [inviteError, setInviteError] = useState("");
+  const [presenceOverrides, setPresenceOverrides] = useState({});
+
+  useEffect(() => {
+    const socket = getSocket();
+    if (!socket) return;
+
+    const handlePresenceUpdate = (payload) => {
+      if (!payload?.userId || !payload?.presence) return;
+
+      setPresenceOverrides((prev) => {
+        const current = prev[payload.userId];
+        if (current === payload.presence) {
+          return prev;
+        }
+
+        return {
+          ...prev,
+          [payload.userId]: payload.presence,
+        };
+      });
+    };
+
+    socket.on("presence:update", handlePresenceUpdate);
+
+    return () => {
+      socket.off("presence:update", handlePresenceUpdate);
+    };
+  }, []);
+
+  const usersWithPresence = useMemo(
+    () =>
+      users.map((u) => ({
+        ...u,
+        presence: presenceOverrides[u.id] ?? u.presence,
+      })),
+    [users, presenceOverrides],
+  );
 
   const stats = useMemo(() => {
-    if (!users.length) return { total: 0, active: 0, suspended: 0 };
+    if (!usersWithPresence.length) return { total: 0, online: 0, suspended: 0 };
     return {
-      total: users.length,
-      active: users.filter((u) => !u.isSuspended && !u.isRevoked).length,
-      suspended: users.filter((u) => u.isSuspended).length,
+      total: usersWithPresence.length,
+      online: usersWithPresence.filter((u) => u.presence === "ONLINE").length,
+      suspended: usersWithPresence.filter((u) => u.isSuspended).length,
     };
-  }, [users]);
+  }, [usersWithPresence]);
 
   const filteredUsers = useMemo(
     () =>
-      users.filter((u) => {
+      usersWithPresence.filter((u) => {
         const matchesSearch =
           (u.name || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
           (u.email || "").toLowerCase().includes(searchQuery.toLowerCase());
@@ -256,7 +324,7 @@ function UsersPageContent() {
         if (statusFilter === "revoked") matchesStatus = u.isRevoked;
         return matchesSearch && matchesRole && matchesStatus;
       }),
-    [users, searchQuery, roleFilter, statusFilter],
+    [usersWithPresence, searchQuery, roleFilter, statusFilter],
   );
 
   const handleMenuOpen = (e, u) => {
@@ -335,8 +403,17 @@ function UsersPageContent() {
 
   const handleSuspend = async () => {
     if (!selectedUser || !suspensionReason) return;
+
+    const durationDays = parseInt(suspensionDays, 10);
+    if (Number.isNaN(durationDays) || durationDays < 1) {
+      enqueueSnackbar("Enter a valid suspension duration in days", {
+        variant: "error",
+      });
+      return;
+    }
+
     const suspendedUntil = new Date();
-    suspendedUntil.setDate(suspendedUntil.getDate() + parseInt(suspensionDays));
+    suspendedUntil.setDate(suspendedUntil.getDate() + durationDays);
     try {
       await suspendMutation.mutateAsync({
         userId: selectedUser.id,
@@ -483,7 +560,7 @@ function UsersPageContent() {
             value: stats.total,
             color: "rgba(255,255,255,0.7)",
           },
-          { label: "Active", value: stats.active, color: "#4ade80" },
+          { label: "Online", value: stats.online, color: "#4ade80" },
           { label: "Suspended", value: stats.suspended, color: "#fbbf24" },
         ].map((s) => (
           <Box
@@ -604,13 +681,14 @@ function UsersPageContent() {
         <Box
           sx={{
             display: "grid",
-            gridTemplateColumns: "minmax(200px,1fr) 130px 120px 110px 44px",
+            gridTemplateColumns:
+              "minmax(200px,1fr) 120px 120px 110px 110px 44px",
             px: 3,
             py: 1.5,
             background: "rgba(255,255,255,0.02)",
           }}
         >
-          {["User", "Role", "Status", "Joined", ""].map((h, i) => (
+          {["User", "Role", "Status", "Presence", "Joined", ""].map((h, i) => (
             <Typography
               key={i}
               sx={{
@@ -653,7 +731,7 @@ function UsersPageContent() {
                   sx={{
                     display: "grid",
                     gridTemplateColumns:
-                      "minmax(200px,1fr) 130px 120px 110px 44px",
+                      "minmax(200px,1fr) 120px 120px 110px 110px 44px",
                     alignItems: "center",
                     px: 3,
                     py: 2,
@@ -706,6 +784,9 @@ function UsersPageContent() {
                       isSuspended={user.isSuspended}
                       isRevoked={user.isRevoked}
                     />
+                  </Box>
+                  <Box>
+                    <PresenceDot presence={user.presence} />
                   </Box>
                   <Typography
                     sx={{
@@ -848,14 +929,34 @@ function UsersPageContent() {
         >
           {selectedUser?.name}
         </Typography>
+        <Typography
+          sx={{
+            fontSize: 11,
+            color: "rgba(255,255,255,0.35)",
+            fontFamily: "'DM Mono', monospace",
+            mb: 0.75,
+          }}
+        >
+          Suspension duration (days)
+        </Typography>
         <DarkInput
           type="number"
           min={1}
           value={suspensionDays}
           onChange={(e) => setSuspensionDays(e.target.value)}
-          placeholder="Duration (days)"
+          placeholder="e.g. 7"
           style={{ marginBottom: 12 }}
         />
+        <Typography
+          sx={{
+            fontSize: 11,
+            color: "rgba(255,255,255,0.2)",
+            fontFamily: "'Syne', sans-serif",
+            mb: 1.5,
+          }}
+        >
+          User access is restored automatically after this many days.
+        </Typography>
         <DarkTextarea
           rows={3}
           value={suspensionReason}

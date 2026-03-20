@@ -472,6 +472,21 @@ export default function RegistrationsPage() {
                       const email = row.user?.email || row.userEmail || "";
                       const registrationId = getRegistrationId(row);
                       const isApproving = approvingId === registrationId;
+                      const readiness = row.readiness || null;
+                      const readinessReady = readiness?.ready !== false;
+                      const readinessReasons = Array.isArray(
+                        readiness?.missingRequirements,
+                      )
+                        ? readiness.missingRequirements
+                        : [];
+                      const canApprove = Boolean(
+                        readinessReady && !isApproving && registrationId,
+                      );
+                      const approvalTooltip = readinessReady
+                        ? "Approve"
+                        : readinessReasons[0] ||
+                          readiness?.reason ||
+                          "Registration is not ready for approval";
                       const formDetails = row.formDetails || {};
                       const hasSubmittedForm = Boolean(
                         formDetails.hasSubmittedForm,
@@ -567,6 +582,14 @@ export default function RegistrationsPage() {
                               >
                                 {submittedText}
                               </Typography>
+                              {!readinessReady ? (
+                                <Typography
+                                  variant="caption"
+                                  sx={{ color: "#fca5a5" }}
+                                >
+                                  {approvalTooltip}
+                                </Typography>
+                              ) : null}
                             </Box>
                           </TableCell>
 
@@ -596,14 +619,14 @@ export default function RegistrationsPage() {
                               >
                                 View form
                               </Button>
-                              <Tooltip title="Approve">
+                              <Tooltip title={approvalTooltip}>
                                 <span>
                                   <Button
                                     size="small"
                                     onClick={() =>
                                       handleApprove(registrationId)
                                     }
-                                    disabled={isApproving || !registrationId}
+                                    disabled={!canApprove}
                                     startIcon={
                                       isApproving ? (
                                         <CircularProgress
