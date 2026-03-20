@@ -2,6 +2,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { AppProviders } from "@/src/providers/AppProviders";
 import PublicHeaderGate from "@/src/components/navigation/PublicHeaderGate";
+import NeutronBanner from "@/src/components/NeutronBanner";
 import Clarity from "@microsoft/clarity";
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -33,6 +34,7 @@ export default function RootLayout({ children }) {
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
+        <NeutronBanner />
         <AppProviders>
           <PublicHeaderGate>{children}</PublicHeaderGate>
         </AppProviders>
