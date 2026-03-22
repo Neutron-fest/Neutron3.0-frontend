@@ -276,7 +276,7 @@ export default function SpaceLanding() {
           )}
         </AnimatePresence>
 
-        <div aria-hidden className="pointer-events-none fixed inset-0 z-[1] overflow-hidden">
+        <div aria-hidden className="pointer-events-none fixed inset-0 z-1 overflow-hidden">
           <div className="absolute inset-[-25%] opacity-[0.42]" style={{ backgroundImage: "radial-gradient(circle,rgba(255,255,255,0.95) 0.75px,transparent 1.1px),radial-gradient(circle,rgba(255,255,255,0.8) 0.6px,transparent 0.9px)", backgroundPosition: "0 0,55px 72px", backgroundSize: "110px 110px,140px 140px", animation: "drift-stars 22s linear infinite" }} />
           <div className="absolute inset-[-25%] opacity-[0.30]" style={{ backgroundImage: "radial-gradient(circle,rgba(200,228,255,0.85) 0.8px,transparent 1.2px),radial-gradient(circle,rgba(160,210,255,0.55) 0.65px,transparent 1px)", backgroundPosition: "28px 36px,88px 104px", backgroundSize: "160px 160px,210px 210px", animation: "drift-stars 30s -4s linear infinite reverse" }} />
           <div className="absolute inset-[-25%] opacity-[0.22]" style={{ backgroundImage: "radial-gradient(circle,rgba(255,245,235,0.7) 0.7px,transparent 1.1px),radial-gradient(circle,rgba(255,220,180,0.4) 0.5px,transparent 0.8px)", backgroundPosition: "14px 60px,100px 130px", backgroundSize: "200px 200px,270px 270px", animation: "drift-stars 42s -8s linear infinite" }} />
@@ -355,7 +355,7 @@ export default function SpaceLanding() {
         >
           <motion.div
             layout
-            className="flex items-center gap-[0.7rem] rounded-full px-[1rem] py-[0.75rem]"
+            className="flex items-center gap-[0.7rem] rounded-full px-4 py-3"
             style={{ border: "1px solid rgba(145,191,255,0.16)", background: "rgba(6,12,28,0.60)", backdropFilter: "blur(14px)", WebkitBackdropFilter: "blur(14px)", boxShadow: "0 24px 80px rgba(0,0,0,0.38),inset 0 1px 0 rgba(255,255,255,0.06)" }}
           >
             {PLANET_RECORDS.map((planet) => {
@@ -412,7 +412,7 @@ export default function SpaceLanding() {
               exit={{ opacity: 0 }}
             >
               <motion.div
-                className="relative grid place-items-center h-[4.5rem] w-[4.5rem]"
+                className="relative grid place-items-center h-18 w-18"
                 animate={{ scale: runtimeState === "loading" ? [0.94, 1, 0.94] : 1 }}
                 transition={{ duration: 1.2, repeat: Infinity, ease: "easeInOut" }}
               >

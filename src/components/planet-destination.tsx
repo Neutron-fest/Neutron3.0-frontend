@@ -52,7 +52,7 @@ export default function PlanetDestination({ planet }: { planet: PlanetRecord }) 
         </motion.div>
 
         <motion.div
-          className="mx-auto w-full max-w-[48rem] rounded-[1.9rem] p-6 md:p-8"
+          className="mx-auto w-full max-w-3xl rounded-[1.9rem] p-6 md:p-8"
           style={{
             border: "1px solid rgba(143,182,255,0.14)",
             background: "linear-gradient(180deg,rgba(9,17,35,0.82),rgba(5,11,25,0.54))",
@@ -68,10 +68,10 @@ export default function PlanetDestination({ planet }: { planet: PlanetRecord }) 
           <h1 className="mt-4 text-[clamp(3.2rem,8vw,6.2rem)] leading-[0.94] tracking-[-0.04em] text-white">
             {planet.name}
           </h1>
-          <p className="mt-4 max-w-[42rem] text-[clamp(1.1rem,2vw,1.45rem)] leading-[1.7] text-[rgba(244,247,255,0.92)]">
+          <p className="mt-4 max-w-2xl text-[clamp(1.1rem,2vw,1.45rem)] leading-[1.7] text-[rgba(244,247,255,0.92)]">
             {planet.headline}
           </p>
-          <p className="mt-4 max-w-[42rem] text-base leading-[1.9] text-[rgba(221,231,246,0.72)]">
+          <p className="mt-4 max-w-2xl text-base leading-[1.9] text-[rgba(221,231,246,0.72)]">
             {planet.summary}
           </p>
 
