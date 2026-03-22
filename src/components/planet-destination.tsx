@@ -1,0 +1,121 @@
+"use client";
+
+import type { CSSProperties } from "react";
+import { useRouter } from "next/navigation";
+import { motion } from "framer-motion";
+
+import type { PlanetRecord } from "@/lib/planet-data";
+
+export default function PlanetDestination({ planet }: { planet: PlanetRecord }) {
+  const router = useRouter();
+
+  return (
+    <motion.main
+      className="relative min-h-svh overflow-hidden"
+      style={{
+        background: "radial-gradient(circle at 18% 18%,rgba(73,129,255,0.18),transparent 22%),radial-gradient(circle at 82% 24%,rgba(255,158,92,0.16),transparent 18%),linear-gradient(180deg,#040714 0%,#050b18 45%,#040611 100%)",
+      }}
+      initial={{ opacity: 0, y: 24 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.65, ease: [0.16, 1, 0.3, 1] }}
+    >
+      <div
+        className="absolute inset-0 opacity-[0.42]"
+        style={{
+          background: "radial-gradient(circle at center,transparent 22%,rgba(2,4,10,0.42) 72%),radial-gradient(circle,rgba(255,255,255,0.8) 0.85px,transparent 1.2px)",
+          backgroundSize: "auto,180px 180px",
+        }}
+      />
+
+      <section
+        className="relative z-10 grid min-h-svh items-center gap-12 p-8 md:grid-cols-[minmax(20rem,34rem)_minmax(26rem,42rem)] md:p-12"
+      >
+        <motion.div
+          className="relative mx-auto grid place-items-center"
+          style={{ height: "min(68vw,30rem)", width: "min(68vw,30rem)" }}
+          initial={{ opacity: 0, scale: 0.88 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.75, delay: 0.08, ease: [0.16, 1, 0.3, 1] }}
+        >
+          <div
+            className="rounded-full"
+            style={{
+              height: "min(46vw,21rem)",
+              width: "min(46vw,21rem)",
+              background: `radial-gradient(circle at 34% 30%,rgba(255,255,255,0.82),transparent 22%),radial-gradient(circle at 68% 72%,rgba(0,0,0,0.22),transparent 26%),linear-gradient(135deg,${planet.accent},rgba(255,255,255,0.28))`,
+              boxShadow: `inset -34px -28px 60px rgba(0,0,0,0.24),0 0 80px color-mix(in srgb,${planet.accent} 40%,transparent)`,
+              "--planet-accent": planet.accent,
+            } as CSSProperties}
+          />
+          <div className="absolute rounded-full border border-[rgba(165,206,255,0.18)]" style={{ inset: "8%", transform: "rotate(16deg)" }} />
+          <div className="absolute rounded-full border border-[rgba(165,206,255,0.18)]" style={{ inset: "0%", transform: "rotate(-22deg)" }} />
+        </motion.div>
+
+        <motion.div
+          className="mx-auto w-full max-w-[48rem] rounded-[1.9rem] p-6 md:p-8"
+          style={{
+            border: "1px solid rgba(143,182,255,0.14)",
+            background: "linear-gradient(180deg,rgba(9,17,35,0.82),rgba(5,11,25,0.54))",
+            boxShadow: "0 30px 80px rgba(0,0,0,0.28)",
+          }}
+          initial={{ opacity: 0, y: 24 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.7, delay: 0.16, ease: [0.16, 1, 0.3, 1] }}
+        >
+          <p className="text-[0.78rem] uppercase tracking-[0.34em] text-[rgba(162,214,255,0.72)]">
+            {planet.eyebrow}
+          </p>
+          <h1 className="mt-4 text-[clamp(3.2rem,8vw,6.2rem)] leading-[0.94] tracking-[-0.04em] text-white">
+            {planet.name}
+          </h1>
+          <p className="mt-4 max-w-[42rem] text-[clamp(1.1rem,2vw,1.45rem)] leading-[1.7] text-[rgba(244,247,255,0.92)]">
+            {planet.headline}
+          </p>
+          <p className="mt-4 max-w-[42rem] text-base leading-[1.9] text-[rgba(221,231,246,0.72)]">
+            {planet.summary}
+          </p>
+
+          <div className="mt-6 grid gap-[0.9rem]">
+            {planet.stats.map((stat) => (
+              <div
+                key={stat.label}
+                className="flex justify-between gap-4 rounded-[1.2rem] px-[1.05rem] py-4"
+                style={{ border: "1px solid rgba(143,182,255,0.12)", background: "rgba(8,16,34,0.46)" }}
+              >
+                <span className="text-[0.78rem] uppercase tracking-[0.3em] text-[rgba(180,205,238,0.6)]">
+                  {stat.label}
+                </span>
+                <span className="text-[rgba(255,255,255,0.92)]">{stat.value}</span>
+              </div>
+            ))}
+          </div>
+
+          <button
+            className="mt-7 inline-flex items-center justify-center rounded-full px-[1.4rem] py-[0.95rem] text-[rgba(241,247,255,0.92)] transition-all duration-200 hover:-translate-y-[2px]"
+            style={{
+              border: "1px solid rgba(145,191,255,0.2)",
+              background: "rgba(6,13,28,0.52)",
+              fontFamily: "inherit",
+              fontSize: "inherit",
+              letterSpacing: "0.04em",
+              cursor: "pointer",
+            }}
+            onMouseEnter={(e) => {
+              (e.currentTarget as HTMLButtonElement).style.borderColor = "rgba(145,191,255,0.32)";
+              (e.currentTarget as HTMLButtonElement).style.background  = "rgba(10,20,41,0.74)";
+              (e.currentTarget as HTMLButtonElement).style.boxShadow   = "0 8px 32px rgba(0,0,0,0.28),0 0 24px rgba(100,170,255,0.1)";
+            }}
+            onMouseLeave={(e) => {
+              (e.currentTarget as HTMLButtonElement).style.borderColor = "rgba(145,191,255,0.2)";
+              (e.currentTarget as HTMLButtonElement).style.background  = "rgba(6,13,28,0.52)";
+              (e.currentTarget as HTMLButtonElement).style.boxShadow   = "";
+            }}
+            onClick={() => router.back()}
+          >
+            ← Return To Orbit
+          </button>
+        </motion.div>
+      </section>
+    </motion.main>
+  );
+}
