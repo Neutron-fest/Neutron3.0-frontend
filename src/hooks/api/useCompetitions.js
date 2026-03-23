@@ -314,3 +314,27 @@ export function useRemoveVolunteer() {
     },
   });
 }
+
+/**
+ * Request promo code approval (DH only)
+ */
+export function useRequestPromoCodeApproval() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ competitionId, promoCodes }) => {
+      const { data } = await apiClient.post(
+        `/competitions/${competitionId}/request-promo-code-approval`,
+        { promoCodes },
+      );
+      return data?.data || data;
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.approvals.list(),
+      });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.competitions.detail(variables.competitionId),
+      });
+    },
+  });
+}

@@ -43,8 +43,12 @@ function QuillEditor({ value, onChange }) {
       }
 
       quill.on("text-change", () => {
-        const html = quill.root.innerHTML;
-        onChange(html === "<p><br></p>" ? "" : html);
+        const html = quill.getSemanticHTML();
+        const normalized = html.trim();
+
+        onChange(
+          normalized === "<p></p>" || normalized === "<p><br></p>" ? "" : html,
+        );
       });
 
       quillRef.current = quill;
@@ -169,8 +173,11 @@ export default function CompetitionRulesStep({ control, errors }) {
                 "& h2": { fontSize: 16, color: "#e4e4e7", mt: 0.5, mb: 0.5 },
                 "& h3": { fontSize: 14, color: "#d4d4d8", mt: 0.5, mb: 0.5 },
                 "& p": { mb: 0.75, mt: 0 },
-                "& ul, & ol": { pl: 2.5, mb: 0.75 },
+                "& ul": { pl: 2.5, mb: 0.75, listStyleType: "disc" },
+                "& ol": { pl: 2.5, mb: 0.75, listStyleType: "decimal" },
                 "& li": { mb: 0.25 },
+                "& li[data-list='bullet']": { listStyleType: "disc" },
+                "& li[data-list='ordered']": { listStyleType: "decimal" },
                 "& a": { color: "#a855f7", textDecoration: "underline" },
                 "& strong": { color: "rgba(255,255,255,0.9)", fontWeight: 600 },
                 "& em": { fontStyle: "italic" },

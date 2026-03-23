@@ -43,10 +43,11 @@ export function useUploadRegistrationImage() {
 
 export function useRegisterSoloCompetition() {
   return useMutation({
-    mutationFn: async ({ competitionId, formData = [] }) => {
+    mutationFn: async ({ competitionId, formData = [], promoCode = null }) => {
       const { data } = await apiClient.post("/registration/solo", {
         competitionId,
         formData,
+        ...(promoCode && { promoCode }),
       });
 
       return data?.data || data;
@@ -56,11 +57,17 @@ export function useRegisterSoloCompetition() {
 
 export function useRegisterTeamCompetition() {
   return useMutation({
-    mutationFn: async ({ competitionId, teamName, formData = [] }) => {
+    mutationFn: async ({
+      competitionId,
+      teamName,
+      formData = [],
+      promoCode = null,
+    }) => {
       const { data } = await apiClient.post("/registration/team", {
         competitionId,
         teamName,
         formData,
+        ...(promoCode && { promoCode }),
       });
 
       return data?.data || data;

@@ -43,6 +43,7 @@ import {
 import { useUsers } from "@/src/hooks/api/useUsers";
 import { LoadingState } from "@/src/components/LoadingState";
 import CompetitionFormModal from "@/src/components/forms/CompetitionFormModal";
+import PromoCodeApprovalModal from "@/src/components/forms/PromoCodeApprovalModal";
 
 // ── Status / type config ──────────────────────────────────────────────────────
 
@@ -1086,6 +1087,7 @@ export default function CompetitionsPage() {
   const [createOpen, setCreateOpen] = useState(false);
   const [editTarget, setEditTarget] = useState(null);
   const [deleteTarget, setDeleteTarget] = useState(null);
+  const [promoCodeTarget, setPromoCodeTarget] = useState(null);
 
   const { mutate: updateCompetition, isPending: publishingCompetition } =
     useUpdateCompetition();
@@ -1372,8 +1374,8 @@ export default function CompetitionsPage() {
             sx={{
               display: "grid",
               gridTemplateColumns:
-                "minmax(220px,1fr) 120px 100px 110px 160px minmax(240px, 280px)",
-              minWidth: 980,
+                "minmax(220px,1fr) 120px 100px 110px 160px minmax(300px, 340px)",
+              minWidth: 1020,
               px: 3,
               py: 1.5,
               background: "rgba(255,255,255,0.02)",
@@ -1429,8 +1431,8 @@ export default function CompetitionsPage() {
                     sx={{
                       display: "grid",
                       gridTemplateColumns:
-                        "minmax(220px,1fr) 120px 100px 110px 160px minmax(240px, 280px)",
-                      minWidth: 980,
+                        "minmax(220px,1fr) 120px 100px 110px 160px minmax(300px, 340px)",
+                      minWidth: 1020,
                       alignItems: "center",
                       px: 3,
                       py: 2,
@@ -1529,7 +1531,8 @@ export default function CompetitionsPage() {
                     <Box
                       sx={{
                         display: "grid",
-                        gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
+                        gridTemplateColumns:
+                          "repeat(auto-fit, minmax(60px, 1fr))",
                         gap: 1,
                         justifyItems: "stretch",
                         alignItems: "stretch",
@@ -1599,6 +1602,14 @@ export default function CompetitionsPage() {
                         Edit
                       </SmallActionBtn>
                       <SmallActionBtn
+                        onClick={() => setPromoCodeTarget(comp)}
+                        color="#4ade80"
+                        hoverBg="rgba(34,197,94,0.1)"
+                      >
+                        <Send size={11} />
+                        Promo
+                      </SmallActionBtn>
+                      <SmallActionBtn
                         onClick={() => setManageTarget(comp)}
                         color="rgba(255,255,255,0.5)"
                         hoverBg="rgba(255,255,255,0.06)"
@@ -1621,6 +1632,12 @@ export default function CompetitionsPage() {
         competition={manageTarget}
         open={!!manageTarget}
         onClose={() => setManageTarget(null)}
+      />
+      <PromoCodeApprovalModal
+        competition={promoCodeTarget}
+        open={!!promoCodeTarget}
+        onClose={() => setPromoCodeTarget(null)}
+        registrationFee={promoCodeTarget?.registrationFee || 0}
       />
       <CompetitionFormModal
         open={createOpen}

@@ -32,6 +32,7 @@ const TYPE_LABELS = {
   SCORE_LOCK: "Score Lock",
   EVENT_UPDATE: "Event Update",
   COMPETITION_EDIT: "Competition Update",
+  PROMO_CODE_ADD: "Promo Code Request",
 };
 
 const TYPE_COLORS = {
@@ -49,6 +50,11 @@ const TYPE_COLORS = {
     bg: "rgba(168,85,247,0.1)",
     text: "#c084fc",
     border: "rgba(168,85,247,0.2)",
+  },
+  PROMO_CODE_ADD: {
+    bg: "rgba(34,197,94,0.1)",
+    text: "#4ade80",
+    border: "rgba(34,197,94,0.2)",
   },
 };
 

@@ -395,7 +395,7 @@ export default function PublicCompetitionDetailsPage() {
               Rules
             </div>
             <div
-              className="text-sm leading-8 text-white/55 [&_h1]:mt-4 [&_h1]:mb-2 [&_h1]:text-xs [&_h1]:uppercase [&_h1]:tracking-[0.08em] [&_h1]:text-white/70 [&_h2]:mt-4 [&_h2]:mb-2 [&_h2]:text-xs [&_h2]:uppercase [&_h2]:tracking-[0.08em] [&_h2]:text-white/70 [&_h3]:mt-4 [&_h3]:mb-2 [&_h3]:text-xs [&_h3]:uppercase [&_h3]:tracking-[0.08em] [&_h3]:text-white/70 [&_ol]:pl-5 [&_ul]:pl-5 [&_li]:mb-1 [&_p]:mb-2"
+              className="text-sm leading-8 text-white/55 [&_h1]:mt-4 [&_h1]:mb-2 [&_h1]:text-xs [&_h1]:uppercase [&_h1]:tracking-[0.08em] [&_h1]:text-white/70 [&_h2]:mt-4 [&_h2]:mb-2 [&_h2]:text-xs [&_h2]:uppercase [&_h2]:tracking-[0.08em] [&_h2]:text-white/70 [&_h3]:mt-4 [&_h3]:mb-2 [&_h3]:text-xs [&_h3]:uppercase [&_h3]:tracking-[0.08em] [&_h3]:text-white/70 [&_ol]:pl-5 [&_ol]:list-decimal [&_ul]:pl-5 [&_ul]:list-disc [&_li]:mb-1 [&_li[data-list='ordered']]:list-decimal [&_li[data-list='bullet']]:list-disc [&_p]:mb-2"
               dangerouslySetInnerHTML={{ __html: competition.rulesRichText }}
             />
           </>
