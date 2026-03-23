@@ -12,6 +12,7 @@ import {
   DEFAULT_VALUES,
   getEditDefaults,
   STEP_FIELDS,
+  STATUS_OPTS,
 } from "./competitionSchemas";
 import CompetitionBasicInfoStep from "./steps/CompetitionBasicInfoStep";
 import CompetitionScheduleVenueStep from "./steps/CompetitionScheduleVenueStep";
@@ -23,6 +24,7 @@ import {
   useCompetition,
   useUpdateCompetition,
 } from "@/src/hooks/api/useCompetitions";
+import { useAuth } from "@/contexts/AuthContext";
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
@@ -229,6 +231,7 @@ export default function CompetitionFormModal({ open, onClose, competition }) {
   const isEdit = !!competition;
   const [activeStep, setActiveStep] = useState(0);
   const [poster, setPoster] = useState(null);
+  const { user } = useAuth();
 
   const { data: fetchedCompetition, isLoading: loadingCompetitionDetail } =
     useCompetition(open && competition?.id ? competition.id : null);
@@ -237,6 +240,12 @@ export default function CompetitionFormModal({ open, onClose, competition }) {
     () => fetchedCompetition || competition || null,
     [fetchedCompetition, competition],
   );
+  const isDH = user?.role === "DH";
+  const statusOptions = useMemo(() => {
+    if (!isDH) return STATUS_OPTS;
+    if (resolvedCompetition?.status === "OPEN") return STATUS_OPTS;
+    return STATUS_OPTS.filter((status) => status !== "OPEN");
+  }, [isDH, resolvedCompetition?.status]);
 
   const { enqueueSnackbar } = useSnackbar();
   const { mutate: createCompetition, isPending: creating } =
@@ -432,7 +441,8 @@ export default function CompetitionFormModal({ open, onClose, competition }) {
           onSuccess: (res) => {
             if (res?.pendingApproval) {
               enqueueSnackbar(
-                "Changes submitted for SA approval — sensitive fields (fee / prize pool) require review before going live.",
+                res?.message ||
+                  "Changes submitted for SA approval and are pending review.",
                 { variant: "info", autoHideDuration: 6000 },
               );
             } else {
@@ -467,7 +477,12 @@ export default function CompetitionFormModal({ open, onClose, competition }) {
   };
 
   const stepComponents = [
-    <CompetitionBasicInfoStep key="basic" control={control} errors={errors} />,
+    <CompetitionBasicInfoStep
+      key="basic"
+      control={control}
+      errors={errors}
+      statusOptions={statusOptions}
+    />,
     <CompetitionScheduleVenueStep
       key="schedule"
       control={control}

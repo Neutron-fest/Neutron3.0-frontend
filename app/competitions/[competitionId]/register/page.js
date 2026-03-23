@@ -110,6 +110,7 @@ export default function PublicCompetitionRegisterPage() {
     existingRegistration?.status === "WITHDRAWN";
 
   const isMemberMode = mode === "member" && !!memberModeTeamId;
+  const isTeamMemberFlow = isMemberMode;
   const isExistingTeamMemberRegistration =
     isMemberMode &&
     existingRegistration?.team?.id === memberModeTeamId &&
@@ -159,12 +160,12 @@ export default function PublicCompetitionRegisterPage() {
     typeof maxTeamSize === "number" ? Math.max(maxTeamSize - 1, 0) : null;
 
   const effectiveFields = useMemo(() => {
-    if (isExistingTeamMemberRegistration) {
+    if (isTeamMemberFlow) {
       return fields.filter((field) => field.scope === "ALL_MEMBERS");
     }
 
     return fields;
-  }, [fields, isExistingTeamMemberRegistration]);
+  }, [fields, isTeamMemberFlow]);
 
   useEffect(() => {
     if (!loading && !user) {
@@ -295,13 +296,13 @@ export default function PublicCompetitionRegisterPage() {
     if (
       existingRegistration &&
       !canReRegisterFromWithdrawn &&
-      !isExistingTeamMemberRegistration
+      !isTeamMemberFlow
     ) {
       setSubmitError("You are already registered for this competition.");
       return;
     }
 
-    if (isTeamCompetition && teamStep !== 2) {
+    if (isTeamCompetition && !isTeamMemberFlow && teamStep !== 2) {
       setSubmitError("Complete team setup before submitting.");
       return;
     }
@@ -358,7 +359,7 @@ export default function PublicCompetitionRegisterPage() {
         });
       }
 
-      if (isExistingTeamMemberRegistration) {
+      if (isTeamMemberFlow) {
         await submitTeamMemberFormMutation.mutateAsync({
           teamId: memberModeTeamId,
           formData: formDataResponses,
@@ -450,7 +451,7 @@ export default function PublicCompetitionRegisterPage() {
   if (
     existingRegistration &&
     !canReRegisterFromWithdrawn &&
-    !isExistingTeamMemberRegistration &&
+    !isTeamMemberFlow &&
     !success
   ) {
     return (
@@ -652,12 +653,12 @@ export default function PublicCompetitionRegisterPage() {
           <Typography
             sx={{ color: "rgba(255,255,255,0.42)", mt: 0.8, mb: 2.5 }}
           >
-            {isExistingTeamMemberRegistration
+            {isTeamMemberFlow
               ? "Complete your member-required fields to finish joining this team."
               : "Complete the form below and submit your registration."}
           </Typography>
 
-          {isTeamCompetition && (
+          {isTeamCompetition && !isTeamMemberFlow && (
             <Box sx={{ display: "flex", gap: 1, mb: 2 }}>
               <StepPill active={teamStep === 1}>Step 1 · Team Setup</StepPill>
               <StepPill active={teamStep === 2}>Step 2 · Form Fields</StepPill>
@@ -669,7 +670,7 @@ export default function PublicCompetitionRegisterPage() {
             onSubmit={handleSubmit}
             sx={{ display: "grid", gap: 2 }}
           >
-            {isTeamCompetition && teamStep === 1 && (
+            {isTeamCompetition && !isTeamMemberFlow && teamStep === 1 && (
               <>
                 {!teamSizeConfigured && (
                   <ErrorText>
@@ -837,7 +838,7 @@ export default function PublicCompetitionRegisterPage() {
               </>
             )}
 
-            {isTeamCompetition && teamStep === 2 && (
+            {isTeamCompetition && !isTeamMemberFlow && teamStep === 2 && (
               <FieldLabel label="Team Name" required>
                 <input
                   value={teamName}
@@ -888,7 +889,7 @@ export default function PublicCompetitionRegisterPage() {
                   gap: 1,
                 }}
               >
-                {isTeamCompetition ? (
+                {isTeamCompetition && !isTeamMemberFlow ? (
                   <button
                     type="button"
                     onClick={() => setTeamStep(1)}
@@ -956,7 +957,7 @@ export default function PublicCompetitionRegisterPage() {
                       <CircularProgress size={14} sx={{ color: "#fff" }} />
                       Submitting...
                     </>
-                  ) : isExistingTeamMemberRegistration ? (
+                  ) : isTeamMemberFlow ? (
                     "Submit Member Fields"
                   ) : (
                     "Submit Registration"

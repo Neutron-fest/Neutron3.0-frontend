@@ -31,6 +31,7 @@ import { LoadingState } from "@/src/components/LoadingState";
 const TYPE_LABELS = {
   SCORE_LOCK: "Score Lock",
   EVENT_UPDATE: "Event Update",
+  COMPETITION_EDIT: "Competition Update",
 };
 
 const TYPE_COLORS = {
@@ -44,6 +45,15 @@ const TYPE_COLORS = {
     text: "#fbbf24",
     border: "rgba(234,179,8,0.2)",
   },
+  COMPETITION_EDIT: {
+    bg: "rgba(168,85,247,0.1)",
+    text: "#c084fc",
+    border: "rgba(168,85,247,0.2)",
+  },
+};
+
+const APPROVAL_ACTION_LABELS = {
+  PUBLISH_COMPETITION: "Publish Request",
 };
 
 const STATUS_COLORS = {
@@ -145,6 +155,8 @@ export default function ApprovalsPage() {
   const [lockReviewDialogOpen, setLockReviewDialogOpen] = useState(false);
   const [selectedLockRequest, setSelectedLockRequest] = useState(null);
   const [lockReviewNotes, setLockReviewNotes] = useState("");
+  const detailActionLabel =
+    APPROVAL_ACTION_LABELS[detailApproval?.requestData?.action] || null;
 
   const allApprovals = useMemo(
     () => approvalsRes?.data?.approvals || [],
@@ -421,6 +433,7 @@ export default function ApprovalsPage() {
           <option value="all">All Types</option>
           <option value="SCORE_LOCK">Score Lock</option>
           <option value="EVENT_UPDATE">Event Update</option>
+          <option value="COMPETITION_EDIT">Competition Update</option>
         </NativeSelect>
         <Typography
           sx={{
@@ -921,6 +934,28 @@ export default function ApprovalsPage() {
           <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
             <Box sx={{ display: "flex", gap: 1.5, flexWrap: "wrap" }}>
               <TypePill type={detailApproval.type} />
+              {detailActionLabel && (
+                <Box
+                  component="span"
+                  sx={{
+                    px: 1.5,
+                    py: 0.4,
+                    borderRadius: "6px",
+                    fontSize: 11,
+                    fontWeight: 600,
+                    fontFamily: "'DM Mono', monospace",
+                    letterSpacing: "0.04em",
+                    textTransform: "uppercase",
+                    background: "rgba(168,85,247,0.1)",
+                    color: "#c084fc",
+                    border: "1px solid rgba(168,85,247,0.2)",
+                    display: "inline-block",
+                    lineHeight: 1.6,
+                  }}
+                >
+                  {detailActionLabel}
+                </Box>
+              )}
               <StatusBadge status={detailApproval.status} />
             </Box>
 

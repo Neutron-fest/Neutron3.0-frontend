@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Box, Typography } from "@mui/material";
 import { UserRound, Trophy } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { usePendingTeamInvites } from "@/src/hooks/api/usePublicRegistration";
 
 function NavLink({ href, children }) {
   return (
@@ -27,6 +28,10 @@ function NavLink({ href, children }) {
 export default function PublicHeader() {
   const { user, loading } = useAuth();
   const resolvedUser = loading ? null : user;
+  const { data: pendingInvites = [] } = usePendingTeamInvites(
+    Boolean(resolvedUser?.id),
+  );
+  const hasPendingInvites = pendingInvites.length > 0;
 
   return (
     <Box
@@ -107,6 +112,7 @@ export default function PublicHeader() {
             >
               <Box
                 sx={{
+                  position: "relative",
                   display: "inline-flex",
                   alignItems: "center",
                   gap: 0.75,
@@ -117,6 +123,20 @@ export default function PublicHeader() {
                   background: "rgba(255,255,255,0.03)",
                 }}
               >
+                {hasPendingInvites && (
+                  <Box
+                    sx={{
+                      position: "absolute",
+                      top: 4,
+                      right: 4,
+                      width: 8,
+                      height: 8,
+                      borderRadius: "999px",
+                      background: "#ef4444",
+                      border: "1px solid rgba(5,5,5,0.95)",
+                    }}
+                  />
+                )}
                 <UserRound size={14} color="#e4e4e7" />
                 <Typography
                   sx={{

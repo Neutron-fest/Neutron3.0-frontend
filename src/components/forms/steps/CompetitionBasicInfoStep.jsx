@@ -75,7 +75,11 @@ export function FieldGroup({ label, error, children, span = 1 }) {
 
 // ── Step Component ────────────────────────────────────────────────────────────
 
-export default function CompetitionBasicInfoStep({ control, errors }) {
+export default function CompetitionBasicInfoStep({
+  control,
+  errors,
+  statusOptions = STATUS_OPTS,
+}) {
   return (
     <Box
       sx={{
@@ -184,7 +188,7 @@ export default function CompetitionBasicInfoStep({ control, errors }) {
           control={control}
           render={({ field }) => (
             <select {...field} style={selectCss}>
-              {STATUS_OPTS.map((s) => (
+              {statusOptions.map((s) => (
                 <option key={s} value={s} style={{ background: "#0e0e0e" }}>
                   {s}
                 </option>

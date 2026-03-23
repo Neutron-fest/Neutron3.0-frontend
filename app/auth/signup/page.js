@@ -1,15 +1,9 @@
 "use client";
 
-import { Suspense, useEffect, useMemo, useState } from "react";
+import { Suspense, useState } from "react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
 import { Box, Typography } from "@mui/material";
 import apiClient from "@/lib/axios";
-import {
-  buildAuthPageHref,
-  getAuthContinuation,
-  setAuthContinuation,
-} from "@/src/lib/authContinuation";
 
 export default function PublicSignupPage() {
   return (
@@ -20,20 +14,7 @@ export default function PublicSignupPage() {
 }
 
 function PublicSignupPageContent() {
-  const searchParams = useSearchParams();
-  const queryNext = searchParams.get("next") || "";
-  const queryForceLogin = searchParams.get("forceLogin") === "1";
-  const continuation = useMemo(() => getAuthContinuation(), []);
-  const next = queryNext || continuation.next || "";
-  const forceLogin = queryForceLogin || continuation.forceLogin;
-  const showInviteContinuationChip = next.startsWith("/team-invite/");
-  const loginHref = useMemo(() => {
-    return buildAuthPageHref("/auth/login", { next, forceLogin });
-  }, [next, forceLogin]);
-
-  useEffect(() => {
-    setAuthContinuation({ next, forceLogin });
-  }, [next, forceLogin]);
+  const loginHref = "/auth/login";
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -95,25 +76,8 @@ function PublicSignupPageContent() {
         <Typography
           sx={{ color: "rgba(255,255,255,0.62)", fontSize: 12, mb: 1 }}
         >
-          After sign in, you’ll continue to your team invite.
+          After sign in, you’ll go to your profile page.
         </Typography>
-        {showInviteContinuationChip && (
-          <Typography
-            sx={{
-              display: "inline-flex",
-              alignItems: "center",
-              border: "1px solid rgba(192,132,252,0.4)",
-              borderRadius: 999,
-              px: 1,
-              py: 0.3,
-              color: "#c084fc",
-              fontSize: 11,
-              mb: 1.6,
-            }}
-          >
-            Continuing to: Team Invite
-          </Typography>
-        )}
 
         {success ? (
           <Box>

@@ -70,6 +70,14 @@ const STATUS_MAP = {
   },
 };
 
+const ADMIN_DASHBOARD_BY_ROLE = {
+  SA: "/admin/sa",
+  DH: "/admin/dh",
+  JUDGE: "/admin/judge",
+  VOLUNTEER: "/admin/volunteer",
+  VH: "/admin/volunteer",
+};
+
 function StatusBadge({ value }) {
   const key = (value || "").toUpperCase();
   const t = STATUS_MAP[key] || STATUS_MAP.PENDING;
@@ -663,7 +671,7 @@ export default function PublicUserProfilePage() {
   const params = useParams();
   const router = useRouter();
   const { enqueueSnackbar } = useSnackbar();
-  const { user: viewer, loading: authLoading } = useAuth();
+  const { user: viewer, loading: authLoading, logout } = useAuth();
 
   const userId = params?.userId;
   const {
@@ -706,6 +714,11 @@ export default function PublicUserProfilePage() {
     return profileRegs.filter((r) => Boolean(r?.team?.id));
   }, [isOwner, myRegistrations, profileRegs]);
 
+  const adminDashboardPath = useMemo(
+    () => ADMIN_DASHBOARD_BY_ROLE[viewer?.role] || "",
+    [viewer?.role],
+  );
+
   const onAccept = async (token) => {
     if (!token) return;
     try {
@@ -740,6 +753,10 @@ export default function PublicUserProfilePage() {
     } finally {
       setInviteActionToken("");
     }
+  };
+
+  const handleLogout = async () => {
+    await logout();
   };
 
   /* loading */
@@ -956,54 +973,118 @@ export default function PublicUserProfilePage() {
               </div>
             </div>
 
-            {/* stats pills */}
-            <div style={{ display: "flex", gap: 10 }}>
-              {[
-                {
-                  label: "Registrations",
-                  value: stats?.registrationsCount ?? profileRegs.length,
-                },
-                {
-                  label: "Teams",
-                  value: stats?.teamsCount ?? teamCards.length,
-                },
-              ].map((s) => (
+            {/* stats + quick actions */}
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                gap: 10,
+                alignItems: "flex-end",
+              }}
+            >
+              <div style={{ display: "flex", gap: 10 }}>
+                {[
+                  {
+                    label: "Registrations",
+                    value: stats?.registrationsCount ?? profileRegs.length,
+                  },
+                  {
+                    label: "Teams",
+                    value: stats?.teamsCount ?? teamCards.length,
+                  },
+                ].map((s) => (
+                  <div
+                    key={s.label}
+                    style={{
+                      padding: "12px 18px",
+                      borderRadius: 10,
+                      border: "1px solid rgba(255,255,255,0.07)",
+                      background: "#0a0a0a",
+                      textAlign: "center",
+                      minWidth: 80,
+                    }}
+                  >
+                    <div
+                      style={{
+                        fontSize: 22,
+                        fontFamily: "'Space Mono', monospace",
+                        fontWeight: 700,
+                        color: "#f4f4f5",
+                        lineHeight: 1,
+                      }}
+                    >
+                      {s.value}
+                    </div>
+                    <div
+                      style={{
+                        fontSize: 9,
+                        fontFamily: "'Space Mono', monospace",
+                        letterSpacing: "0.12em",
+                        textTransform: "uppercase",
+                        color: "rgba(255,255,255,0.25)",
+                        marginTop: 5,
+                      }}
+                    >
+                      {s.label}
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {viewer && (
                 <div
-                  key={s.label}
                   style={{
-                    padding: "12px 18px",
-                    borderRadius: 10,
-                    border: "1px solid rgba(255,255,255,0.07)",
-                    background: "#0a0a0a",
-                    textAlign: "center",
-                    minWidth: 80,
+                    display: "flex",
+                    gap: 8,
+                    flexWrap: "wrap",
+                    justifyContent: "flex-end",
                   }}
                 >
-                  <div
+                  {adminDashboardPath && (
+                    <button
+                      type="button"
+                      onClick={() => router.push(adminDashboardPath)}
+                      style={{
+                        border: "1px solid rgba(129,140,248,0.35)",
+                        background: "rgba(129,140,248,0.12)",
+                        color: "#c7d2fe",
+                        borderRadius: 8,
+                        padding: "7px 10px",
+                        fontSize: 11,
+                        fontFamily: "'Space Mono', monospace",
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: 5,
+                        cursor: "pointer",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      Admin Dashboard <ArrowRight size={12} />
+                    </button>
+                  )}
+
+                  <button
+                    type="button"
+                    onClick={handleLogout}
                     style={{
-                      fontSize: 22,
+                      border: "1px solid rgba(248,113,113,0.35)",
+                      background: "rgba(248,113,113,0.12)",
+                      color: "#fda4af",
+                      borderRadius: 8,
+                      padding: "7px 10px",
+                      fontSize: 11,
                       fontFamily: "'Space Mono', monospace",
-                      fontWeight: 700,
-                      color: "#f4f4f5",
-                      lineHeight: 1,
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: 5,
+                      cursor: "pointer",
+                      whiteSpace: "nowrap",
                     }}
                   >
-                    {s.value}
-                  </div>
-                  <div
-                    style={{
-                      fontSize: 9,
-                      fontFamily: "'Space Mono', monospace",
-                      letterSpacing: "0.12em",
-                      textTransform: "uppercase",
-                      color: "rgba(255,255,255,0.25)",
-                      marginTop: 5,
-                    }}
-                  >
-                    {s.label}
-                  </div>
+                    <LogOut size={12} /> Logout
+                  </button>
                 </div>
-              ))}
+              )}
             </div>
           </div>
 

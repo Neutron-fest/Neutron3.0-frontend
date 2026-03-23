@@ -43,8 +43,7 @@ export default function TeamInvitePage() {
 
   useEffect(() => {
     if (!loading && !user && inviteToken) {
-      const next = `/team-invite/${inviteToken}`;
-      router.replace(`/auth/login?next=${encodeURIComponent(next)}`);
+      router.replace("/auth/login");
     }
   }, [loading, user, inviteToken, router]);
 
@@ -56,11 +55,8 @@ export default function TeamInvitePage() {
       invitePreview &&
       invitePreview.isIntendedRecipient === false
     ) {
-      const next = `/team-invite/${inviteToken}`;
       setMismatchRedirecting(true);
-      router.replace(
-        `/auth/login?forceLogin=1&next=${encodeURIComponent(next)}`,
-      );
+      router.replace("/auth/login?forceLogin=1");
     }
   }, [loading, user, inviteToken, invitePreview, router]);
 

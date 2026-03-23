@@ -24,6 +24,7 @@ import {
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useSnackbar } from "notistack";
+import { useAuth } from "@/contexts/AuthContext";
 import {
   useCompetitions,
   useDeleteCompetition,
@@ -1077,6 +1078,7 @@ function ManageDialog({ competition, open, onClose }) {
 export default function CompetitionsPage() {
   const router = useRouter();
   const { enqueueSnackbar } = useSnackbar();
+  const { user } = useAuth();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [eventTypeFilter, setEventTypeFilter] = useState("all");
@@ -1096,33 +1098,48 @@ export default function CompetitionsPage() {
 
   function handleTogglePublishCompetition(comp) {
     const isCurrentlyOpen = comp.status === "OPEN";
+    const isDH = user?.role === "DH";
     setPublishingId(comp.id);
-    updateCompetition(
-      {
-        competitionId: comp.id,
-        status: isCurrentlyOpen ? "DRAFT" : "OPEN",
-        registrationsOpen: !isCurrentlyOpen,
-      },
-      {
-        onSuccess: () => {
+
+    const payload = isCurrentlyOpen
+      ? {
+          competitionId: comp.id,
+          status: "DRAFT",
+          registrationsOpen: false,
+        }
+      : {
+          competitionId: comp.id,
+          status: "OPEN",
+          registrationsOpen: true,
+        };
+
+    updateCompetition(payload, {
+      onSuccess: (response) => {
+        if (!isCurrentlyOpen && isDH && response?.pendingApproval) {
           enqueueSnackbar(
-            isCurrentlyOpen
-              ? "Competition unpublished"
-              : "Competition published",
-            { variant: "success" },
+            response?.message || "Publish request submitted for SA approval.",
+            { variant: "info" },
           );
-        },
-        onError: (err) =>
-          enqueueSnackbar(
-            err?.response?.data?.message ||
-              (isCurrentlyOpen
-                ? "Failed to unpublish competition"
-                : "Failed to publish competition"),
-            { variant: "error" },
-          ),
-        onSettled: () => setPublishingId(null),
+          return;
+        }
+
+        enqueueSnackbar(
+          isCurrentlyOpen ? "Competition unpublished" : "Competition published",
+          {
+            variant: "success",
+          },
+        );
       },
-    );
+      onError: (err) =>
+        enqueueSnackbar(
+          err?.response?.data?.message ||
+            (isCurrentlyOpen
+              ? "Failed to unpublish competition"
+              : "Failed to publish competition"),
+          { variant: "error" },
+        ),
+      onSettled: () => setPublishingId(null),
+    });
   }
 
   function handleDeleteCompetition(comp) {
@@ -1549,7 +1566,11 @@ export default function CompetitionsPage() {
                         ) : (
                           <Send size={11} />
                         )}
-                        {comp.status === "OPEN" ? "Unpublish" : "Publish"}
+                        {comp.status === "OPEN"
+                          ? "Unpublish"
+                          : user?.role === "DH"
+                            ? "Request Publish"
+                            : "Publish"}
                       </SmallActionBtn>
 
                       <SmallActionBtn

@@ -1,33 +1,18 @@
 "use client";
 
-import { Suspense, useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Box, CircularProgress, Typography } from "@mui/material";
 import { useAuth } from "@/contexts/AuthContext";
-import {
-  buildAuthPageHref,
-  clearAuthContinuation,
-  getAuthContinuation,
-  setAuthContinuation,
-} from "@/src/lib/authContinuation";
+import { clearAuthContinuation } from "@/src/lib/authContinuation";
 
 function PublicLoginPageContent() {
   const { user, loading, login } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const queryNext = searchParams.get("next") || "";
   const queryForceLogin = searchParams.get("forceLogin") === "1";
-  const continuation = useMemo(() => getAuthContinuation(), []);
-  const next = queryNext || continuation.next || "/competitions";
-  const forceLogin = queryForceLogin || continuation.forceLogin;
-  const signupHref = useMemo(() => {
-    return buildAuthPageHref("/auth/signup", { next, forceLogin });
-  }, [next, forceLogin]);
-
-  useEffect(() => {
-    setAuthContinuation({ next, forceLogin });
-  }, [next, forceLogin]);
+  const forceLogin = queryForceLogin;
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -37,13 +22,12 @@ function PublicLoginPageContent() {
   const [resendSubmitting, setResendSubmitting] = useState(false);
   const [resendMessage, setResendMessage] = useState("");
   const [resendError, setResendError] = useState("");
-  const showInviteContinuationChip = next.startsWith("/team-invite/");
 
   useEffect(() => {
     if (!loading && user && !forceLogin) {
-      router.replace(next);
+      router.replace(`/users/${user.id}`);
     }
-  }, [loading, user, router, next, forceLogin]);
+  }, [loading, user, router, forceLogin]);
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -63,7 +47,10 @@ function PublicLoginPageContent() {
     }
 
     clearAuthContinuation();
-    router.replace(next);
+    const profilePath = result.user?.id
+      ? `/users/${result.user.id}`
+      : "/competitions";
+    router.replace(profilePath);
   };
 
   const handleResendVerification = async () => {
@@ -154,30 +141,13 @@ function PublicLoginPageContent() {
         >
           {forceLogin
             ? "Sign in with the account that received the invite."
-            : "Continue to complete your competition registration."}
+            : "Sign in to continue."}
         </Typography>
         <Typography
           sx={{ color: "rgba(255,255,255,0.62)", fontSize: 12, mb: 1 }}
         >
-          After sign in, you’ll continue to your team invite.
+          After sign in, you’ll go to your profile page.
         </Typography>
-        {showInviteContinuationChip && (
-          <Typography
-            sx={{
-              display: "inline-flex",
-              alignItems: "center",
-              border: "1px solid rgba(192,132,252,0.4)",
-              borderRadius: 999,
-              px: 1,
-              py: 0.3,
-              color: "#c084fc",
-              fontSize: 11,
-              mb: 1.6,
-            }}
-          >
-            Continuing to: Team Invite
-          </Typography>
-        )}
 
         <Box
           component="form"
@@ -253,7 +223,7 @@ function PublicLoginPageContent() {
         >
           New here?{" "}
           <Link
-            href={signupHref}
+            href="/auth/signup"
             style={{ color: "#c084fc", textDecoration: "none" }}
           >
             Create account
