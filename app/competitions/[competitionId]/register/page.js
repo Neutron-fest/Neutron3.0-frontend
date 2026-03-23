@@ -52,6 +52,9 @@ const isEmptyFieldValue = (value, fieldType) => {
   return value === undefined || value === null || String(value).trim() === "";
 };
 
+const REGISTRATION_UPLOAD_MAX_MB = 5;
+const REGISTRATION_UPLOAD_MAX_BYTES = REGISTRATION_UPLOAD_MAX_MB * 1024 * 1024;
+
 const parsePositiveInt = (...candidates) => {
   for (const candidate of candidates) {
     const parsed = Number.parseInt(String(candidate ?? ""), 10);
@@ -308,6 +311,31 @@ export default function PublicCompetitionRegisterPage() {
     }
 
     if (!validateForm()) {
+      return;
+    }
+
+    const oversizedFieldErrors = {};
+    for (const field of effectiveFields) {
+      const rawValue = valuesByField[field.id];
+      if (!(rawValue instanceof File)) continue;
+      if (
+        (field.fieldType !== "IMAGE" && field.fieldType !== "FILE") ||
+        !rawValue
+      ) {
+        continue;
+      }
+
+      if (rawValue.size > REGISTRATION_UPLOAD_MAX_BYTES) {
+        oversizedFieldErrors[field.id] =
+          `${field.label} exceeds ${REGISTRATION_UPLOAD_MAX_MB}MB.`;
+      }
+    }
+
+    if (Object.keys(oversizedFieldErrors).length > 0) {
+      setErrorsByField((prev) => ({ ...prev, ...oversizedFieldErrors }));
+      setSubmitError(
+        `One or more files exceed the ${REGISTRATION_UPLOAD_MAX_MB}MB limit. Please upload smaller files.`,
+      );
       return;
     }
 
@@ -1185,12 +1213,21 @@ function FieldRenderer({ field, value, error, onChange }) {
     const isImage = field.fieldType === "IMAGE";
     const previewUrl =
       isImage && value instanceof File ? URL.createObjectURL(value) : null;
+    const selectedFileSizeMb =
+      value instanceof File ? (value.size / (1024 * 1024)).toFixed(2) : null;
+    const uploadHelpText = [
+      field.helpText,
+      `Max file size: ${REGISTRATION_UPLOAD_MAX_MB}MB.`,
+      "Allowed formats: JPG, PNG, WEBP, AVIF, GIF.",
+    ]
+      .filter(Boolean)
+      .join(" ");
 
     return (
       <FieldLabel
         label={field.label}
         required={field.isRequired}
-        helpText={field.helpText}
+        helpText={uploadHelpText}
       >
         <label
           style={{
@@ -1214,11 +1251,27 @@ function FieldRenderer({ field, value, error, onChange }) {
               : "Choose file"}
           <input
             type="file"
-            accept={isImage ? "image/*" : "*"}
+            accept="image/jpeg,image/png,image/webp,image/avif,image/gif"
             style={{ display: "none" }}
             onChange={(event) => onChange(event.target.files?.[0] || null)}
           />
         </label>
+
+        {value instanceof File && (
+          <Typography
+            sx={{
+              mt: 0.75,
+              fontSize: 11,
+              color:
+                value.size > REGISTRATION_UPLOAD_MAX_BYTES
+                  ? "#f87171"
+                  : "rgba(255,255,255,0.35)",
+              fontFamily: "'DM Mono', monospace",
+            }}
+          >
+            Size: {selectedFileSizeMb} MB
+          </Typography>
+        )}
 
         {isImage && previewUrl && (
           <Box
