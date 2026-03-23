@@ -148,12 +148,10 @@ export default function SpaceLanding() {
 
   useEffect(() => {
     const onScroll = () => {
-      const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
-      if (maxScroll <= 0) return;
-      const ratio = window.scrollY / maxScroll;
-      const fadeEnd = 0.12;
-      setVideoOpacity(Math.max(0, 1 - ratio / fadeEnd));
-      setIsScrolled(ratio > 0.05);
+      // Fade video out entirely by 150vh, identical to the intro phase duration
+      const scrolledVH = (window.scrollY / window.innerHeight) * 100;
+      setVideoOpacity(Math.max(0, 1 - scrolledVH / 150));
+      setIsScrolled(scrolledVH > 50);
     };
     window.addEventListener("scroll", onScroll, { passive: true });
     onScroll();
@@ -189,7 +187,18 @@ export default function SpaceLanding() {
             const progress = sceneProgress.value || self.progress;
             progressRef.current = progress;
             if (navigatingRef.current) return;
-            const activeIndex = clamp(Math.floor(clamp((progress - 0.46) / 0.11, 0, PLANET_RECORDS.length - 1)), 0, PLANET_RECORDS.length - 1);
+            
+            // Track local scroll correctly invariant of height
+            const scrollMax = (document.documentElement.scrollHeight - window.innerHeight) || 1;
+            const scrolledPx = progress * scrollMax;
+            const vh = window.innerHeight || 800;
+            const scrolledVH = (scrolledPx / vh) * 100;
+
+            const N = PLANET_RECORDS.length;
+            const cycleProgress = Math.max(0, scrolledVH - 420) / 380; // 380vh for exactly 1 revolution
+            const rawIndex = Math.floor((cycleProgress * N) + 0.5);
+            const activeIndex = rawIndex % N;
+            
             const next = PLANET_RECORDS[activeIndex]?.slug ?? PLANET_RECORDS[0].slug;
             if (next !== lastPlanet) { lastPlanet = next; syncActivePlanet(next); }
           },
@@ -235,7 +244,7 @@ export default function SpaceLanding() {
 
   return (
     <MotionConfig transition={{ type: "spring", stiffness: 240, damping: 28 }}>
-      <div className="relative min-h-[480svh] overflow-x-clip">
+      <div className="relative min-h-[50000svh] overflow-x-clip">
 
         <div
           aria-hidden
@@ -501,11 +510,7 @@ export default function SpaceLanding() {
         </div>
 
 
-        <div ref={scrollRef} className="relative z-20 pointer-events-none h-[480svh]" aria-hidden="true">
-          <section className="h-[150svh]" />
-          <section className="h-[150svh]" />
-          <section className="h-[180svh]" />
-        </div>
+        <div ref={scrollRef} className="relative z-20 pointer-events-none h-[50000svh]" aria-hidden="true" />
       </div>
     </MotionConfig>
   );
@@ -629,28 +634,12 @@ async function createScene({
     PLANET_RECORDS.findIndex((p) => p.slug === a.slug) - PLANET_RECORDS.findIndex((p) => p.slug === b.slug),
   );
 
-  const getPlanetLayout = () => {
-    if (window.innerWidth < 768) return [
-      new THREE.Vector3(-2.35, 1.2, -2.4), new THREE.Vector3(2.75, 0.2, -5),
-      new THREE.Vector3(-2.05, -2.25, -1.8), new THREE.Vector3(2.5, -2.1, -6.8), new THREE.Vector3(0, 2.55, -3.4),
-    ];
-    if (window.innerWidth < 1200) return [
-      new THREE.Vector3(-4.4, 1.8, -2.7), new THREE.Vector3(4.8, 0.45, -5.1),
-      new THREE.Vector3(-3.3, -2.4, -1.9), new THREE.Vector3(4.1, -2.55, -7.1), new THREE.Vector3(0.1, 2.9, -3.5),
-    ];
-    return [
-      new THREE.Vector3(-5.8, 1.95, -2.8), new THREE.Vector3(6.25, 0.5, -5.2),
-      new THREE.Vector3(-4.2, -2.55, -1.7), new THREE.Vector3(4.85, -2.8, -7.35), new THREE.Vector3(0.22, 3.2, -3.45),
-    ];
-  };
-
   const applyLayout = () => {
     const mobile = window.innerWidth < 768;
-    const positions = getPlanetLayout();
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.position.set(0, mobile ? 0.45 : 0.8, mobile ? 16.8 : 15.5);
     camera.updateProjectionMatrix();
-    planetEntries.forEach((e, i) => e.basePosition.copy(positions[i]));
+    // Base positions are now dynamically calculated in the render loop!
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.8));
     renderer.setSize(window.innerWidth, window.innerHeight, false);
   };
@@ -691,36 +680,75 @@ async function createScene({
   const render = () => {
     const delta = clock.getDelta();
     const elapsed = clock.elapsedTime;
-    const progress = progressRef.current;
-    const intro  = smoothstep(0.03, 0.22, progress);
-    const spread = smoothstep(0.15, 0.50, progress);
-    const focus  = smoothstep(0.45, 0.82, progress);
-    const exit   = smoothstep(0.84, 0.98, progress);
+    
+    // Map absolute progress mapped strictly to the number of screen heights (vh) passed
+    // so animation timeline layout is entirely independent of max page height!
+    const scrollMax = (document.documentElement.scrollHeight - window.innerHeight) || 1;
+    const scrolledPx = progressRef.current * scrollMax;
+    const vh = window.innerHeight || 800; // fallback if 0
+    const scrolledVH = (scrolledPx / vh) * 100;
+    
+    // Animate strictly based on vh scrolled, NOT total percentage
+    const intro  = smoothstep(20, 150, scrolledVH);
+    const spread = smoothstep(120, 300, scrolledVH);
+    const focus  = smoothstep(280, 420, scrolledVH);
+    // No exit fade — the orbit loops forever, nothing should disappear
+    const exit   = 0;
 
-    const scrollPlanet = PLANET_RECORDS.find((p) => p.slug === activePlanetRef.current) ?? PLANET_RECORDS[0];
-    const scrollEntry  = planetEntries.find((e) => e.slug === scrollPlanet.slug) ?? planetEntries[0];
+    const mob = window.innerWidth < 768;
 
+    const ringRadiusX = mob ? 7.0 : 11.0;
+    const ringRadiusZ = mob ? 7.5 : 9.5;
+    const ringCenterZ = mob ? -6 : -5;
+    
     planetsRig.rotation.y += delta * 0.026;
     planetsRig.rotation.x  = Math.sin(elapsed * 0.085) * 0.016;
     planetsRig.rotation.z  = Math.cos(elapsed * 0.065) * 0.007;
 
+    const N = PLANET_RECORDS.length;
+    // Infinite wheel spinning
+    // 380vh completes one full revolution, starts turning fully after 420vh when focus locks.
+    const cycleProgress = Math.max(0, scrolledVH - 420) / 380;
+    const globalAngleOffset = cycleProgress * (Math.PI * 2);
+
+    const frontTargetX = 0;
+    const frontTargetY = mob ? -1.2 : -1.8; 
+    const frontTargetZ = ringCenterZ + ringRadiusZ;
+    const idealFrontPosition = new THREE.Vector3(frontTargetX, frontTargetY, frontTargetZ);
+
     planetEntries.forEach((entry, index) => {
       const planet    = PLANET_RECORDS[index];
-      const revealIn  = smoothstep(0.12 + index * 0.05, 0.34 + index * 0.05, progress);
-      const revealOut = 1 - smoothstep(0.86 + index * 0.02, 1, progress);
-      const visibility = clamp(revealIn * revealOut, 0.001, 1);
+      // Reveal sequentially from 100vh up to 300vh, then stay fully visible
+      const revealIn  = smoothstep(100 + index * 30, 220 + index * 30, scrolledVH);
+      const visibility = clamp(revealIn, 0.001, 1);
       const isScrollSelected = entry.slug === activePlanetRef.current;
       const isHovered = entry.slug === hoveredSlugRef.current;
-      const emphasis = isScrollSelected ? 1.15 : isHovered ? 1.06 : 1;
-      const exitDrift = exit * (index % 2 === 0 ? -2.4 : 2.4);
+      
+      // Solar System Orbit Math
+      let currentAngle = (index * (Math.PI * 2) / N) - globalAngleOffset;
+      if (currentAngle > Math.PI) currentAngle -= Math.PI * 2;
+      if (currentAngle < -Math.PI) currentAngle += Math.PI * 2;
 
-      entry.pivot.position.x = THREE.MathUtils.lerp(entry.basePosition.x * 0.08, entry.basePosition.x + exitDrift, spread);
+      const targetX = Math.sin(currentAngle) * ringRadiusX;
+      const targetZ = ringCenterZ + Math.cos(currentAngle) * ringRadiusZ;
+      const targetY = frontTargetY + (1 - Math.cos(currentAngle)) * (mob ? 2.5 : 4.4);
+      
+      const angleScale = Math.max(0, Math.cos(currentAngle));
+      const frontBoost = Math.pow(angleScale, 5.0);
+      const continuousEmphasis = 1.0 + frontBoost * (mob ? 1.4 : 1.8);
+      const emphasis = continuousEmphasis * (isHovered ? 1.05 : 1.0);
+      
+      const exitDrift = exit * (index % 2 === 0 ? -2.4 : 2.4);
+      
+      entry.basePosition.set(targetX, targetY, targetZ);
+
+      entry.pivot.position.x = THREE.MathUtils.lerp(entry.basePosition.x * 0.08, entry.basePosition.x, spread);
       entry.pivot.position.y = THREE.MathUtils.lerp(
         entry.basePosition.y + 5.4 + index * 0.25,
-        entry.basePosition.y + Math.sin(elapsed * 0.66 + index * 1.28) * 0.13 + Math.sin(elapsed * 0.38 + index * 0.72) * 0.048 + Math.cos(elapsed * 0.22 + index * 1.05) * 0.022 - exit * 2.2,
+        entry.basePosition.y + Math.sin(elapsed * 0.66 + index * 1.28) * 0.13 + Math.sin(elapsed * 0.38 + index * 0.72) * 0.048 + Math.cos(elapsed * 0.22 + index * 1.05) * 0.022,
         revealIn,
       );
-      entry.pivot.position.z = THREE.MathUtils.lerp(10 + index * 0.6, entry.basePosition.z + Math.sin(elapsed * 0.35 + index) * 0.09 + exit * 2.5, visibility);
+      entry.pivot.position.z = THREE.MathUtils.lerp(10 + index * 0.6, entry.basePosition.z + Math.sin(elapsed * 0.35 + index) * 0.09, visibility);
       entry.pivot.rotation.y += delta * (0.20 + index * 0.025);
       entry.pivot.rotation.x = Math.sin(elapsed * 0.22 + index * 0.88) * 0.038 + Math.cos(elapsed * 0.14 + index * 0.55) * 0.015;
       entry.root.position.y = Math.sin(elapsed * 0.62 + index * 1.28) * 0.085 + Math.cos(elapsed * 0.31 + index * 0.78) * 0.030;
@@ -730,24 +758,32 @@ async function createScene({
       tintSelection(entry.target, planet.accent, isScrollSelected ? 0.26 : isHovered ? 0.12 : 0);
     });
 
+    const scrollPlanet = PLANET_RECORDS.find((p) => p.slug === activePlanetRef.current) ?? PLANET_RECORDS[0];
+    const scrollEntry  = planetEntries.find((e) => e.slug === scrollPlanet.slug) ?? planetEntries[0];
+
     if (scrollEntry) {
-      scrollEntry.pivot.getWorldPosition(selectedWorldPosition);
-      accentLight.position.lerp(selectedWorldPosition, 0.11);
+      accentLight.position.lerp(idealFrontPosition, 0.11);
       accentLight.color.set(scrollPlanet.accent);
-      accentLight.intensity = THREE.MathUtils.lerp(accentLight.intensity, 1.55 * focus, 0.065);
+      accentLight.intensity = THREE.MathUtils.lerp(accentLight.intensity, 2.0 * focus, 0.065);
     }
 
-    const mob = window.innerWidth < 768;
-    cameraOffset.set(0, mob ? 0.15 : 0.2, mob ? 9.5 : 8.8);
+    cameraOffset.set(0, mob ? 3.8 : 5.2, mob ? 8.5 : 11.0);
+    const focusLookAt = new THREE.Vector3(0, mob ? 0.0 : 0.5, ringCenterZ);
+
     targetCameraPosition.set(0, mob ? 0.35 : 0.7, THREE.MathUtils.lerp(mob ? 19.5 : 18, mob ? 14.6 : 13.2, intro));
     targetLookAt.set(0, 0.2, -2.8);
-    targetCameraPosition.lerp(new THREE.Vector3(0, mob ? 0.45 : 0.82, mob ? 12.9 : 11.6), spread);
-    targetLookAt.lerp(new THREE.Vector3(0, 0.2, -4.1), spread);
-    targetCameraPosition.lerp(selectedWorldPosition.clone().add(cameraOffset), focus);
-    targetLookAt.lerp(selectedWorldPosition.clone(), focus);
+    
+    // Spread phase: pull back to see the full wheel
+    targetCameraPosition.lerp(new THREE.Vector3(0, mob ? 3.0 : 4.8, mob ? 18.2 : 20.5), spread);
+    targetLookAt.lerp(new THREE.Vector3(0, 0.2, ringCenterZ), spread);
+    
+    // Focus phase: fixed camera above + behind the front-bottom position looking at ring center
+    targetCameraPosition.lerp(idealFrontPosition.clone().add(cameraOffset), focus);
+    targetLookAt.lerp(focusLookAt, focus);
+    
     exitOffset.set(mob ? 1.4 : 2.1, 2.4, 5.8);
-    targetCameraPosition.lerp(selectedWorldPosition.clone().add(exitOffset), exit);
-    targetLookAt.lerp(selectedWorldPosition.clone().add(new THREE.Vector3(0.2, 0.1, 0)), exit);
+    targetCameraPosition.lerp(idealFrontPosition.clone().add(exitOffset), exit);
+    targetLookAt.lerp(idealFrontPosition.clone().add(new THREE.Vector3(0.2, 0.1, 0)), exit);
     camera.position.lerp(targetCameraPosition, 0.055);
     cameraLookAt.lerp(targetLookAt, 0.068);
     camera.lookAt(cameraLookAt);
