@@ -3,16 +3,17 @@
 import { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Dialog, Box, Typography, CircularProgress } from "@mui/material";
+import { Box, CircularProgress, Dialog, Typography } from "@mui/material";
 import { Check, ChevronLeft, ChevronRight, Trophy } from "lucide-react";
 import { useSnackbar } from "notistack";
 
 import {
+  buildCompetitionPayloadFormData,
   competitionSchema,
   DEFAULT_VALUES,
   getEditDefaults,
-  STEP_FIELDS,
   STATUS_OPTS,
+  STEP_FIELDS,
 } from "./competitionSchemas";
 import CompetitionBasicInfoStep from "./steps/CompetitionBasicInfoStep";
 import CompetitionScheduleVenueStep from "./steps/CompetitionScheduleVenueStep";
@@ -20,13 +21,11 @@ import CompetitionRulesStep from "./steps/CompetitionRulesStep";
 import CompetitionRegistrationConfigStep from "./steps/CompetitionRegistrationConfigStep";
 import CompetitionPosterReviewStep from "./steps/CompetitionPosterReviewStep";
 import {
-  useCreateCompetition,
   useCompetition,
+  useCreateCompetition,
   useUpdateCompetition,
 } from "@/src/hooks/api/useCompetitions";
 import { useAuth } from "@/contexts/AuthContext";
-
-// ── Constants ─────────────────────────────────────────────────────────────────
 
 const STEP_LABELS = [
   "Basic Info",
@@ -36,7 +35,13 @@ const STEP_LABELS = [
   "Poster & Review",
 ];
 
-// ── Primitives matching audit/approvals design ───────────────────────────────
+const STEP_DESCRIPTIONS = [
+  "Core event identity and structure",
+  "Timeline and location details",
+  "Rules and participant instructions",
+  "Registration logic, team limits, pricing, and incentives",
+  "Poster upload and final review",
+];
 
 const btnBase = {
   border: "none",
@@ -67,28 +72,18 @@ function GhostBtn({ onClick, children, disabled }) {
         opacity: disabled ? 0.4 : 1,
         cursor: disabled ? "not-allowed" : "pointer",
       }}
-      onMouseEnter={(e) => {
-        if (!disabled) {
-          e.currentTarget.style.borderColor = "rgba(255,255,255,0.18)";
-          e.currentTarget.style.color = "rgba(255,255,255,0.7)";
-        }
-      }}
-      onMouseLeave={(e) => {
-        e.currentTarget.style.borderColor = "rgba(255,255,255,0.08)";
-        e.currentTarget.style.color = "rgba(255,255,255,0.45)";
-      }}
     >
       {children}
     </button>
   );
 }
 
-function PurpleBtn({ children, disabled, type = "button", onClick }) {
+function PurpleBtn({ children, disabled, onClick }) {
   return (
     <button
-      type={type}
-      onClick={onClick}
+      type="button"
       disabled={disabled}
+      onClick={onClick}
       style={{
         ...btnBase,
         background: disabled
@@ -98,20 +93,11 @@ function PurpleBtn({ children, disabled, type = "button", onClick }) {
         color: disabled ? "rgba(255,255,255,0.35)" : "#fff",
         cursor: disabled ? "not-allowed" : "pointer",
       }}
-      onMouseEnter={(e) => {
-        if (!disabled) e.currentTarget.style.background = "rgba(168,85,247,1)";
-      }}
-      onMouseLeave={(e) => {
-        if (!disabled)
-          e.currentTarget.style.background = "rgba(168,85,247,0.85)";
-      }}
     >
       {children}
     </button>
   );
 }
-
-// ── Step indicator ────────────────────────────────────────────────────────────
 
 function StepIndicator({ activeStep }) {
   return (
@@ -125,23 +111,21 @@ function StepIndicator({ activeStep }) {
         overflowX: "auto",
       }}
     >
-      {STEP_LABELS.map((label, i) => (
+      {STEP_LABELS.map((label, index) => (
         <Box
           key={label}
           sx={{
             display: "flex",
             alignItems: "center",
-            flex: i < STEP_LABELS.length - 1 ? "1 1 auto" : undefined,
+            flex: index < STEP_LABELS.length - 1 ? "1 1 auto" : undefined,
           }}
         >
-          {/* Circle */}
           <Box
             sx={{
               display: "flex",
               flexDirection: "column",
               alignItems: "center",
               gap: 0.5,
-              flexShrink: 0,
             }}
           >
             <Box
@@ -150,24 +134,23 @@ function StepIndicator({ activeStep }) {
                 height: 28,
                 borderRadius: "50%",
                 background:
-                  i < activeStep
+                  index < activeStep
                     ? "rgba(168,85,247,0.9)"
-                    : i === activeStep
+                    : index === activeStep
                       ? "rgba(168,85,247,0.15)"
                       : "rgba(255,255,255,0.05)",
                 border:
-                  i === activeStep
+                  index === activeStep
                     ? "2px solid rgba(168,85,247,0.8)"
-                    : i < activeStep
+                    : index < activeStep
                       ? "2px solid rgba(168,85,247,0.9)"
                       : "2px solid rgba(255,255,255,0.08)",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                transition: "all 0.2s",
               }}
             >
-              {i < activeStep ? (
+              {index < activeStep ? (
                 <Check size={13} color="#fff" />
               ) : (
                 <Typography
@@ -175,12 +158,13 @@ function StepIndicator({ activeStep }) {
                     fontSize: 11,
                     fontWeight: 700,
                     color:
-                      i === activeStep ? "#c084fc" : "rgba(255,255,255,0.25)",
+                      index === activeStep
+                        ? "#c084fc"
+                        : "rgba(255,255,255,0.25)",
                     fontFamily: "'Syne', sans-serif",
-                    lineHeight: 1,
                   }}
                 >
-                  {i + 1}
+                  {index + 1}
                 </Typography>
               )}
             </Box>
@@ -189,22 +173,20 @@ function StepIndicator({ activeStep }) {
                 fontSize: 9.5,
                 letterSpacing: "0.06em",
                 color:
-                  i === activeStep
+                  index === activeStep
                     ? "rgba(255,255,255,0.8)"
-                    : i < activeStep
+                    : index < activeStep
                       ? "rgba(168,85,247,0.8)"
                       : "rgba(255,255,255,0.2)",
                 fontFamily: "'Syne', sans-serif",
                 whiteSpace: "nowrap",
-                transition: "color 0.2s",
               }}
             >
               {label}
             </Typography>
           </Box>
 
-          {/* Connector line */}
-          {i < STEP_LABELS.length - 1 && (
+          {index < STEP_LABELS.length - 1 && (
             <Box
               sx={{
                 flex: 1,
@@ -212,10 +194,9 @@ function StepIndicator({ activeStep }) {
                 mx: 1,
                 mb: 2.25,
                 background:
-                  i < activeStep
+                  index < activeStep
                     ? "rgba(168,85,247,0.5)"
                     : "rgba(255,255,255,0.06)",
-                transition: "background 0.2s",
               }}
             />
           )}
@@ -225,56 +206,54 @@ function StepIndicator({ activeStep }) {
   );
 }
 
-// ── Main Modal ───────────────────────────────────────────────────────────────
-
 export default function CompetitionFormModal({ open, onClose, competition }) {
-  const isEdit = !!competition;
+  const isEdit = Boolean(competition);
+  const { user } = useAuth();
+  const { enqueueSnackbar } = useSnackbar();
+
   const [activeStep, setActiveStep] = useState(0);
   const [poster, setPoster] = useState(null);
-  const { user } = useAuth();
 
-  const { data: fetchedCompetition, isLoading: loadingCompetitionDetail } =
+  const { data: fetchedCompetition, isLoading: isCompetitionLoading } =
     useCompetition(open && competition?.id ? competition.id : null);
 
-  const resolvedCompetition = useMemo(
+  const currentCompetition = useMemo(
     () => fetchedCompetition || competition || null,
     [fetchedCompetition, competition],
   );
-  const isDH = user?.role === "DH";
-  const statusOptions = useMemo(() => {
-    if (!isDH) return STATUS_OPTS;
-    if (resolvedCompetition?.status === "OPEN") return STATUS_OPTS;
-    return STATUS_OPTS.filter((status) => status !== "OPEN");
-  }, [isDH, resolvedCompetition?.status]);
 
-  const { enqueueSnackbar } = useSnackbar();
-  const { mutate: createCompetition, isPending: creating } =
-    useCreateCompetition();
-  const { mutate: updateCompetition, isPending: updating } =
-    useUpdateCompetition();
-  const isSubmitting = creating || updating;
+  const statusOptions = useMemo(() => {
+    const isDH = user?.role === "DH";
+    if (!isDH) return STATUS_OPTS;
+    if (currentCompetition?.status === "OPEN") return STATUS_OPTS;
+    return STATUS_OPTS.filter((status) => status !== "OPEN");
+  }, [user?.role, currentCompetition?.status]);
+
+  const createMutation = useCreateCompetition();
+  const updateMutation = useUpdateCompetition();
 
   const {
     control,
-    handleSubmit,
+    reset,
     trigger,
     watch,
     setValue,
-    reset,
+    handleSubmit,
     formState: { errors },
   } = useForm({
     resolver: zodResolver(competitionSchema),
-    defaultValues: isEdit
-      ? getEditDefaults(resolvedCompetition || {})
-      : DEFAULT_VALUES,
+    defaultValues: DEFAULT_VALUES,
+    mode: "onChange",
+    reValidateMode: "onChange",
+    shouldUnregister: false,
   });
 
   useEffect(() => {
     if (!open) return;
 
     if (isEdit) {
-      if (resolvedCompetition) {
-        reset(getEditDefaults(resolvedCompetition));
+      if (currentCompetition) {
+        reset(getEditDefaults(currentCompetition));
       }
     } else {
       reset(DEFAULT_VALUES);
@@ -282,167 +261,44 @@ export default function CompetitionFormModal({ open, onClose, competition }) {
 
     setActiveStep(0);
     setPoster(null);
-  }, [open, isEdit, resolvedCompetition, reset]);
+  }, [open, isEdit, currentCompetition, reset]);
 
-  function handleClose() {
+  const closeModal = () => {
     reset(DEFAULT_VALUES);
-    setActiveStep(0);
     setPoster(null);
+    setActiveStep(0);
     onClose();
-  }
+  };
 
-  async function handleNext() {
-    const fieldsForStep = STEP_FIELDS[activeStep];
-    if (fieldsForStep.length > 0) {
-      const valid = await trigger(fieldsForStep);
-      if (!valid) return;
-    }
-    setActiveStep((s) => s + 1);
-  }
-
-  function handleBack() {
-    setActiveStep((s) => s - 1);
-  }
-
-  function buildFormData(data) {
-    const fd = new FormData();
-    const normalizedRegistrationFee = Number(data.registrationFee ?? 0) || 0;
-    const normalizedIsPaid = Boolean(data.isPaid);
-    const normalizedPerPerson = normalizedIsPaid
-      ? Boolean(data.perPerson)
-      : false;
-    const allowPromoCodes = normalizedRegistrationFee > 0;
-
-    const append = (key, value) => {
-      if (value === undefined || value === null || value === "") return;
-      fd.append(key, String(value));
-    };
-
-    // Text / enum fields
-    append("title", data.title);
-    append("shortDescription", data.shortDescription);
-    append("category", data.category);
-    append("eventType", data.eventType);
-    append("type", data.type);
-    append("status", data.status);
-
-    // Dates - send as ISO strings
-    if (data.startTime)
-      fd.append("startTime", new Date(data.startTime).toISOString());
-    if (data.endTime)
-      fd.append("endTime", new Date(data.endTime).toISOString());
-    if (data.registrationDeadline)
-      fd.append(
-        "registrationDeadline",
-        new Date(data.registrationDeadline).toISOString(),
-      );
-
-    append("venueName", data.venueName);
-    append("venueRoom", data.venueRoom);
-    append("venueFloor", data.venueFloor);
-
-    if (Array.isArray(data.subVenues) && data.subVenues.length > 0) {
-      const normalizedSubVenues = data.subVenues
-        .map((v) => ({
-          name: String(v?.name || "").trim(),
-          room: String(v?.room || "").trim() || undefined,
-          floor: String(v?.floor || "").trim() || undefined,
-          capacity:
-            v?.capacity !== "" && v?.capacity != null
-              ? Number(v.capacity)
-              : undefined,
-          notes: String(v?.notes || "").trim() || undefined,
-        }))
-        .filter((v) => v.name);
-
-      if (normalizedSubVenues.length > 0) {
-        fd.append("subVenues", JSON.stringify(normalizedSubVenues));
-      }
+  const goNext = async () => {
+    const fields = STEP_FIELDS[activeStep] || [];
+    if (!fields.length) {
+      setActiveStep((prev) => Math.min(prev + 1, STEP_LABELS.length - 1));
+      return;
     }
 
-    // Rules
-    if (data.rulesRichText) fd.append("rulesRichText", data.rulesRichText);
+    const isStepValid = await trigger(fields);
+    if (!isStepValid) return;
 
-    // Numeric
-    fd.append("registrationFee", String(normalizedRegistrationFee));
-    if (data.maxRegistrations)
-      fd.append("maxRegistrations", String(data.maxRegistrations));
-    if (data.minTeamSize) fd.append("minTeamSize", String(data.minTeamSize));
-    if (data.maxTeamSize) fd.append("maxTeamSize", String(data.maxTeamSize));
+    setActiveStep((prev) => Math.min(prev + 1, STEP_LABELS.length - 1));
+  };
 
-    // Booleans - backend multer normalises "true"/"false" strings
-    fd.append("registrationsOpen", String(data.registrationsOpen ?? true));
-    fd.append("requiresApproval", String(data.requiresApproval ?? true));
-    fd.append("autoApproveTeams", String(data.autoApproveTeams ?? false));
-    fd.append("attendanceRequired", String(data.attendanceRequired ?? false));
-    fd.append("isPaid", String(normalizedIsPaid));
-    fd.append("perPerson", String(normalizedPerPerson));
+  const goBack = () => {
+    setActiveStep((prev) => Math.max(prev - 1, 0));
+  };
 
-    // Serialize prize pool as JSON (backend parses it)
-    if (Array.isArray(data.prizePool) && data.prizePool.length > 0) {
-      const normalized = data.prizePool.map((p) => ({
-        rank: p.rank || undefined,
-        label: p.label,
-        cash: p.cash !== "" && p.cash != null ? Number(p.cash) : undefined,
-        inkind: p.inkind
-          ? p.inkind
-              .split(",")
-              .map((s) => s.trim())
-              .filter(Boolean)
-          : undefined,
-      }));
-      fd.append("prizePool", JSON.stringify(normalized));
-    }
-
-    if (
-      allowPromoCodes &&
-      Array.isArray(data.promoCodes) &&
-      data.promoCodes.length > 0
-    ) {
-      const normalizedPromoCodes = data.promoCodes
-        .map((pc) => ({
-          code: String(pc?.code || "")
-            .trim()
-            .toUpperCase(),
-          discountType: pc?.discountType || "PERCENT",
-          discountValue:
-            pc?.discountValue !== "" && pc?.discountValue != null
-              ? Number(pc.discountValue)
-              : undefined,
-          maxUses:
-            pc?.maxUses !== "" && pc?.maxUses != null
-              ? Number(pc.maxUses)
-              : undefined,
-          isActive: pc?.isActive ?? true,
-          description: String(pc?.description || "").trim() || undefined,
-        }))
-        .filter((pc) => pc.code && pc.discountValue != null);
-
-      if (normalizedPromoCodes.length > 0) {
-        fd.append("promoCodes", JSON.stringify(normalizedPromoCodes));
-      }
-    }
-
-    // Poster file
-    if (poster) {
-      fd.append("poster", poster);
-    }
-
-    return fd;
-  }
-
-  const onSubmit = (data) => {
-    const fd = buildFormData(data);
+  const onSubmit = async (values) => {
+    const formData = buildCompetitionPayloadFormData(values, poster);
 
     if (isEdit) {
-      updateCompetition(
-        { competitionId: resolvedCompetition.id, formData: fd },
+      updateMutation.mutate(
+        { competitionId: currentCompetition.id, formData },
         {
-          onSuccess: (res) => {
-            if (res?.pendingApproval) {
+          onSuccess: (response) => {
+            if (response?.pendingApproval) {
               enqueueSnackbar(
-                res?.message ||
-                  "Changes submitted for SA approval and are pending review.",
+                response?.message ||
+                  "Competition change submitted for SA approval.",
                 { variant: "info", autoHideDuration: 6000 },
               );
             } else {
@@ -450,33 +306,44 @@ export default function CompetitionFormModal({ open, onClose, competition }) {
                 variant: "success",
               });
             }
-            handleClose();
+            closeModal();
           },
-          onError: (err) =>
+          onError: (error) => {
             enqueueSnackbar(
-              err?.response?.data?.message || "Failed to update competition",
+              error?.response?.data?.message || "Failed to update competition",
               { variant: "error" },
-            ),
+            );
+          },
         },
       );
-    } else {
-      createCompetition(fd, {
-        onSuccess: () => {
+      return;
+    }
+
+    createMutation.mutate(formData, {
+      onSuccess: (response) => {
+        if (response?.pendingApproval) {
+          enqueueSnackbar(
+            response?.message ||
+              "Competition creation submitted for SA approval.",
+            { variant: "info", autoHideDuration: 6000 },
+          );
+        } else {
           enqueueSnackbar("Competition created successfully", {
             variant: "success",
           });
-          handleClose();
-        },
-        onError: (err) =>
-          enqueueSnackbar(
-            err?.response?.data?.message || "Failed to create competition",
-            { variant: "error" },
-          ),
-      });
-    }
+        }
+        closeModal();
+      },
+      onError: (error) => {
+        enqueueSnackbar(
+          error?.response?.data?.message || "Failed to create competition",
+          { variant: "error" },
+        );
+      },
+    });
   };
 
-  const stepComponents = [
+  const steps = [
     <CompetitionBasicInfoStep
       key="basic"
       control={control}
@@ -490,10 +357,9 @@ export default function CompetitionFormModal({ open, onClose, competition }) {
     />,
     <CompetitionRulesStep key="rules" control={control} errors={errors} />,
     <CompetitionRegistrationConfigStep
-      key="reg"
+      key="registration"
       control={control}
       errors={errors}
-      watch={watch}
       setValue={setValue}
     />,
     <CompetitionPosterReviewStep
@@ -501,22 +367,16 @@ export default function CompetitionFormModal({ open, onClose, competition }) {
       watch={watch}
       poster={poster}
       onPosterChange={setPoster}
-      existingPosterPath={resolvedCompetition?.posterPath}
+      existingPosterPath={currentCompetition?.posterPath}
     />,
   ];
 
-  const STEP_DESCRIPTIONS = [
-    "Set the core details for your competition",
-    "Define when and where the event takes place",
-    "Provide rules, criteria and guidelines for participants",
-    "Configure registration limits and participation settings",
-    "Upload an event poster and review all details before submitting",
-  ];
+  const isSubmitting = createMutation.isPending || updateMutation.isPending;
 
   return (
     <Dialog
       open={open}
-      onClose={handleClose}
+      onClose={closeModal}
       maxWidth="lg"
       fullWidth
       PaperProps={{
@@ -533,7 +393,6 @@ export default function CompetitionFormModal({ open, onClose, competition }) {
         },
       }}
     >
-      {/* ── Dialog Header ── */}
       <Box
         sx={{
           px: 4,
@@ -560,6 +419,7 @@ export default function CompetitionFormModal({ open, onClose, competition }) {
         >
           <Trophy size={15} color="#a855f7" />
         </Box>
+
         <Box>
           <Typography
             sx={{
@@ -571,7 +431,7 @@ export default function CompetitionFormModal({ open, onClose, competition }) {
             }}
           >
             {isEdit
-              ? `Edit: ${resolvedCompetition?.title || competition?.title || "Competition"}`
+              ? `Edit: ${currentCompetition?.title || "Competition"}`
               : "Create Competition"}
           </Typography>
           <Typography
@@ -587,25 +447,15 @@ export default function CompetitionFormModal({ open, onClose, competition }) {
         </Box>
       </Box>
 
-      {/* ── Step Indicator ── */}
       <StepIndicator activeStep={activeStep} />
 
-      {/* ── Step Content ── */}
       <Box
         component="form"
-        onSubmit={(e) => e.preventDefault()}
+        onSubmit={(event) => event.preventDefault()}
         sx={{ display: "flex", flexDirection: "column", flex: 1, minHeight: 0 }}
       >
-        <Box
-          sx={{
-            px: 4,
-            py: 3,
-            flex: 1,
-            minHeight: 0,
-            overflowY: "auto",
-          }}
-        >
-          {isEdit && loadingCompetitionDetail ? (
+        <Box sx={{ px: 4, py: 3, flex: 1, minHeight: 0, overflowY: "auto" }}>
+          {isEdit && isCompetitionLoading ? (
             <Box
               sx={{
                 height: "100%",
@@ -629,11 +479,10 @@ export default function CompetitionFormModal({ open, onClose, competition }) {
               </Typography>
             </Box>
           ) : (
-            stepComponents[activeStep]
+            steps[activeStep]
           )}
         </Box>
 
-        {/* ── Footer ── */}
         <Box
           sx={{
             px: 4,
@@ -644,27 +493,27 @@ export default function CompetitionFormModal({ open, onClose, competition }) {
             alignItems: "center",
           }}
         >
-          <GhostBtn onClick={handleClose}>Cancel</GhostBtn>
+          <GhostBtn onClick={closeModal} disabled={isSubmitting}>
+            Cancel
+          </GhostBtn>
 
           <Box sx={{ display: "flex", gap: 1 }}>
             {activeStep > 0 && (
-              <GhostBtn onClick={handleBack} disabled={isSubmitting}>
+              <GhostBtn onClick={goBack} disabled={isSubmitting}>
                 <ChevronLeft size={14} />
                 Back
               </GhostBtn>
             )}
 
             {activeStep < STEP_LABELS.length - 1 ? (
-              <PurpleBtn key="next-btn" type="button" onClick={handleNext}>
+              <PurpleBtn onClick={goNext} disabled={isSubmitting}>
                 Next
                 <ChevronRight size={14} />
               </PurpleBtn>
             ) : (
               <PurpleBtn
-                key="save-btn"
-                type="button"
-                disabled={isSubmitting}
                 onClick={handleSubmit(onSubmit)}
+                disabled={isSubmitting}
               >
                 {isSubmitting ? (
                   <>

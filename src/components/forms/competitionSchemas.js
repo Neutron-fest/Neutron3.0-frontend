@@ -11,7 +11,6 @@ export const STATUS_OPTS = [
   "POSTPONED",
 ];
 
-// Fields validated per step (indices map to STEP_LABELS in modal)
 export const STEP_FIELDS = [
   ["title", "shortDescription", "category", "eventType", "type", "status"],
   [
@@ -27,6 +26,7 @@ export const STEP_FIELDS = [
   [
     "registrationFee",
     "maxRegistrations",
+    "maxTeamsPerCollege",
     "minTeamSize",
     "maxTeamSize",
     "registrationsOpen",
@@ -38,75 +38,192 @@ export const STEP_FIELDS = [
     "prizePool",
     "promoCodes",
   ],
-  [], // poster validated separately in the step component
+  [],
 ];
 
-const optCoercedInt = z
-  .union([z.literal(""), z.string(), z.number()])
-  .transform((v) => {
-    if (v === "" || v === null || v === undefined) return undefined;
-    const n = typeof v === "number" ? v : parseInt(String(v), 10);
-    return isNaN(n) ? undefined : n;
+const trimOrUndefined = (value) => {
+  if (value === undefined || value === null) return undefined;
+  if (typeof value !== "string") return value;
+  const trimmed = value.trim();
+  return trimmed === "" ? undefined : trimmed;
+};
+
+const trimOrEmptyString = (value) => {
+  if (value === undefined || value === null) return "";
+  if (typeof value !== "string") return String(value);
+  return value.trim();
+};
+
+const toIntegerOrUndefined = (value) => {
+  if (value === "" || value === undefined || value === null) return undefined;
+  const parsed =
+    typeof value === "number" ? value : Number.parseInt(String(value), 10);
+  if (!Number.isFinite(parsed)) return undefined;
+  return parsed;
+};
+
+const toMoneyOrZero = (value) => {
+  if (value === "" || value === undefined || value === null) return 0;
+  const parsed = typeof value === "number" ? value : Number(value);
+  if (!Number.isFinite(parsed)) return 0;
+  return parsed;
+};
+
+const toMoneyOrUndefined = (value) => {
+  if (value === "" || value === undefined || value === null) return undefined;
+  const parsed = typeof value === "number" ? value : Number(value);
+  if (!Number.isFinite(parsed)) return undefined;
+  return parsed;
+};
+
+const toDateTimeStringOrUndefined = (value) => {
+  const trimmed = trimOrUndefined(value);
+  if (!trimmed) return undefined;
+  const date = new Date(trimmed);
+  if (Number.isNaN(date.getTime())) return undefined;
+  return trimmed;
+};
+
+const subVenueSchema = z.object({
+  name: z.preprocess(
+    trimOrEmptyString,
+    z.string().min(1, "Sub venue name is required"),
+  ),
+  room: z.preprocess(trimOrUndefined, z.string().optional()),
+  floor: z.preprocess(trimOrUndefined, z.string().optional()),
+  capacity: z.preprocess(
+    toIntegerOrUndefined,
+    z.number().int().positive().optional(),
+  ),
+  notes: z.preprocess(trimOrUndefined, z.string().optional()),
+});
+
+const prizeSchema = z
+  .object({
+    rank: z.preprocess(trimOrUndefined, z.string().optional()),
+    label: z.preprocess(
+      trimOrEmptyString,
+      z.string().min(1, "Prize label is required"),
+    ),
+    cash: z.preprocess(
+      toMoneyOrUndefined,
+      z.number().min(0, "Cash prize cannot be negative").optional(),
+    ),
+    inkind: z.preprocess(trimOrUndefined, z.string().optional()),
   })
-  .optional();
+  .superRefine((value, ctx) => {
+    const hasCash = value.cash !== undefined && value.cash !== null;
+    const hasInKind = Boolean(value.inkind && value.inkind.trim());
+
+    if (!hasCash && !hasInKind) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["cash"],
+        message: "Provide either cash prize or in-kind prize",
+      });
+    }
+  });
+
+const promoCodeSchema = z
+  .object({
+    code: z.preprocess(
+      (value) => {
+        const normalized = trimOrUndefined(value);
+        return normalized ? normalized.toUpperCase() : normalized;
+      },
+      z
+        .string()
+        .min(3, "Promo code must be at least 3 characters")
+        .max(32, "Promo code must be at most 32 characters")
+        .regex(/^[A-Z0-9_-]+$/, "Use only A-Z, 0-9, _ and -"),
+    ),
+    discountType: z.enum(["PERCENT", "FLAT"]),
+    discountValue: z.preprocess(
+      toMoneyOrUndefined,
+      z.number().positive("Discount value must be greater than zero"),
+    ),
+    maxUses: z.preprocess(
+      toIntegerOrUndefined,
+      z.number().int().positive().optional(),
+    ),
+    isActive: z.boolean(),
+    description: z.preprocess(trimOrUndefined, z.string().optional()),
+  })
+  .superRefine((value, ctx) => {
+    if (value.discountType === "PERCENT" && value.discountValue > 100) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["discountValue"],
+        message: "Percent discount cannot exceed 100",
+      });
+    }
+  });
 
 export const competitionSchema = z
   .object({
-    // ── Step 1: Basic Info
-    title: z.string().min(1, "Title is required"),
-    shortDescription: z.string().optional(),
-    category: z.string().optional(),
-    eventType: z.enum(["COMPETITION", "WORKSHOP", "EVENT"]),
-    type: z.enum(["SOLO", "TEAM"]),
-    status: z.enum([
-      "DRAFT",
-      "OPEN",
-      "CLOSED",
-      "ARCHIVED",
-      "CANCELLED",
-      "POSTPONED",
-    ]),
+    title: z.preprocess(
+      trimOrEmptyString,
+      z.string().min(3, "Title must be at least 3 characters"),
+    ),
+    shortDescription: z.preprocess(
+      trimOrUndefined,
+      z.string().max(500, "Short description is too long").optional(),
+    ),
+    category: z.preprocess(
+      trimOrUndefined,
+      z.string().max(120, "Category is too long").optional(),
+    ),
+    eventType: z.enum(EVENT_TYPES),
+    type: z.enum(COMPETITION_TYPES),
+    status: z.enum(STATUS_OPTS),
 
-    // ── Step 2: Schedule & Venue
-    startTime: z.string().optional(),
-    endTime: z.string().optional(),
-    registrationDeadline: z.string().optional(),
-    venueName: z.string().optional(),
-    venueRoom: z.string().optional(),
-    venueFloor: z.string().optional(),
-    subVenues: z
-      .array(
-        z.object({
-          name: z.string().min(1, "Sub venue name is required"),
-          room: z.string().optional(),
-          floor: z.string().optional(),
-          capacity: z
-            .union([z.literal(""), z.string(), z.number()])
-            .transform((v) => {
-              if (v === "" || v === null || v === undefined) return undefined;
-              const n = typeof v === "number" ? v : parseInt(String(v), 10);
-              return Number.isNaN(n) ? undefined : n;
-            })
-            .optional(),
-          notes: z.string().optional(),
-        }),
-      )
-      .optional(),
+    startTime: z.preprocess(toDateTimeStringOrUndefined, z.string().optional()),
+    endTime: z.preprocess(toDateTimeStringOrUndefined, z.string().optional()),
+    registrationDeadline: z.preprocess(
+      toDateTimeStringOrUndefined,
+      z.string().optional(),
+    ),
 
-    // ── Step 3: Rules
-    rulesRichText: z.string().optional(),
+    venueName: z.preprocess(
+      trimOrUndefined,
+      z.string().max(160, "Venue name is too long").optional(),
+    ),
+    venueRoom: z.preprocess(
+      trimOrUndefined,
+      z.string().max(80, "Room is too long").optional(),
+    ),
+    venueFloor: z.preprocess(
+      trimOrUndefined,
+      z.string().max(80, "Floor is too long").optional(),
+    ),
+    subVenues: z.array(subVenueSchema).optional(),
 
-    // ── Step 4: Registration Config
-    registrationFee: z
-      .union([z.literal(""), z.string(), z.number()])
-      .transform((v) => {
-        if (v === "" || v === undefined || v === null) return 0;
-        const n = typeof v === "number" ? v : parseInt(String(v), 10);
-        return isNaN(n) ? 0 : n;
-      }),
-    maxRegistrations: optCoercedInt,
-    minTeamSize: optCoercedInt,
-    maxTeamSize: optCoercedInt,
+    rulesRichText: z.preprocess(
+      trimOrUndefined,
+      z.string().max(20000, "Rules content is too large").optional(),
+    ),
+
+    registrationFee: z.preprocess(
+      toMoneyOrZero,
+      z.number().min(0, "Registration fee cannot be negative"),
+    ),
+    maxRegistrations: z.preprocess(
+      toIntegerOrUndefined,
+      z.number().int().positive().optional(),
+    ),
+    maxTeamsPerCollege: z.preprocess(
+      toIntegerOrUndefined,
+      z.number().int().positive().optional(),
+    ),
+    minTeamSize: z.preprocess(
+      toIntegerOrUndefined,
+      z.number().int().positive().optional(),
+    ),
+    maxTeamSize: z.preprocess(
+      toIntegerOrUndefined,
+      z.number().int().positive().optional(),
+    ),
+
     registrationsOpen: z.boolean(),
     requiresApproval: z.boolean(),
     autoApproveTeams: z.boolean(),
@@ -114,55 +231,45 @@ export const competitionSchema = z
     isPaid: z.boolean(),
     perPerson: z.boolean(),
 
-    // ── Prize Pool (flexible array of ranked/named prizes)
-    // Each entry: { rank: string, label: string, cash: number|null, inkind: string[] }
-    prizePool: z
-      .array(
-        z.object({
-          rank: z.string().optional(),
-          label: z.string().min(1, "Prize label is required"),
-          cash: z
-            .union([z.number(), z.string(), z.literal(""), z.null()])
-            .transform((v) => {
-              if (v === "" || v === null || v === undefined) return undefined;
-              const n = typeof v === "number" ? v : Number(v);
-              return Number.isNaN(n) ? undefined : n;
-            })
-            .optional(),
-          inkind: z.string().optional(),
-        }),
-      )
-      .optional(),
-
-    promoCodes: z
-      .array(
-        z.object({
-          code: z.string().min(1, "Promo code is required"),
-          discountType: z.enum(["PERCENT", "FLAT"]),
-          discountValue: z
-            .union([z.number(), z.string(), z.literal("")])
-            .transform((v) => {
-              if (v === "" || v === undefined || v === null) return undefined;
-              const n = typeof v === "number" ? v : Number(v);
-              return Number.isNaN(n) ? undefined : n;
-            }),
-          maxUses: z
-            .union([z.literal(""), z.string(), z.number()])
-            .transform((v) => {
-              if (v === "" || v === null || v === undefined) return undefined;
-              const n = typeof v === "number" ? v : parseInt(String(v), 10);
-              return Number.isNaN(n) ? undefined : n;
-            })
-            .optional(),
-          isActive: z.boolean(),
-          description: z.string().optional(),
-        }),
-      )
-      .optional(),
+    prizePool: z.array(prizeSchema).optional(),
+    promoCodes: z.array(promoCodeSchema).optional(),
   })
-  .superRefine((data, ctx) => {
-    if (data.type === "TEAM") {
-      if (data.minTeamSize == null) {
+  .superRefine((value, ctx) => {
+    const startDate = value.startTime ? new Date(value.startTime) : null;
+    const endDate = value.endTime ? new Date(value.endTime) : null;
+    const deadlineDate = value.registrationDeadline
+      ? new Date(value.registrationDeadline)
+      : null;
+
+    if (
+      (value.startTime && !value.endTime) ||
+      (!value.startTime && value.endTime)
+    ) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["endTime"],
+        message: "Provide both start and end time together",
+      });
+    }
+
+    if (startDate && endDate && endDate <= startDate) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["endTime"],
+        message: "End time must be after start time",
+      });
+    }
+
+    if (deadlineDate && startDate && deadlineDate > startDate) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["registrationDeadline"],
+        message: "Registration deadline must be on or before start time",
+      });
+    }
+
+    if (value.type === "TEAM") {
+      if (!value.minTeamSize) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           path: ["minTeamSize"],
@@ -170,7 +277,7 @@ export const competitionSchema = z
         });
       }
 
-      if (data.maxTeamSize == null) {
+      if (!value.maxTeamSize) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           path: ["maxTeamSize"],
@@ -179,9 +286,9 @@ export const competitionSchema = z
       }
 
       if (
-        data.minTeamSize != null &&
-        data.maxTeamSize != null &&
-        data.maxTeamSize < data.minTeamSize
+        value.minTeamSize &&
+        value.maxTeamSize &&
+        value.maxTeamSize < value.minTeamSize
       ) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
@@ -192,24 +299,86 @@ export const competitionSchema = z
       }
     }
 
-    if (!data.isPaid && data.perPerson) {
+    if (value.type === "SOLO") {
+      if (value.minTeamSize || value.maxTeamSize) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["minTeamSize"],
+          message: "Team size fields are not applicable for solo competitions",
+        });
+      }
+
+      if (value.perPerson) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["perPerson"],
+          message: "Per person fee is only applicable for team competitions",
+        });
+      }
+    }
+
+    if (!value.isPaid && value.registrationFee > 0) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        path: ["perPerson"],
-        message: "Fee per person is only available for paid events",
+        path: ["isPaid"],
+        message: "Set event as paid when registration fee is greater than zero",
       });
     }
 
-    if (
-      (data.registrationFee ?? 0) <= 0 &&
-      (data.promoCodes?.length || 0) > 0
-    ) {
+    if (!value.isPaid && value.perPerson) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["perPerson"],
+        message: "Per person fee requires a paid event",
+      });
+    }
+
+    if (!value.isPaid && (value.promoCodes?.length || 0) > 0) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         path: ["promoCodes"],
-        message:
-          "Promo codes are only allowed when registration fee is greater than zero",
+        message: "Promo codes are only allowed for paid events",
       });
+    }
+
+    if (value.registrationFee <= 0 && (value.promoCodes?.length || 0) > 0) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["promoCodes"],
+        message: "Promo codes require registration fee greater than zero",
+      });
+    }
+
+    (value.promoCodes || []).forEach((promoCode, index) => {
+      if (
+        promoCode.discountType === "FLAT" &&
+        promoCode.discountValue > value.registrationFee
+      ) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["promoCodes", index, "discountValue"],
+          message: "Flat discount cannot exceed registration fee",
+        });
+      }
+    });
+
+    if (value.status === "OPEN") {
+      if (!value.startTime || !value.endTime) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["startTime"],
+          message: "Start and end time are required before opening competition",
+        });
+      }
+
+      if (!value.registrationDeadline) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["registrationDeadline"],
+          message:
+            "Registration deadline is required before opening competition",
+        });
+      }
     }
   });
 
@@ -230,6 +399,7 @@ export const DEFAULT_VALUES = {
   rulesRichText: "",
   registrationFee: 0,
   maxRegistrations: "",
+  maxTeamsPerCollege: "",
   minTeamSize: "",
   maxTeamSize: "",
   registrationsOpen: true,
@@ -242,61 +412,235 @@ export const DEFAULT_VALUES = {
   promoCodes: [],
 };
 
-/** Build default values pre-filled from an existing competition object */
-export function getEditDefaults(c) {
-  const fmt = (d) => (d ? new Date(d).toISOString().slice(0, 16) : "");
+const toDateTimeLocal = (value) => {
+  if (!value) return "";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+  return date.toISOString().slice(0, 16);
+};
+
+export function getEditDefaults(competition = {}) {
   return {
-    title: c.title ?? "",
-    shortDescription: c.shortDescription ?? "",
-    category: c.category ?? "",
-    eventType: c.eventType ?? "COMPETITION",
-    type: c.type ?? "SOLO",
-    status: c.status ?? "DRAFT",
-    startTime: fmt(c.startTime),
-    endTime: fmt(c.endTime),
-    registrationDeadline: fmt(c.registrationDeadline),
-    venueName: c.venueName ?? "",
-    venueRoom: c.venueRoom ?? "",
-    venueFloor: c.venueFloor ?? "",
-    subVenues: Array.isArray(c.subVenues)
-      ? c.subVenues.map((v) => ({
-          name: v.name ?? "",
-          room: v.room ?? "",
-          floor: v.floor ?? "",
-          capacity: v.capacity ?? "",
-          notes: v.notes ?? "",
+    title: competition.title ?? "",
+    shortDescription: competition.shortDescription ?? "",
+    category: competition.category ?? "",
+    eventType: competition.eventType ?? "COMPETITION",
+    type: competition.type ?? "SOLO",
+    status: competition.status ?? "DRAFT",
+    startTime: toDateTimeLocal(competition.startTime),
+    endTime: toDateTimeLocal(competition.endTime),
+    registrationDeadline: toDateTimeLocal(competition.registrationDeadline),
+    venueName: competition.venueName ?? "",
+    venueRoom: competition.venueRoom ?? "",
+    venueFloor: competition.venueFloor ?? "",
+    subVenues: Array.isArray(competition.subVenues)
+      ? competition.subVenues.map((venue) => ({
+          name: venue?.name ?? "",
+          room: venue?.room ?? "",
+          floor: venue?.floor ?? "",
+          capacity: venue?.capacity ?? "",
+          notes: venue?.notes ?? "",
         }))
       : [],
-    rulesRichText: c.rulesRichText ?? "",
-    registrationFee: c.registrationFee ?? 0,
-    maxRegistrations: c.maxRegistrations ?? "",
-    minTeamSize: c.minTeamSize ?? "",
-    maxTeamSize: c.maxTeamSize ?? "",
-    registrationsOpen: c.registrationsOpen ?? true,
-    requiresApproval: c.requiresApproval ?? true,
-    autoApproveTeams: c.autoApproveTeams ?? false,
-    attendanceRequired: c.attendanceRequired ?? false,
-    isPaid: c.isPaid ?? false,
-    perPerson: c.perPerson ?? false,
-    prizePool: Array.isArray(c.prizePool)
-      ? c.prizePool.map((p) => ({
-          rank: p.rank ?? "",
-          label: p.label ?? "",
-          cash: p.cash ?? "",
-          inkind: Array.isArray(p.inkind)
-            ? p.inkind.join(", ")
-            : (p.inkind ?? ""),
+    rulesRichText: competition.rulesRichText ?? "",
+    registrationFee: competition.registrationFee ?? 0,
+    maxRegistrations: competition.maxRegistrations ?? "",
+    maxTeamsPerCollege: competition.maxTeamsPerCollege ?? "",
+    minTeamSize: competition.minTeamSize ?? "",
+    maxTeamSize: competition.maxTeamSize ?? "",
+    registrationsOpen: competition.registrationsOpen ?? true,
+    requiresApproval: competition.requiresApproval ?? true,
+    autoApproveTeams: competition.autoApproveTeams ?? false,
+    attendanceRequired: competition.attendanceRequired ?? false,
+    isPaid: competition.isPaid ?? false,
+    perPerson: competition.perPerson ?? false,
+    prizePool: Array.isArray(competition.prizePool)
+      ? competition.prizePool.map((prize) => ({
+          rank: prize?.rank ?? "",
+          label: prize?.label ?? "",
+          cash: prize?.cash ?? "",
+          inkind: Array.isArray(prize?.inkind)
+            ? prize.inkind.join(", ")
+            : (prize?.inkind ?? ""),
         }))
       : [],
-    promoCodes: Array.isArray(c.promoCodes)
-      ? c.promoCodes.map((pc) => ({
-          code: pc.code ?? "",
-          discountType: pc.discountType ?? "PERCENT",
-          discountValue: pc.discountValue ?? "",
-          maxUses: pc.maxUses ?? "",
-          isActive: pc.isActive ?? true,
-          description: pc.description ?? "",
+    promoCodes: Array.isArray(competition.promoCodes)
+      ? competition.promoCodes.map((promoCode) => ({
+          code: promoCode?.code ?? "",
+          discountType: promoCode?.discountType ?? "PERCENT",
+          discountValue: promoCode?.discountValue ?? "",
+          maxUses: promoCode?.maxUses ?? "",
+          isActive: promoCode?.isActive ?? true,
+          description: promoCode?.description ?? "",
         }))
       : [],
   };
+}
+
+const toIsoOrNull = (value) => {
+  if (!value) return null;
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return null;
+  return date.toISOString();
+};
+
+const normalizePrizePool = (prizePool = []) => {
+  return prizePool
+    .map((item) => {
+      const rank = trimOrUndefined(item?.rank);
+      const label = trimOrUndefined(item?.label);
+      const cash = toMoneyOrUndefined(item?.cash);
+      const inKindRaw = trimOrUndefined(item?.inkind);
+
+      const inkind = inKindRaw
+        ? inKindRaw
+            .split(",")
+            .map((value) => value.trim())
+            .filter(Boolean)
+        : undefined;
+
+      if (!label) return null;
+
+      return {
+        ...(rank ? { rank } : {}),
+        label,
+        ...(cash !== undefined ? { cash } : {}),
+        ...(inkind?.length ? { inkind } : {}),
+      };
+    })
+    .filter(Boolean);
+};
+
+const normalizePromoCodes = (promoCodes = []) => {
+  return promoCodes
+    .map((item) => {
+      const code = trimOrUndefined(item?.code)?.toUpperCase();
+      const discountType = item?.discountType || "PERCENT";
+      const discountValue = toMoneyOrUndefined(item?.discountValue);
+      const maxUses = toIntegerOrUndefined(item?.maxUses);
+      const description = trimOrUndefined(item?.description);
+      const isActive = item?.isActive ?? true;
+
+      if (!code || discountValue === undefined) return null;
+
+      return {
+        code,
+        discountType,
+        discountValue,
+        ...(maxUses !== undefined ? { maxUses } : {}),
+        isActive,
+        ...(description ? { description } : {}),
+      };
+    })
+    .filter(Boolean);
+};
+
+const normalizeSubVenues = (subVenues = []) => {
+  return subVenues
+    .map((item) => {
+      const name = trimOrUndefined(item?.name);
+      if (!name) return null;
+
+      const room = trimOrUndefined(item?.room);
+      const floor = trimOrUndefined(item?.floor);
+      const notes = trimOrUndefined(item?.notes);
+      const capacity = toIntegerOrUndefined(item?.capacity);
+
+      return {
+        name,
+        ...(room ? { room } : {}),
+        ...(floor ? { floor } : {}),
+        ...(capacity !== undefined ? { capacity } : {}),
+        ...(notes ? { notes } : {}),
+      };
+    })
+    .filter(Boolean);
+};
+
+export function buildCompetitionPayloadFormData(values, poster) {
+  const formData = new FormData();
+
+  const append = (key, value) => {
+    if (value === undefined || value === null || value === "") return;
+    formData.append(key, String(value));
+  };
+
+  append("title", values.title);
+  append("shortDescription", trimOrUndefined(values.shortDescription));
+  append("category", trimOrUndefined(values.category));
+  append("eventType", values.eventType);
+  append("type", values.type);
+  append("status", values.status);
+
+  const startTimeIso = toIsoOrNull(values.startTime);
+  const endTimeIso = toIsoOrNull(values.endTime);
+  const registrationDeadlineIso = toIsoOrNull(values.registrationDeadline);
+
+  if (startTimeIso) formData.append("startTime", startTimeIso);
+  if (endTimeIso) formData.append("endTime", endTimeIso);
+  if (registrationDeadlineIso)
+    formData.append("registrationDeadline", registrationDeadlineIso);
+
+  append("venueName", trimOrUndefined(values.venueName));
+  append("venueRoom", trimOrUndefined(values.venueRoom));
+  append("venueFloor", trimOrUndefined(values.venueFloor));
+
+  const subVenues = normalizeSubVenues(values.subVenues || []);
+  if (subVenues.length) {
+    formData.append("subVenues", JSON.stringify(subVenues));
+  }
+
+  append("rulesRichText", trimOrUndefined(values.rulesRichText));
+
+  const registrationFee = toMoneyOrZero(values.registrationFee);
+  formData.append("registrationFee", String(registrationFee));
+
+  const maxRegistrations = toIntegerOrUndefined(values.maxRegistrations);
+  if (maxRegistrations !== undefined) {
+    formData.append("maxRegistrations", String(maxRegistrations));
+  }
+
+  const maxTeamsPerCollege = toIntegerOrUndefined(values.maxTeamsPerCollege);
+  if (maxTeamsPerCollege !== undefined) {
+    formData.append("maxTeamsPerCollege", String(maxTeamsPerCollege));
+  }
+
+  const minTeamSize = toIntegerOrUndefined(values.minTeamSize);
+  if (minTeamSize !== undefined) {
+    formData.append("minTeamSize", String(minTeamSize));
+  }
+
+  const maxTeamSize = toIntegerOrUndefined(values.maxTeamSize);
+  if (maxTeamSize !== undefined) {
+    formData.append("maxTeamSize", String(maxTeamSize));
+  }
+
+  formData.append(
+    "registrationsOpen",
+    String(Boolean(values.registrationsOpen)),
+  );
+  formData.append("requiresApproval", String(Boolean(values.requiresApproval)));
+  formData.append("autoApproveTeams", String(Boolean(values.autoApproveTeams)));
+  formData.append(
+    "attendanceRequired",
+    String(Boolean(values.attendanceRequired)),
+  );
+  formData.append("isPaid", String(Boolean(values.isPaid)));
+  formData.append("perPerson", String(Boolean(values.perPerson)));
+
+  const prizePool = normalizePrizePool(values.prizePool || []);
+  if (prizePool.length) {
+    formData.append("prizePool", JSON.stringify(prizePool));
+  }
+
+  const promoCodes = normalizePromoCodes(values.promoCodes || []);
+  if (promoCodes.length) {
+    formData.append("promoCodes", JSON.stringify(promoCodes));
+  }
+
+  if (poster) {
+    formData.append("poster", poster);
+  }
+
+  return formData;
 }

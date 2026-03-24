@@ -29,11 +29,15 @@ import {
   FileText,
   AlertTriangle,
   Megaphone,
+  UserCircle2,
+  Gavel,
 } from "lucide-react";
 
 const SA_NAVIGATION = [
   { name: "Users", href: "/admin/sa/users", icon: Users },
   { name: "Departments", href: "/admin/sa/departments", icon: Building2 },
+  { name: "Club", href: "/admin/club", icon: UserCircle2 },
+  { name: "Reviews", href: "/admin/sa/reviews", icon: Gavel },
   { name: "Approvals", href: "/admin/sa/approvals", icon: ShieldCheck },
   { name: "Audit Logs", href: "/admin/sa/audit", icon: ClipboardList },
   { name: "Campaign Manager", href: "/admin/sa/campaigns", icon: Megaphone },
@@ -41,6 +45,7 @@ const SA_NAVIGATION = [
 
 const DH_NAVIGATION = [
   { name: "My Department", href: "/admin/dh/users", icon: Users },
+  { name: "Club", href: "/admin/club", icon: UserCircle2 },
   {
     name: "Registrations",
     href: "/admin/dh/registrations",

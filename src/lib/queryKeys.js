@@ -195,4 +195,44 @@ export const queryKeys = {
       filters,
     ],
   },
+
+  // Club access queries
+  club: {
+    all: ["club"],
+    myClubs: () => [...queryKeys.club.all, "my-clubs"],
+    dashboard: () => [...queryKeys.club.all, "dashboard"],
+    members: (clubId) => [...queryKeys.club.all, "members", clubId],
+    competitions: () => [...queryKeys.club.all, "competitions"],
+    competitionDetail: (competitionId) => [
+      ...queryKeys.club.all,
+      "competition",
+      competitionId,
+    ],
+    competitionRegistrations: (competitionId) => [
+      ...queryKeys.club.all,
+      "competition-registrations",
+      competitionId,
+    ],
+    competitionFormResponses: (competitionId) => [
+      ...queryKeys.club.all,
+      "competition-form-responses",
+      competitionId,
+    ],
+    proposals: {
+      all: () => [...queryKeys.club.all, "proposals"],
+      mine: (filters = {}) => [
+        ...queryKeys.club.all,
+        "proposals",
+        "my",
+        filters,
+      ],
+    },
+  },
+
+  // Review queue queries (SA/DH)
+  reviews: {
+    all: ["reviews"],
+    list: (filters = {}) => [...queryKeys.reviews.all, "list", filters],
+    detail: (proposalId) => [...queryKeys.reviews.all, "detail", proposalId],
+  },
 };

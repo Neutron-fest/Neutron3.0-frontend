@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
+import { useMyClubs } from "@/src/hooks/api/useClub";
 import {
   Box,
   AppBar,
@@ -18,24 +19,38 @@ import {
   getAdminNavigation,
 } from "@/src/components/navigation/Sidebar";
 
-export default function SALayout({ children }) {
+export default function ClubLayout({ children }) {
   const { user, loading, logout } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
-  const hasAccess = user?.role === "SA";
+  const { data: myClubs = [], isLoading: clubsLoading } = useMyClubs();
+
+  const hasRole =
+    user?.role === "SA" || user?.role === "DH" || user?.role === "JUDGE";
+  const hasClubAccess = hasRole && myClubs.length > 0;
 
   useEffect(() => {
-    if (!loading && (!user || !hasAccess)) {
+    if (!loading && !user) {
       router.replace("/admin/auth");
+      return;
     }
-  }, [user, loading, router, hasAccess]);
+
+    if (!loading && user && !hasRole) {
+      router.replace("/admin/auth");
+      return;
+    }
+
+    if (!loading && !clubsLoading && user && hasRole && !hasClubAccess) {
+      router.replace("/admin/dh");
+    }
+  }, [loading, clubsLoading, user, hasRole, hasClubAccess, router]);
 
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
   };
 
-  if (loading) {
+  if (loading || clubsLoading) {
     return (
       <Box
         sx={{
@@ -51,19 +66,17 @@ export default function SALayout({ children }) {
     );
   }
 
-  if (!user || !hasAccess) {
+  if (!user || !hasClubAccess) {
     return null;
   }
 
   const navigation = getAdminNavigation(user.role);
   const currentPage = pathname.startsWith("/admin/settings")
     ? "Personal Settings"
-    : pathname.startsWith("/admin/sa/settings")
-      ? "Platform Settings"
-      : pathname.startsWith("/admin/sa/reviews")
-        ? "Reviews"
-        : navigation.find((item) => pathname.startsWith(item.href))?.name ||
-          "Dashboard";
+    : pathname.startsWith("/admin/club")
+      ? "Club"
+      : navigation.find((item) => pathname.startsWith(item.href))?.name ||
+        "Dashboard";
 
   return (
     <Box sx={{ display: "flex", minHeight: "100vh", backgroundColor: "#000" }}>
@@ -81,7 +94,6 @@ export default function SALayout({ children }) {
           width: { lg: `calc(100% - ${SIDEBAR_WIDTH}px)` },
         }}
       >
-        {/* Top AppBar */}
         <AppBar
           position="sticky"
           elevation={0}
@@ -116,7 +128,6 @@ export default function SALayout({ children }) {
           </Toolbar>
         </AppBar>
 
-        {/* Page Content */}
         <Box sx={{ p: { xs: 2, lg: 4 } }}>{children}</Box>
       </Box>
     </Box>

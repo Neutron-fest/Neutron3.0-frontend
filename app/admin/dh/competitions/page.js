@@ -1117,9 +1117,10 @@ export default function CompetitionsPage() {
 
     updateCompetition(payload, {
       onSuccess: (response) => {
-        if (!isCurrentlyOpen && isDH && response?.pendingApproval) {
+        if (isDH && response?.pendingApproval) {
           enqueueSnackbar(
-            response?.message || "Publish request submitted for SA approval.",
+            response?.message ||
+              "Change submitted to proposal queue for review.",
             { variant: "info" },
           );
           return;
@@ -1153,8 +1154,16 @@ export default function CompetitionsPage() {
 
     setDeletingId(deleteTarget.id);
     deleteCompetition(deleteTarget.id, {
-      onSuccess: () => {
-        enqueueSnackbar("Competition deleted", { variant: "success" });
+      onSuccess: (response) => {
+        if (response?.pendingApproval) {
+          enqueueSnackbar(
+            response?.message ||
+              "Competition deletion submitted for SA approval.",
+            { variant: "info" },
+          );
+        } else {
+          enqueueSnackbar("Competition deleted", { variant: "success" });
+        }
         setDeleteTarget(null);
       },
       onError: (err) =>
