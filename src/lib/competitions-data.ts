@@ -12,6 +12,9 @@ export type CompetitionRecord = {
   prizePool: string;
   about: string;
   teamSize: string;
+  category: string;
+  eventType: string;
+  status: "open" | "closed" | "cancelled" | "postponed";
 };
 
 export const COMPETITIONS_DATA: CompetitionRecord[] = [
@@ -27,8 +30,11 @@ export const COMPETITIONS_DATA: CompetitionRecord[] = [
     location: "Main Auditorium, Campus Hub",
     date: "April 15, 2026",
     prizePool: "₹50,000",
-    about: "Embark on an interactive journey through the cosmos. This event will test your knowledge of space exploration history and future trajectories. Participants will analyze mission parameters for hypothetical crewed missions to Mars and asteroid mining operations. Prepare for deep-dive trivia and problem-solving scenarios based on real astrophysics.",
+    about: "Embark on an interactive journey through the cosmos. This event will test your knowledge of space exploration history and future trajectories. Participants will analyze mission parameters for hypothetical crewed missions to Mars and asteroid mining operations. Prepare for deep-dive trivia and problem-solving scenarios based on real astrophysics. This is not just a test of knowledge, but a test of vision. We are looking for those who can see beyond the horizon and imagine the future of humanity among the stars. The challenges will be tough, but the rewards are infinite.",
     teamSize: "1-3 Members",
+    category: "Astronomy & Research",
+    eventType: "Hackathon / Quiz",
+    status: "open",
   },
   {
     slug: "orbital-mechanics-101",
@@ -41,8 +47,11 @@ export const COMPETITIONS_DATA: CompetitionRecord[] = [
     location: "Mechanical Block Seminar Hall",
     date: "April 16, 2026",
     prizePool: "₹25,000",
-    about: "A rigorous competition focusing on the mathematical and physical principles of spaceflight. From calculating Hohmann transfer orbits to executing precision docking simulations, this is the ultimate test for aspiring astrodynamicists. Use provided tools and data sets to optimize trajectories with minimal delta-v.",
+    about: "A rigorous competition focusing on the mathematical and physical principles of spaceflight. From calculating Hohmann transfer orbits to executing precision docking simulations, this is the ultimate test for aspiring astrodynamicists. Use provided tools and data sets to optimize trajectories with minimal delta-v. The competition requires a deep understanding of physics, mathematics, and high-performance computation to solve real-world orbital problems. Only the most precise calculations will survive the gravity wells of distant worlds.",
     teamSize: "2 Members",
+    category: "Physics & Engineering",
+    eventType: "Simulation Challenge",
+    status: "open",
   },
   {
     slug: "the-final-frontier",
@@ -56,8 +65,11 @@ export const COMPETITIONS_DATA: CompetitionRecord[] = [
     location: "Open Air Theatre",
     date: "April 17, 2026",
     prizePool: "₹35,000",
-    about: "An immersive multi-stage hackathon where teams must design a complete satellite mission architecture. You will select orbital parameters, design payload constraints, and develop a long-term sustainability plan for a LEO constellation. Judged by industry experts from leading space agencies.",
+    about: "An immersive multi-stage hackathon where teams must design a complete satellite mission architecture. You will select orbital parameters, design payload constraints, and develop a long-term sustainability plan for a LEO constellation. Judged by industry experts from leading space agencies. This mission demands creativity, technical expertise, and a sharp focus on mission success in the harsh environment of orbit. Are you ready to lead the next generation of satellite designers into the final frontier?",
     teamSize: "3-4 Members",
+    category: "Satellite Design",
+    eventType: "Hackathon",
+    status: "closed",
   },
   {
     slug: "mission-phoenix",
@@ -71,8 +83,11 @@ export const COMPETITIONS_DATA: CompetitionRecord[] = [
     location: "Virtual / Computer Science Labs",
     date: "April 18, 2026",
     prizePool: "₹1,00,000",
-    about: "The flagship event of Neutron. A 24-hour resource management and survival simulation set on Mars. Teams must balance power, oxygen, and water generation using custom software while dealing with random catastrophic events like dust storms and equipment failures. Keep the colony alive to win.",
+    about: "The flagship event of Neutron. A 24-hour resource management and survival simulation set on Mars. Teams must balance power, oxygen, and water generation using custom software while dealing with random catastrophic events like dust storms and equipment failures. Keep the colony alive to win. This is the ultimate crucible for survivalists and engineers. The desert is unforgiving, and the atmosphere is thin. Only the most resourceful teams will plant the flag and thrive in the iron-rich dust of the Red Planet. Your mission starts now.",
     teamSize: "4 Members",
+    category: "Survival Simulation",
+    eventType: "24-Hour Challenge",
+    status: "postponed",
   }
 ];
 

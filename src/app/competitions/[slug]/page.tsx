@@ -1,13 +1,11 @@
 import { notFound } from "next/navigation";
 import { getCompetitionBySlug } from "@/lib/competitions-data";
-import CompetitionRegistration from "@/components/competition-registration";
-import ScratchToReveal from "@/components/scratch-to-reveal";
 import SmoothScroll from "@/components/smooth-scroll";
-import { ScrollRevealCards } from "@/components/scroll-reveal-cards";
 import Link from "next/link";
 import React from "react";
-import { motion, useScroll, useTransform } from "framer-motion";
-import BlurHeading from "@/components/blur-heading";
+import SectionWrapper from "../../../components/competition-section-wrapper";
+import { ScrollRevealCards } from "@/components/scroll-reveal-cards";
+import CompetitionRegistration from "@/components/competition-registration";
 
 export default async function CompetitionSlugPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
@@ -19,7 +17,7 @@ export default async function CompetitionSlugPage({ params }: { params: Promise<
 
   return (
     <SmoothScroll>
-      <div className="min-h-screen bg-[#030303] text-white selection:bg-white/20 relative font-sans">
+      <div className="min-h-screen bg-[#030303] text-white selection:bg-white/20 relative font-sans text-pretty">
         
         <div 
           className="fixed top-0 left-0 w-full h-screen z-0 overflow-hidden pointer-events-none" 
@@ -54,73 +52,30 @@ export default async function CompetitionSlugPage({ params }: { params: Promise<
         </div>
 
         <main className="relative z-20 mx-auto px-6 md:px-12 lg:px-24 pt-48 pb-40">
-          
-          <div className="mb-32 relative animate-fade-in-up group/header">
-            <div className="absolute -inset-x-24 -top-48 -bottom-24 z-0 pointer-events-none overflow-hidden">
-              <div 
-                className="absolute inset-0 bg-cover bg-center scale-110 opacity-40 mix-blend-screen animate-[slow-pan_40s_linear_infinite_alternate]"
-                style={{ 
-                  backgroundImage: `url('https://wallpapercave.com/wp/wp3837811.jpg')`,
-                  maskImage: 'linear-gradient(to bottom, black 0%, black 60%, transparent 100%)',
-                  WebkitMaskImage: 'linear-gradient(to bottom, black 0%, black 60%, transparent 100%)',
-                }}
-              />
-              <div className="absolute inset-0 bg-linear-to-t from-[#030303] via-transparent to-transparent z-10"></div>
-            </div>
-
-            <div className="absolute -inset-12 bg-white/5 border border-white/10 blur-3xl rounded-[4rem] -z-10 opacity-30"></div>
-            <div className="relative z-10 max-w-[1400px]">
-              <div className="flex items-center space-x-4 mb-10 overflow-hidden">
-                <div className="h-px w-12 bg-white/20"></div>
-                <span className="text-white/70 font-mono text-xs tracking-widest uppercase">{competition.date}</span>
-              </div>
-
-              <BlurHeading 
-                text={competition.title} 
-                className="text-7xl md:text-9xl lg:text-[10rem] font-bold tracking-tighter leading-[0.8] mb-12 uppercase"
-                spanClassName="bg-clip-text text-transparent bg-linear-to-b from-white via-white to-white/20 drop-shadow-[0_10px_30px_rgba(255,255,255,0.1)]"
-              />
-              
-              <div className="relative max-w-3xl group pt-4">
-                <div className="absolute -left-6 top-0 bottom-0 w-[2px] bg-white/10 transition-all duration-700"></div>
-                <p className="text-lg md:text-2xl font-light text-white/60 leading-relaxed pl-8 tracking-wide">
-                  {competition.description}
-                </p>
-                <div className="mt-8 flex items-center space-x-3 text-white/30 font-mono text-[10px] uppercase tracking-[0.2em] pl-8">
-                  <span className="w-1 h-1 rounded-full bg-white/40"></span>
-                  <span>Mission Objective</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-            <div className="lg:col-span-8 order-2 lg:order-1 flex flex-col space-y-24">
-              
-              <div className="animate-fade-in-up max-w-3xl" style={{ animationDelay: '0.2s' }}>
-                <div className="flex items-center space-x-4 mb-8">
-                  <div className="w-12 h-px bg-white/30"></div>
-                  <h2 className="text-3xl tracking-wide uppercase font-light text-white/90">Mission Briefing</h2>
-                </div>
-                <div className="prose prose-invert max-w-none text-white/60 font-light leading-loose text-lg lg:text-xl">
-                  <p>{competition.about}</p>
-                </div>
-              </div>
-
-              <div className="relative z-30">
-          <ScrollRevealCards 
-            prizePool={competition.prizePool} 
-            location={competition.location} 
-            teamSize={competition.teamSize} 
-          />
-        </div>
-              
-
-              <div className="pt-16 relative">
-                <div className="absolute top-0 left-0 w-1/3 h-px bg-linear-to-r from-white/30 to-transparent"></div>
-                <CompetitionRegistration competitionTitle={competition.title} teamSize={competition.teamSize} />
-              </div>
-            </div>
+          <SectionWrapper competition={competition} />
         </main>
+
+        <section className="relative z-20">
+           <ScrollRevealCards 
+             prizePool={competition.prizePool}
+             location={competition.location}
+             teamSize={competition.teamSize}
+           />
+        </section>
+
+        <section className="relative pt-64 z-30 bg-[#030303] overflow-hidden">
+          <div className="absolute top-0 left-0 w-full h-64 bg-linear-to-b from-transparent to-[#030303] pointer-events-none -translate-y-full"></div>
+          <div className="max-w-4xl mx-auto px-6 relative">
+             <div className="absolute -top-32 -left-32 w-96 h-96 bg-white/5 blur-3xl rounded-full"></div>
+             <div className="mb-24 text-center">
+               <div className="h-px w-32 bg-white/10 mx-auto mb-12" />
+               <h2 className="text-6xl md:text-8xl font-black tracking-tighter mb-6 uppercase">Launch Initiation</h2>
+               <p className="text-white/40 text-xl font-light tracking-wide">Confirm your mission parameters for <span className="text-white">{competition.title}</span></p>
+             </div>
+             <CompetitionRegistration competitionTitle={competition.title} teamSize={competition.teamSize} />
+          </div>
+          <div className="h-[20vh]" />
+        </section>
 
         <style>{`
           @keyframes fade-in-up {

@@ -10,28 +10,31 @@ interface BlurHeadingProps {
 }
 
 const BlurHeading: React.FC<BlurHeadingProps> = ({ text, className, spanClassName }) => {
-  const characters = text.split("");
+  const words = text.split(" ");
 
   return (
     <h1 className={className}>
-      {characters.map((char, index) => (
-        <motion.span
-          key={`${char}-${index}`}
-          className={`inline-block transition-all duration-300 ease-out cursor-default ${spanClassName}`}
-          initial={{ filter: "blur(0px)", scale: 1, opacity: 1 }}
-          whileHover={{ 
-            filter: "blur(6px)", 
-            scale: 1.15,
-            opacity: 0.9,
-            transition: { duration: 0.15, ease: "easeOut" } 
-          }}
-          style={{ 
-            display: char === " " ? "inline" : "inline-block",
-            whiteSpace: char === " " ? "pre" : "normal"
-          }}
-        >
-          {char}
-        </motion.span>
+      {words.map((word, wordIndex) => (
+        <span key={`word-${wordIndex}`} className="inline-block whitespace-nowrap">
+          {word.split("").map((char, charIndex) => (
+            <motion.span
+              key={`${char}-${charIndex}`}
+              className={`inline-block transition-all duration-300 ease-out cursor-default ${spanClassName}`}
+              initial={{ filter: "blur(0px)", scale: 1, opacity: 1 }}
+              whileHover={{ 
+                filter: "blur(6px)", 
+                scale: 1.15,
+                opacity: 0.9,
+                transition: { duration: 0.15, ease: "easeOut" } 
+              }}
+            >
+              {char}
+            </motion.span>
+          ))}
+          {wordIndex < words.length - 1 && (
+            <span className="inline-block">&nbsp;</span>
+          )}
+        </span>
       ))}
     </h1>
   );

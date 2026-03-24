@@ -22,8 +22,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={cn("h-full", "antialiased", sora.variable, "font-sans", geist.variable)}>
-      <body className={`${sora.className} min-h-full flex flex-col`}>{children}</body>
+    <html lang="en" className={cn("antialiased", sora.variable, "font-sans", geist.variable)}>
+      <body className={`${sora.className} bg-[#030303] text-white`}>{children}</body>
     </html>
   );
 }

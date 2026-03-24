@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, Suspense } from "react";
 import Link from "next/link";
 import AuthLayout from "@/components/auth-layout";
 import { AuthInput, AuthButton } from "@/components/auth-components";
@@ -8,7 +8,7 @@ import { motion } from "framer-motion";
 import { useRouter, useSearchParams } from "next/navigation";
 import { AuthModal } from "@/components/auth-modal";
 
-export default function SignInPage() {
+function SignInContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get("callbackUrl") || "/";
@@ -161,5 +161,17 @@ export default function SignInPage() {
         )}
       </AuthModal>
     </AuthLayout>
+  );
+}
+
+export default function SignInPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-[#050505]">
+        <div className="w-8 h-8 border-2 border-purple-500/20 border-t-purple-500 rounded-full animate-spin" />
+      </div>
+    }>
+      <SignInContent />
+    </Suspense>
   );
 }

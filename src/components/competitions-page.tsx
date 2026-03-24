@@ -13,9 +13,12 @@ type CardProps = {
   heightClass: string;
   delay?: number;
   slug: string;
+  category: string;
+  teamSize: string;
+  status: "open" | "closed" | "cancelled" | "postponed";
 };
 
-function ParallaxCard({ title, description, image, heightClass, delay = 0, slug }: CardProps) {
+function ParallaxCard({ title, description, image, heightClass, delay = 0, slug, category, teamSize, status }: CardProps) {
   const ref = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({
     target: ref,
@@ -50,10 +53,27 @@ function ParallaxCard({ title, description, image, heightClass, delay = 0, slug 
             {title}
           </h2>
           {description && (
-            <p className="text-gray-300 text-sm md:text-[15px] leading-relaxed max-w-[90%] font-light">
+            <p className="text-gray-400 text-sm md:text-[15px] leading-relaxed max-w-[90%] font-light mb-6">
               {description}
             </p>
           )}
+
+          <div className="flex flex-wrap gap-2 mt-auto">
+            <span className="px-2 py-1 rounded-sm bg-white/5 border border-white/10 text-[10px] uppercase tracking-wider text-white/50 font-mono">
+              {category}
+            </span>
+            <span className="px-2 py-1 rounded-sm bg-white/5 border border-white/10 text-[10px] uppercase tracking-wider text-white/50 font-mono">
+              {teamSize}
+            </span>
+            <span className={`px-2 py-1 rounded-sm border text-[10px] uppercase tracking-wider font-mono ${
+              status === 'open' ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' :
+              status === 'closed' ? 'bg-rose-500/10 border-rose-500/20 text-rose-400' :
+              status === 'postponed' ? 'bg-amber-500/10 border-amber-500/20 text-amber-400' :
+              'bg-white/5 border-white/10 text-white/30'
+            }`}>
+              {status}
+            </span>
+          </div>
         </div>
 
         <div className="absolute bottom-8 right-8 z-30 bg-white text-black p-3 rounded-sm opacity-0 translate-y-4 transition-all duration-300 group-hover:opacity-100 group-hover:translate-y-0 hover:scale-105">
@@ -142,6 +162,9 @@ export default function CompetitionsPage() {
                 image={comp.image}
                 heightClass={comp.heightClass}
                 delay={comp.delay}
+                category={comp.category}
+                teamSize={comp.teamSize}
+                status={comp.status}
               />
             ))}
           </div>
@@ -156,6 +179,9 @@ export default function CompetitionsPage() {
                 image={comp.image}
                 heightClass={comp.heightClass}
                 delay={comp.delay}
+                category={comp.category}
+                teamSize={comp.teamSize}
+                status={comp.status}
               />
             ))}
           </div>
