@@ -47,7 +47,7 @@ export const StickyScrollCards: React.FC<StickyScrollCardsProps> = ({
       title: location,
       handle: "coordinates",
       status: "Active Zone",
-      bgImage: "https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=1600&q=80",
+      bgImage: "https://images8.alphacoders.com/117/thumb-1920-1178623.jpg",
       backColor: "#151515"
     },
     {
@@ -63,7 +63,7 @@ export const StickyScrollCards: React.FC<StickyScrollCardsProps> = ({
       title: `${category} • ${eventType}`,
       handle: "mission_brief",
       status: "Ready for Launch",
-      bgImage: "https://images.unsplash.com/photo-1614730321146-b6fa6a46bcb4?w=1600&q=80",
+      bgImage: "https://wallpapercave.com/wp/wp12457548.png",
       backColor: "#0a0a0a"
     }
   ], [prizePool, location, teamSize, competitionTitle, category, eventType]);
@@ -132,25 +132,17 @@ function CardContent({ data }: { data: CardInfo }) {
           initial={{ opacity: 0, scale: 1.1 }}
           animate={{ opacity: 0.25, scale: 1 }}
           exit={{ opacity: 0 }}
-          transition={{ duration: 1.2, ease: "easeOut" }}
+          transition={{ duration: 1, ease: "easeOut" }}
           className="absolute inset-0 z-0"
         >
           <div 
-            className="w-full h-full bg-cover bg-center grayscale opacity-80"
+            className="w-full h-full bg-cover bg-center opacity-90"
             style={{ backgroundImage: `url('${data.bgImage}')` }}
           />
         </motion.div>
       </AnimatePresence>
 
-      <div className="absolute inset-0 bg-linear-to-b from-transparent via-[#030303]/40 to-[#030303] z-1" />
-
       <div className="relative z-10 flex flex-col h-full">
-         <div className="flex justify-between items-start">
-           <div className="bg-white/5 backdrop-blur-xl px-4 py-2 rounded-full border border-white/10">
-             <span className="text-[10px] font-mono text-white/40 uppercase tracking-[0.3em] font-medium">{data.status}</span>
-           </div>
-         </div>
-
          <div className="mt-auto">
            <motion.h3 
              key={`name-${data.name}`}
@@ -188,7 +180,6 @@ function CardContent({ data }: { data: CardInfo }) {
       </div>
 
       <div className="absolute inset-0 bg-[url('https://res.cloudinary.com/dpod2sj9t/image/upload/v1774362639/nnnoise_zgex87.svg')] opacity-[0.25] mix-blend-overlay pointer-events-none z-20"></div>
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(173,24,242,0.1),transparent_70%)] pointer-events-none z-10"></div>
     </>
   );
 }
