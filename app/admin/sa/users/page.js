@@ -9,6 +9,7 @@ import {
   useUnsuspendUser,
   useRevokeUser,
   useInviteUser,
+  useBulkInviteUsers,
   useDeleteUser,
 } from "@/src/hooks/api/useUsers";
 import {
@@ -32,6 +33,8 @@ import {
   CheckCircle2,
   AlertCircle,
   XCircle,
+  Upload,
+  Loader2,
 } from "lucide-react";
 import { useSnackbar } from "notistack";
 import { LoadingState } from "@/src/components/LoadingState";
@@ -240,6 +243,7 @@ function UsersPageContent() {
   const unsuspendMutation = useUnsuspendUser();
   const revokeMutation = useRevokeUser();
   const inviteMutation = useInviteUser();
+  const bulkInviteMutation = useBulkInviteUsers();
   const deleteMutation = useDeleteUser();
   const { enqueueSnackbar } = useSnackbar();
 
@@ -264,6 +268,9 @@ function UsersPageContent() {
   const [inviteEmail, setInviteEmail] = useState("");
   const [inviteRole, setInviteRole] = useState("USER");
   const [inviteError, setInviteError] = useState("");
+  const [inviteMode, setInviteMode] = useState("single");
+  const [csvParsed, setCsvParsed] = useState([]);
+  const [csvResults, setCsvResults] = useState(null);
   const [presenceOverrides, setPresenceOverrides] = useState({});
 
   useEffect(() => {
@@ -365,6 +372,9 @@ function UsersPageContent() {
     setInviteEmail("");
     setInviteRole("USER");
     setInviteError("");
+    setInviteMode("single");
+    setCsvParsed([]);
+    setCsvResults(null);
   };
 
   const handleInvite = async () => {
@@ -385,6 +395,47 @@ function UsersPageContent() {
           err?.message ||
           "Failed to send invitation",
       );
+    }
+  };
+
+  const handleCsvFile = (file) => {
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const text = e.target.result;
+      const lines = text.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
+      const validRoles = new Set(["SA", "BOARD", "DH", "JUDGE", "VOLUNTEER", "USER"]);
+      const parsed = [];
+      for (const line of lines) {
+        const lower = line.toLowerCase();
+        if (lower.startsWith("email")) continue; // skip header row
+        const parts = line.split(",");
+        const email = (parts[0] || "").trim();
+        const rawRole = (parts[1] || "").trim().toUpperCase();
+        if (!email) continue;
+        const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+        const role = validRoles.has(rawRole) ? rawRole : "USER";
+        const warning = !emailValid
+          ? "Invalid email format"
+          : !validRoles.has(rawRole) && rawRole
+          ? `Unknown role "${parts[1]?.trim()}", defaulted to USER`
+          : null;
+        parsed.push({ email, role, warning, emailValid });
+      }
+      setCsvParsed(parsed);
+      setCsvResults(null);
+    };
+    reader.readAsText(file);
+  };
+
+  const handleBulkInvite = async () => {
+    const valid = csvParsed.filter((r) => r.emailValid);
+    if (!valid.length) return;
+    try {
+      const res = await bulkInviteMutation.mutateAsync(valid);
+      setCsvResults(res.data.results);
+    } catch (err) {
+      setInviteError(err?.response?.data?.message || err?.message || "Failed to send bulk invitations");
     }
   };
 
@@ -908,7 +959,8 @@ function UsersPageContent() {
           <GhostBtn onClick={closeDialog}>Cancel</GhostBtn>
           <PrimaryBtn
             onClick={handleUpdateRole}
-            disabled={updateRoleMutation.isPending || !newRole}
+            disabled={!newRole}
+            loading={updateRoleMutation.isPending}
           >
             {updateRoleMutation.isPending ? "Updating…" : "Update Role"}
           </PrimaryBtn>
@@ -968,7 +1020,8 @@ function UsersPageContent() {
           <GhostBtn onClick={closeDialog}>Cancel</GhostBtn>
           <WarnBtn
             onClick={handleSuspend}
-            disabled={suspendMutation.isPending || !suspensionReason}
+            disabled={!suspensionReason}
+            loading={suspendMutation.isPending}
           >
             {suspendMutation.isPending ? "Suspending…" : "Suspend"}
           </WarnBtn>
@@ -995,7 +1048,7 @@ function UsersPageContent() {
           <GhostBtn onClick={closeDialog}>Cancel</GhostBtn>
           <GreenBtn
             onClick={handleUnsuspend}
-            disabled={unsuspendMutation.isPending}
+            loading={unsuspendMutation.isPending}
           >
             {unsuspendMutation.isPending ? "Unsuspending…" : "Unsuspend"}
           </GreenBtn>
@@ -1028,7 +1081,8 @@ function UsersPageContent() {
           <GhostBtn onClick={closeDialog}>Cancel</GhostBtn>
           <DangerBtn
             onClick={handleRevoke}
-            disabled={revokeMutation.isPending || !revokeReason}
+            disabled={!revokeReason}
+            loading={revokeMutation.isPending}
           >
             {revokeMutation.isPending ? "Revoking…" : "Revoke Access"}
           </DangerBtn>
@@ -1057,7 +1111,7 @@ function UsersPageContent() {
         </Typography>
         <BtnRow>
           <GhostBtn onClick={closeDialog}>Cancel</GhostBtn>
-          <DangerBtn onClick={handleDelete} disabled={deleteMutation.isPending}>
+          <DangerBtn onClick={handleDelete} loading={deleteMutation.isPending}>
             {deleteMutation.isPending ? "Deleting…" : "Delete User"}
           </DangerBtn>
         </BtnRow>
@@ -1068,39 +1122,272 @@ function UsersPageContent() {
         onClose={closeInvite}
         title="Invite New User"
       >
-        {inviteError && <DangerNote>{inviteError}</DangerNote>}
-        <DarkInput
-          type="email"
-          value={inviteEmail}
-          onChange={(e) => setInviteEmail(e.target.value)}
-          placeholder="Email address"
-          style={{ marginBottom: 12 }}
-        />
-        <NativeSelect value={inviteRole} onChange={setInviteRole} fullWidth>
-          {ROLE_OPTIONS.map((r) => (
-            <option key={r.value} value={r.value}>
-              {r.label}
-            </option>
-          ))}
-        </NativeSelect>
-        <Typography
+        {/* Mode toggle */}
+        <Box
           sx={{
-            fontSize: 11,
-            color: "rgba(255,255,255,0.2)",
-            fontFamily: "'Syne', sans-serif",
-            mt: 1.5,
-            lineHeight: 1.6,
+            display: "flex",
+            gap: 1,
+            mb: 2,
+            p: 0.5,
+            background: "rgba(255,255,255,0.04)",
+            borderRadius: 2,
+            border: "1px solid rgba(255,255,255,0.06)",
           }}
         >
-          An invitation email will be sent with instructions to set up their
-          account.
-        </Typography>
-        <BtnRow>
-          <GhostBtn onClick={closeInvite}>Cancel</GhostBtn>
-          <InviteBtn onClick={handleInvite} disabled={inviteMutation.isPending}>
-            {inviteMutation.isPending ? "Sending…" : "Send Invitation"}
-          </InviteBtn>
-        </BtnRow>
+          {["single", "csv"].map((mode) => (
+            <Box
+              key={mode}
+              onClick={() => { setInviteMode(mode); setInviteError(""); setCsvParsed([]); setCsvResults(null); }}
+              sx={{
+                flex: 1,
+                textAlign: "center",
+                py: 0.75,
+                borderRadius: 1.5,
+                fontSize: 12,
+                fontFamily: "'Syne', sans-serif",
+                cursor: "pointer",
+                transition: "all 0.15s",
+                background: inviteMode === mode ? "rgba(255,255,255,0.1)" : "transparent",
+                color: inviteMode === mode ? "#f4f4f5" : "rgba(255,255,255,0.35)",
+                fontWeight: inviteMode === mode ? 600 : 400,
+              }}
+            >
+              {mode === "single" ? "Single" : "Bulk CSV"}
+            </Box>
+          ))}
+        </Box>
+
+        {inviteError && <DangerNote>{inviteError}</DangerNote>}
+
+        {inviteMode === "single" ? (
+          <>
+            <DarkInput
+              type="email"
+              value={inviteEmail}
+              onChange={(e) => setInviteEmail(e.target.value)}
+              placeholder="Email address"
+              style={{ marginBottom: 12 }}
+            />
+            <NativeSelect value={inviteRole} onChange={setInviteRole} fullWidth>
+              {ROLE_OPTIONS.map((r) => (
+                <option key={r.value} value={r.value}>
+                  {r.label}
+                </option>
+              ))}
+            </NativeSelect>
+            <Typography
+              sx={{
+                fontSize: 11,
+                color: "rgba(255,255,255,0.2)",
+                fontFamily: "'Syne', sans-serif",
+                mt: 1.5,
+                lineHeight: 1.6,
+              }}
+            >
+              An invitation email will be sent with instructions to set up their
+              account.
+            </Typography>
+            <BtnRow>
+              <GhostBtn onClick={closeInvite}>Cancel</GhostBtn>
+              <InviteBtn onClick={handleInvite} loading={inviteMutation.isPending}>
+                {inviteMutation.isPending ? "Sending…" : "Send Invitation"}
+              </InviteBtn>
+            </BtnRow>
+          </>
+        ) : (
+          <>
+            {/* CSV upload area */}
+            {!csvResults && (
+              <label
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: 8,
+                  padding: "24px 16px",
+                  border: "1px dashed rgba(255,255,255,0.15)",
+                  borderRadius: 10,
+                  cursor: "pointer",
+                  background: "rgba(255,255,255,0.02)",
+                  marginBottom: 12,
+                }}
+              >
+                <Upload size={20} color="rgba(255,255,255,0.3)" />
+                <Typography
+                  sx={{
+                    fontSize: 12,
+                    color: "rgba(255,255,255,0.4)",
+                    fontFamily: "'Syne', sans-serif",
+                    textAlign: "center",
+                  }}
+                >
+                  {csvParsed.length
+                    ? `${csvParsed.length} row(s) loaded — click to replace`
+                    : "Click to upload CSV"}
+                </Typography>
+                <Typography
+                  sx={{
+                    fontSize: 10,
+                    color: "rgba(255,255,255,0.2)",
+                    fontFamily: "'Syne', sans-serif",
+                  }}
+                >
+                  Format: email,role (one per line)
+                </Typography>
+                <input
+                  type="file"
+                  accept=".csv,text/csv,text/plain"
+                  style={{ display: "none" }}
+                  onChange={(e) => handleCsvFile(e.target.files?.[0])}
+                />
+              </label>
+            )}
+
+            {/* Preview table */}
+            {csvParsed.length > 0 && !csvResults && (
+              <Box
+                sx={{
+                  maxHeight: 180,
+                  overflowY: "auto",
+                  border: "1px solid rgba(255,255,255,0.06)",
+                  borderRadius: 2,
+                  mb: 1.5,
+                }}
+              >
+                {csvParsed.map((row, i) => (
+                  <Box
+                    key={i}
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      px: 1.5,
+                      py: 0.75,
+                      borderBottom: i < csvParsed.length - 1 ? "1px solid rgba(255,255,255,0.04)" : "none",
+                      gap: 1,
+                    }}
+                  >
+                    {row.emailValid ? (
+                      <CheckCircle2 size={12} color="rgba(74,222,128,0.7)" />
+                    ) : (
+                      <XCircle size={12} color="rgba(248,113,113,0.8)" />
+                    )}
+                    <Typography
+                      sx={{
+                        flex: 1,
+                        fontSize: 11,
+                        fontFamily: "'Syne', sans-serif",
+                        color: row.emailValid ? "rgba(255,255,255,0.65)" : "rgba(248,113,113,0.8)",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      {row.email}
+                    </Typography>
+                    <Typography
+                      sx={{
+                        fontSize: 10,
+                        fontFamily: "'Syne', sans-serif",
+                        color: "rgba(255,255,255,0.3)",
+                        flexShrink: 0,
+                      }}
+                    >
+                      {row.role}
+                    </Typography>
+                    {row.warning && (
+                      <AlertCircle size={12} color="rgba(251,191,36,0.7)" title={row.warning} />
+                    )}
+                  </Box>
+                ))}
+              </Box>
+            )}
+
+            {/* Results after sending */}
+            {csvResults && (
+              <Box
+                sx={{
+                  maxHeight: 200,
+                  overflowY: "auto",
+                  border: "1px solid rgba(255,255,255,0.06)",
+                  borderRadius: 2,
+                  mb: 1.5,
+                }}
+              >
+                <Box sx={{ px: 1.5, py: 1, borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+                  <Typography sx={{ fontSize: 11, fontFamily: "'Syne', sans-serif", color: "rgba(255,255,255,0.4)" }}>
+                    {csvResults.filter((r) => r.success).length} sent ·{" "}
+                    {csvResults.filter((r) => !r.success).length} failed
+                  </Typography>
+                </Box>
+                {csvResults.map((row, i) => (
+                  <Box
+                    key={i}
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      px: 1.5,
+                      py: 0.75,
+                      borderBottom: i < csvResults.length - 1 ? "1px solid rgba(255,255,255,0.04)" : "none",
+                      gap: 1,
+                    }}
+                  >
+                    {row.success ? (
+                      <CheckCircle2 size={12} color="rgba(74,222,128,0.7)" />
+                    ) : (
+                      <XCircle size={12} color="rgba(248,113,113,0.8)" />
+                    )}
+                    <Typography
+                      sx={{
+                        flex: 1,
+                        fontSize: 11,
+                        fontFamily: "'Syne', sans-serif",
+                        color: row.success ? "rgba(255,255,255,0.65)" : "rgba(248,113,113,0.8)",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      {row.email}
+                    </Typography>
+                    {!row.success && (
+                      <Typography sx={{ fontSize: 10, fontFamily: "'Syne', sans-serif", color: "rgba(248,113,113,0.6)", flexShrink: 0 }}>
+                        {row.error === "EMAIL_ALREADY_EXISTS" ? "already exists" : "failed"}
+                      </Typography>
+                    )}
+                  </Box>
+                ))}
+              </Box>
+            )}
+
+            <Typography
+              sx={{
+                fontSize: 10,
+                color: "rgba(255,255,255,0.2)",
+                fontFamily: "'Syne', sans-serif",
+                mb: 1.5,
+                lineHeight: 1.6,
+              }}
+            >
+              Valid roles: SA, BOARD, DH, JUDGE, VOLUNTEER, USER. Unknown roles default to USER.
+            </Typography>
+
+            <BtnRow>
+              <GhostBtn onClick={closeInvite}>{csvResults ? "Close" : "Cancel"}</GhostBtn>
+              {!csvResults && (
+                <InviteBtn
+                  onClick={handleBulkInvite}
+                  disabled={!csvParsed.filter((r) => r.emailValid).length}
+                  loading={bulkInviteMutation.isPending}
+                >
+                  {bulkInviteMutation.isPending
+                    ? "Sending…"
+                    : `Send ${csvParsed.filter((r) => r.emailValid).length} Invitation(s)`}
+                </InviteBtn>
+              )}
+            </BtnRow>
+          </>
+        )}
       </DarkDialog>
     </Box>
   );
@@ -1328,159 +1615,192 @@ const btnBase = {
   padding: "9px 18px",
   letterSpacing: "0.02em",
   transition: "all 0.15s",
+  display: "flex",
+  alignItems: "center",
+  gap: 6,
 };
 
-function GhostBtn({ onClick, children }) {
+function BtnSpinner({ color = "currentColor" }) {
+  return (
+    <>
+      <style>{`@keyframes _btnSpin { to { transform: rotate(360deg); } }`}</style>
+      <Loader2
+        size={13}
+        color={color}
+        style={{ animation: "_btnSpin 0.7s linear infinite", flexShrink: 0 }}
+      />
+    </>
+  );
+}
+
+function GhostBtn({ onClick, children, loading, disabled }) {
+  const isDisabled = disabled || loading;
   return (
     <button
       onClick={onClick}
+      disabled={isDisabled}
       style={{
         ...btnBase,
         background: "transparent",
         border: "1px solid rgba(255,255,255,0.08)",
         color: "rgba(255,255,255,0.45)",
+        opacity: isDisabled ? 0.5 : 1,
+        cursor: isDisabled ? "not-allowed" : "pointer",
       }}
       onMouseEnter={(e) => {
-        e.currentTarget.style.borderColor = "rgba(255,255,255,0.18)";
-        e.currentTarget.style.color = "rgba(255,255,255,0.7)";
+        if (!isDisabled) {
+          e.currentTarget.style.borderColor = "rgba(255,255,255,0.18)";
+          e.currentTarget.style.color = "rgba(255,255,255,0.7)";
+        }
       }}
       onMouseLeave={(e) => {
         e.currentTarget.style.borderColor = "rgba(255,255,255,0.08)";
         e.currentTarget.style.color = "rgba(255,255,255,0.45)";
       }}
     >
+      {loading && <BtnSpinner />}
       {children}
     </button>
   );
 }
-function PrimaryBtn({ onClick, children, disabled }) {
+function PrimaryBtn({ onClick, children, disabled, loading }) {
+  const isDisabled = disabled || loading;
   return (
     <button
       onClick={onClick}
-      disabled={disabled}
+      disabled={isDisabled}
       style={{
         ...btnBase,
         background: "rgba(255,255,255,0.1)",
         border: "1px solid rgba(255,255,255,0.15)",
         color: "#f4f4f5",
-        opacity: disabled ? 0.5 : 1,
-        cursor: disabled ? "not-allowed" : "pointer",
+        opacity: isDisabled ? 0.5 : 1,
+        cursor: isDisabled ? "not-allowed" : "pointer",
       }}
       onMouseEnter={(e) => {
-        if (!disabled)
+        if (!isDisabled)
           e.currentTarget.style.background = "rgba(255,255,255,0.15)";
       }}
       onMouseLeave={(e) => {
         e.currentTarget.style.background = "rgba(255,255,255,0.1)";
       }}
     >
+      {loading && <BtnSpinner />}
       {children}
     </button>
   );
 }
-function WarnBtn({ onClick, children, disabled }) {
+function WarnBtn({ onClick, children, disabled, loading }) {
+  const isDisabled = disabled || loading;
   return (
     <button
       onClick={onClick}
-      disabled={disabled}
+      disabled={isDisabled}
       style={{
         ...btnBase,
         background: "rgba(251,191,36,0.1)",
         border: "1px solid rgba(251,191,36,0.2)",
         color: "#fbbf24",
-        opacity: disabled ? 0.5 : 1,
-        cursor: disabled ? "not-allowed" : "pointer",
+        opacity: isDisabled ? 0.5 : 1,
+        cursor: isDisabled ? "not-allowed" : "pointer",
       }}
       onMouseEnter={(e) => {
-        if (!disabled)
+        if (!isDisabled)
           e.currentTarget.style.background = "rgba(251,191,36,0.15)";
       }}
       onMouseLeave={(e) => {
         e.currentTarget.style.background = "rgba(251,191,36,0.1)";
       }}
     >
+      {loading && <BtnSpinner color="#fbbf24" />}
       {children}
     </button>
   );
 }
-function GreenBtn({ onClick, children, disabled }) {
+function GreenBtn({ onClick, children, disabled, loading }) {
+  const isDisabled = disabled || loading;
   return (
     <button
       onClick={onClick}
-      disabled={disabled}
+      disabled={isDisabled}
       style={{
         ...btnBase,
         background: "rgba(74,222,128,0.1)",
         border: "1px solid rgba(74,222,128,0.2)",
         color: "#4ade80",
-        opacity: disabled ? 0.5 : 1,
-        cursor: disabled ? "not-allowed" : "pointer",
+        opacity: isDisabled ? 0.5 : 1,
+        cursor: isDisabled ? "not-allowed" : "pointer",
       }}
       onMouseEnter={(e) => {
-        if (!disabled)
+        if (!isDisabled)
           e.currentTarget.style.background = "rgba(74,222,128,0.15)";
       }}
       onMouseLeave={(e) => {
         e.currentTarget.style.background = "rgba(74,222,128,0.1)";
       }}
     >
+      {loading && <BtnSpinner color="#4ade80" />}
       {children}
     </button>
   );
 }
-function DangerBtn({ onClick, children, disabled }) {
+function DangerBtn({ onClick, children, disabled, loading }) {
+  const isDisabled = disabled || loading;
   return (
     <button
       onClick={onClick}
-      disabled={disabled}
+      disabled={isDisabled}
       style={{
         ...btnBase,
         background: "rgba(239,68,68,0.1)",
         border: "1px solid rgba(239,68,68,0.2)",
         color: "#f87171",
-        opacity: disabled ? 0.5 : 1,
-        cursor: disabled ? "not-allowed" : "pointer",
+        opacity: isDisabled ? 0.5 : 1,
+        cursor: isDisabled ? "not-allowed" : "pointer",
       }}
       onMouseEnter={(e) => {
-        if (!disabled)
+        if (!isDisabled)
           e.currentTarget.style.background = "rgba(239,68,68,0.15)";
       }}
       onMouseLeave={(e) => {
         e.currentTarget.style.background = "rgba(239,68,68,0.1)";
       }}
     >
+      {loading && <BtnSpinner color="#f87171" />}
       {children}
     </button>
   );
 }
 
-function InviteBtn({ onClick, children, disabled }) {
+function InviteBtn({ onClick, children, disabled, loading }) {
+  const isDisabled = disabled || loading;
   return (
     <button
       onClick={onClick}
-      disabled={disabled}
+      disabled={isDisabled}
       style={{
         ...btnBase,
-        background: disabled
+        background: isDisabled
           ? "rgba(109,40,217,0.25)"
           : "linear-gradient(135deg, #6d28d9 0%, #4338ca 100%)",
         border: "1px solid rgba(168,85,247,0.35)",
-        color: disabled ? "rgba(255,255,255,0.4)" : "#fff",
-        opacity: disabled ? 0.65 : 1,
-        cursor: disabled ? "not-allowed" : "pointer",
+        color: isDisabled ? "rgba(255,255,255,0.4)" : "#fff",
+        opacity: isDisabled ? 0.65 : 1,
+        cursor: isDisabled ? "not-allowed" : "pointer",
       }}
       onMouseEnter={(e) => {
-        if (!disabled) {
+        if (!isDisabled) {
           e.currentTarget.style.background =
             "linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%)";
         }
       }}
       onMouseLeave={(e) => {
-        e.currentTarget.style.background = disabled
+        e.currentTarget.style.background = isDisabled
           ? "rgba(109,40,217,0.25)"
           : "linear-gradient(135deg, #6d28d9 0%, #4338ca 100%)";
       }}
     >
+      {loading && <BtnSpinner color="rgba(255,255,255,0.7)" />}
       {children}
     </button>
   );

@@ -298,6 +298,50 @@ export function useInviteUser() {
 }
 
 /**
+ * Invite multiple users via CSV (sends invite emails in bulk)
+ */
+export function useBulkInviteUsers() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (invites) => {
+      const roleMap = {
+        SA: "SA",
+        BOARD: "BOARD",
+        DH: "DH",
+        JUDGE: "JUDGE",
+        VOLUNTEER: "VOLUNTEER",
+        USER: "USER",
+        VOL: "VOLUNTEER",
+        PART: "USER",
+        VH: "VOLUNTEER",
+      };
+      const validRoles = new Set([
+        "SA",
+        "BOARD",
+        "DH",
+        "JUDGE",
+        "VOLUNTEER",
+        "USER",
+      ]);
+
+      const mapped = invites.map(({ email, role }) => {
+        const apiRole = roleMap[role] || role;
+        return { email: email.trim(), role: validRoles.has(apiRole) ? apiRole : "USER" };
+      });
+
+      const { data } = await apiClient.post("/auth/invite/bulk", {
+        invites: mapped,
+      });
+      return data;
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.users.all });
+    },
+  });
+}
+
+/**
  * DH: Fetch own department members (backend enforces the scope — DH cannot
  * supply an arbitrary departmentId, the server derives it from their session).
  */
