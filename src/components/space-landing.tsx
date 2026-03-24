@@ -690,8 +690,8 @@ async function createScene({
 
     const mob = window.innerWidth < 768;
 
-    const ringRadiusX = mob ? 7.0 : 11.0;
-    const ringRadiusZ = mob ? 7.5 : 9.5;
+    const ringRadiusX = mob ? 8.0 : 10.0;
+    const ringRadiusZ = mob ? 8.0 : 10.0;
     const ringCenterZ = mob ? -6 : -5;
     
     planetsRig.rotation.y += delta * 0.026;
@@ -738,8 +738,10 @@ async function createScene({
         revealIn,
       );
       entry.pivot.position.z = THREE.MathUtils.lerp(10 + index * 0.6, entry.basePosition.z + Math.sin(elapsed * 0.35 + index) * 0.09, visibility);
-      entry.pivot.rotation.y += delta * (0.20 + index * 0.025);
+      entry.pivot.rotation.y += delta * (0.60 + index * 0.025);
       entry.pivot.rotation.x = Math.sin(elapsed * 0.22 + index * 0.88) * 0.038 + Math.cos(elapsed * 0.14 + index * 0.55) * 0.015;
+      entry.target.rotation.y += delta * (0.18 + index * 0.018);  
+      entry.target.rotation.x = Math.sin(elapsed * 0.09 + index * 0.72) * 0.06;
       entry.root.position.y = Math.sin(elapsed * 0.62 + index * 1.28) * 0.085 + Math.cos(elapsed * 0.31 + index * 0.78) * 0.030;
       entry.root.position.x = Math.sin(elapsed * 0.25 + index * 1.08) * 0.032;
       entry.scale = THREE.MathUtils.lerp(entry.scale, visibility * emphasis, 0.068);

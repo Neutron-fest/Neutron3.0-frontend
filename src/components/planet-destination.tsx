@@ -47,8 +47,8 @@ export default function PlanetDestination({ planet }: { planet: PlanetRecord }) 
               "--planet-accent": planet.accent,
             } as CSSProperties}
           />
-          <div className="absolute rounded-full border border-[rgba(165,206,255,0.18)]" style={{ inset: "8%", transform: "rotate(16deg)" }} />
-          <div className="absolute rounded-full border border-[rgba(165,206,255,0.18)]" style={{ inset: "0%", transform: "rotate(-22deg)" }} />
+          <motion.div className="absolute rounded-full border border-[rgba(165,206,255,0.18)]" style={{ inset: "8%" }} animate={{ rotate: [16, 376] }} transition={{ duration: 45, repeat: Infinity, ease: "linear" }} />
+          <motion.div className="absolute rounded-full border border-[rgba(165,206,255,0.18)]" style={{ inset: "0%" }} animate={{ rotate: [-22, -382] }} transition={{ duration: 60, repeat: Infinity, ease: "linear" }} />
         </motion.div>
 
         <motion.div

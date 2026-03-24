@@ -17,10 +17,10 @@ export const PLANET_RECORDS: PlanetRecord[] = [
   {
     slug: "mars",
     name: "About Us",
-    accent: "#ff7b42",
+    accent: "#e48eff",
     size: 2.45,
     kind: "glb",
-    model: "/3D/planets/planet-mars-nasa-mars-landing-2021/source/Mars_1_6792.glb",
+    model: "/3D/planets/purple_planet.glb",
     rotationOffset: Math.PI * 0.22,
     eyebrow: "Red frontier",
     headline: "A harsher orbit, cut for propulsion tests and long-range landings.",
