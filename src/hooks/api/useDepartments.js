@@ -4,6 +4,21 @@ import apiClient from "@/lib/axios";
 
 const normalizeDepartment = (dept) => ({
   ...dept,
+  deptHeadIds: Array.isArray(dept?.deptHeadIds)
+    ? dept.deptHeadIds
+    : dept?.deptHeadId
+      ? [dept.deptHeadId]
+      : [],
+  deptHeads: Array.isArray(dept?.deptHeads)
+    ? dept.deptHeads
+    : dept?.deptHead
+      ? [dept.deptHead]
+      : [],
+  deptHead:
+    dept?.deptHead ||
+    (Array.isArray(dept?.deptHeads) && dept.deptHeads.length > 0
+      ? dept.deptHeads[0]
+      : null),
   membersCount:
     dept?.membersCount ??
     dept?.memberCount ??

@@ -59,7 +59,7 @@ export default function DepartmentsPage() {
 
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
-  const [deptHeadId, setDeptHeadId] = useState("");
+  const [deptHeadIds, setDeptHeadIds] = useState([]);
   const [selectedVolunteerIds, setSelectedVolunteerIds] = useState([]);
   const [selectedDepartmentId, setSelectedDepartmentId] = useState(null);
   const [removingUserId, setRemovingUserId] = useState(null);
@@ -111,11 +111,17 @@ export default function DepartmentsPage() {
     if (dept) {
       setName(dept.name);
       setDescription(dept.description || "");
-      setDeptHeadId(dept.deptHead?.id || dept.deptHeadId || "");
+      if (Array.isArray(dept.deptHeadIds)) {
+        setDeptHeadIds(dept.deptHeadIds.filter(Boolean));
+      } else if (Array.isArray(dept.deptHeads)) {
+        setDeptHeadIds(dept.deptHeads.map((head) => head?.id).filter(Boolean));
+      } else {
+        setDeptHeadIds([dept.deptHead?.id || dept.deptHeadId].filter(Boolean));
+      }
     } else {
       setName("");
       setDescription("");
-      setDeptHeadId("");
+      setDeptHeadIds([]);
     }
 
     setDialogOpen(true);
@@ -127,7 +133,7 @@ export default function DepartmentsPage() {
     setMenuDept(null);
     setName("");
     setDescription("");
-    setDeptHeadId("");
+    setDeptHeadIds([]);
     setSelectedVolunteerIds([]);
     setSelectedDepartmentId(null);
     setRemovingUserId(null);
@@ -139,7 +145,7 @@ export default function DepartmentsPage() {
       await createMutation.mutateAsync({
         name,
         description,
-        deptHeadId: deptHeadId || undefined,
+        deptHeadIds: deptHeadIds.length ? deptHeadIds : undefined,
       });
 
       enqueueSnackbar("Department created", { variant: "success" });
@@ -157,7 +163,7 @@ export default function DepartmentsPage() {
         deptId: menuDept.id,
         name,
         description,
-        deptHeadId: deptHeadId || null,
+        deptHeadIds,
       });
 
       enqueueSnackbar("Department updated", { variant: "success" });
@@ -374,8 +380,14 @@ export default function DepartmentsPage() {
             color: "rgba(255,255,255,0.7)",
           },
           {
-            label: "With Head Assigned",
-            value: departments.filter((d) => d.deptHeadId || d.deptHead).length,
+            label: "With Heads Assigned",
+            value: departments.filter((d) => {
+              const count =
+                d.deptHeadIds?.length ??
+                d.deptHeads?.length ??
+                (d.deptHead ? 1 : 0);
+              return count > 0;
+            }).length,
             color: "#c084fc",
           },
           {
@@ -498,7 +510,7 @@ export default function DepartmentsPage() {
             background: "rgba(255,255,255,0.02)",
           }}
         >
-          {["Department", "Description", "Head", "Members", ""].map((h, i) => (
+          {["Department", "Description", "Heads", "Members", ""].map((h, i) => (
             <Typography
               key={i}
               sx={{
@@ -605,9 +617,38 @@ export default function DepartmentsPage() {
                     {dept.description || "—"}
                   </Typography>
 
-                  {/* Head */}
+                  {/* Heads */}
                   <Box>
-                    {dept.deptHead ? (
+                    {(dept.deptHeads?.length || 0) > 0 ? (
+                      <Box
+                        sx={{ display: "flex", alignItems: "center", gap: 1 }}
+                      >
+                        <Box
+                          sx={{
+                            width: 6,
+                            height: 6,
+                            borderRadius: "50%",
+                            background: "#c084fc",
+                            flexShrink: 0,
+                          }}
+                        />
+                        <Typography
+                          sx={{
+                            fontSize: 12,
+                            color: "#c084fc",
+                            fontFamily: "'DM Mono', monospace",
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                            whiteSpace: "nowrap",
+                          }}
+                        >
+                          {dept.deptHeads[0].name || dept.deptHeads[0].email}
+                          {dept.deptHeads.length > 1
+                            ? ` +${dept.deptHeads.length - 1}`
+                            : ""}
+                        </Typography>
+                      </Box>
+                    ) : dept.deptHead ? (
                       <Box
                         sx={{ display: "flex", alignItems: "center", gap: 1 }}
                       >
@@ -749,16 +790,28 @@ export default function DepartmentsPage() {
             textTransform: "uppercase",
           }}
         >
-          Department Head
+          Department Heads
         </Typography>
-        <NativeSelect value={deptHeadId} onChange={setDeptHeadId} fullWidth>
-          <option value="">Not assigned</option>
-          {departmentHeads.map((h) => (
-            <option key={h.id} value={h.id}>
-              {h.name || h.email}
-            </option>
-          ))}
-        </NativeSelect>
+        <MultiNativeSelect
+          values={deptHeadIds}
+          onChange={setDeptHeadIds}
+          options={departmentHeads.map((head) => ({
+            value: head.id,
+            label: head.name || head.email,
+          }))}
+          fullWidth
+          disabled={isDeptHeadsLoading}
+        />
+        <Typography
+          sx={{
+            mt: 0.75,
+            fontSize: 11,
+            color: "rgba(255,255,255,0.25)",
+            fontFamily: "'DM Mono', monospace",
+          }}
+        >
+          Hold Ctrl/Cmd to select multiple heads.
+        </Typography>
         <BtnRow>
           <GhostBtn onClick={closeDialog}>Cancel</GhostBtn>
           {dialogType === "create" ? (
@@ -1170,11 +1223,18 @@ function DarkDialog({ open, onClose, title, children }) {
   );
 }
 
-function NativeSelect({ value, onChange, children, fullWidth }) {
+function MultiNativeSelect({ values, onChange, options, fullWidth, disabled }) {
   return (
     <select
-      value={value}
-      onChange={(e) => onChange(e.target.value)}
+      multiple
+      value={values}
+      disabled={disabled}
+      onChange={(e) =>
+        onChange(
+          Array.from(e.target.selectedOptions).map((option) => option.value),
+        )
+      }
+      size={Math.min(Math.max(options.length, 3), 8)}
       style={{
         width: fullWidth ? "100%" : "auto",
         padding: "8px 12px",
@@ -1185,10 +1245,15 @@ function NativeSelect({ value, onChange, children, fullWidth }) {
         fontSize: 13,
         fontFamily: "'Syne', sans-serif",
         outline: "none",
-        cursor: "pointer",
+        cursor: disabled ? "not-allowed" : "pointer",
+        opacity: disabled ? 0.5 : 1,
       }}
     >
-      {children}
+      {options.map((option) => (
+        <option key={option.value} value={option.value}>
+          {option.label}
+        </option>
+      ))}
     </select>
   );
 }
