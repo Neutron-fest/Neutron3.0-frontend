@@ -2,6 +2,8 @@
 
 import React, { useState, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 function parseTeamSize(sizeStr: string): number[] {
   const match = sizeStr.match(/(\d+)(?:-(\d+))?/);
@@ -28,6 +30,7 @@ export default function CompetitionRegistration({
   competitionTitle: string;
   teamSize: string;
 }) {
+  const pathname = usePathname();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
@@ -108,12 +111,12 @@ export default function CompetitionRegistration({
         <p className="text-white/60 mb-8 font-light">
           You must be signed in to your Neutron account to register for {competitionTitle}.
         </p>
-        <button
-          onClick={() => setIsAuthenticated(true)}
-          className="bg-white text-black px-8 py-3 rounded-full font-medium hover:scale-105 transition-transform duration-300 w-full md:w-auto cursor-pointer"
+        <Link
+          href={`/auth/signin?callbackUrl=${encodeURIComponent(pathname)}`}
+          className="inline-block bg-white text-black px-8 py-3 rounded-full font-medium hover:scale-105 transition-transform duration-300 w-full md:w-auto cursor-pointer"
         >
           Sign In Now
-        </button>
+        </Link>
       </div>
     );
   }
@@ -168,7 +171,6 @@ export default function CompetitionRegistration({
       </div>
 
       <form onSubmit={handleRegister} className="space-y-8 flex flex-col">
-        {/* General Team Info */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-white/5 border border-white/10 rounded-xl p-6 relative overflow-hidden">
           <div className="absolute top-0 left-0 w-1 h-full bg-blue-500/50"></div>
           
@@ -208,7 +210,6 @@ export default function CompetitionRegistration({
           </div>
         </div>
 
-        {/* Member Details */}
         <div className="space-y-6">
           <AnimatePresence>
             {formData.members.map((member, index) => (
