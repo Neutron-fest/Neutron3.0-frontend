@@ -45,7 +45,7 @@ export default function SectionWrapper({ competition }: { competition: any }) {
           <div className="relative max-w-3xl group pt-4">
             <div className="absolute -left-6 top-0 bottom-0 w-[2px] bg-white/10 transition-all duration-700"></div>
             <div className="pl-8 space-y-8">
-              <p className="text-lg md:text-2xl font-light text-white/60 leading-relaxed tracking-wide">
+              <p className="text-lg md:text-xl font-light text-white/60 leading-relaxed tracking-wide">
                 {competition.description}
               </p>
               
@@ -82,7 +82,7 @@ export default function SectionWrapper({ competition }: { competition: any }) {
                >
                 <div className="flex items-center space-x-4 mb-8">
                   <div className="w-12 h-px bg-white/30"></div>
-                  <h2 className="text-3xl tracking-wide uppercase font-light text-white/90">Mission Briefing</h2>
+                  <h2 className="text-3xl tracking-wide uppercase font-semibold text-white/90">Mission Briefing</h2>
                 </div>
                 <div className="flex flex-col space-y-12 pr-12">
                   <ScrollReveal
@@ -93,6 +93,9 @@ export default function SectionWrapper({ competition }: { competition: any }) {
                   >
                     {competition.about}
                   </ScrollReveal>
+
+                  <br/>
+                  <br/>
 
                   <ScrollReveal
                     baseOpacity={0}

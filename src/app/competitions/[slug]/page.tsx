@@ -55,7 +55,7 @@ export default async function CompetitionSlugPage({ params }: { params: Promise<
           <SectionWrapper competition={competition} />
         </main>
 
-        <section className="relative z-20">
+        <section className="relative z-20 hidden md:block">
            <ScrollRevealCards 
              prizePool={competition.prizePool}
              location={competition.location}
@@ -66,7 +66,6 @@ export default async function CompetitionSlugPage({ params }: { params: Promise<
         <section className="relative pt-64 z-30 bg-[#030303] overflow-hidden">
           <div className="absolute top-0 left-0 w-full h-64 bg-linear-to-b from-transparent to-[#030303] pointer-events-none -translate-y-full"></div>
           <div className="max-w-4xl mx-auto px-6 relative">
-             <div className="absolute -top-32 -left-32 w-96 h-96 bg-white/5 blur-3xl rounded-full"></div>
              <div className="mb-24 text-center">
                <div className="h-px w-32 bg-white/10 mx-auto mb-12" />
                <h2 className="text-6xl md:text-8xl font-black tracking-tighter mb-6 uppercase">Launch Initiation</h2>
