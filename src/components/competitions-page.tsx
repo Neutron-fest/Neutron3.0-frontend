@@ -15,10 +15,13 @@ type CardProps = {
   image: string;
   heightClass: string;
   delay?: number;
+  category: string;
+  teamSize: string;
+  status: "OPEN" | "CLOSED" | "CANCELLED" | "POSTPONED";
 };
 
 
-function ParallaxCard({ title, description, image, heightClass, delay = 0,id}: CardProps) {
+function ParallaxCard({ title, description, image, heightClass, delay = 0,id, category, teamSize, status }: CardProps) {
   const router = useRouter();
   const ref = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({
@@ -57,11 +60,29 @@ function ParallaxCard({ title, description, image, heightClass, delay = 0,id}: C
           {title}
         </h2>
         {description && (
-          <p className="text-gray-300 text-sm md:text-[15px] leading-relaxed max-w-[90%] font-light">
+          <p className="text-gray-300 text-sm md:text-[15px] leading-relaxed max-w-[90%] font-light mb-2">
             {description}
           </p>
         )}
+
+         <div className="flex flex-wrap gap-2 mt-auto">
+            <span className="px-2 py-1 rounded-sm bg-white/5 border border-white/10 text-[10px] uppercase tracking-wider text-white/50 font-mono">
+              {category}
+            </span>
+            <span className="px-2 py-1 rounded-sm bg-white/5 border border-white/10 text-[10px] uppercase tracking-wider text-white/50 font-mono">
+              {teamSize}
+            </span>
+            <span className={`px-2 py-1 rounded-sm border text-[10px] uppercase tracking-wider font-mono ${
+              status === 'OPEN' ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' :
+              status === 'CLOSED' ? 'bg-rose-500/10 border-rose-500/20 text-rose-400' :
+              status === 'POSTPONED' ? 'bg-amber-500/10 border-amber-500/20 text-amber-400' :
+              'bg-white/5 border-white/10 text-white/30'
+            }`}>
+              {status}
+            </span>
+          </div>
       </div>
+
 
       <div className="absolute bottom-8 right-8 z-30 bg-white text-black p-3 rounded-sm opacity-0 translate-y-4 transition-all duration-300 group-hover:opacity-100 group-hover:translate-y-0 cursor-pointer hover:scale-105">
         <svg
@@ -182,6 +203,9 @@ export default function CompetitionsPage() {
               image={comp.posterPath}
               heightClass={index % 2 === 0 ? "h-[750px] md:h-[900px]" : "h-[500px] md:h-[600px]"}
               delay={index * 0.2}
+              category={comp.category}
+              teamSize={`${comp.minTeamSize} - ${comp.maxTeamSize} Members`}
+              status={comp.status.toUpperCase() as "OPEN" | "CLOSED" | "CANCELLED" | "POSTPONED"}
               
             />
           ))}
@@ -196,4 +220,8 @@ interface Competition {
   title: string;
   shortDescription: string;
   posterPath: string
+  category: string;
+  maxTeamSize: string;
+  minTeamSize: string;
+  status: string; 
 }

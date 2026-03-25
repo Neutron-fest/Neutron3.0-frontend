@@ -164,6 +164,7 @@ export default function EventsPage() {
                 category={event.category}
                 teamSize={event.teamSize}
                 status={event.status}
+                
               />
             ))}
           </div>

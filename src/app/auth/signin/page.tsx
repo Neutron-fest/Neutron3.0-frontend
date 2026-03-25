@@ -22,9 +22,11 @@ function SignInContent() {
     try{
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/auth/google`)      
       const data = await res.json()
+    
       console.log(data)
     }catch(err){
       console.log(err)
+
 
     }
     
@@ -35,6 +37,7 @@ function SignInContent() {
   const handleSubmit = async(e: React.FormEvent) => {
     e.preventDefault();
     try{
+      setIsLoading(true);
       const formData = new FormData(e.target as HTMLFormElement);
       const data = Object.fromEntries(formData.entries());
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/auth/login`, {
@@ -45,7 +48,7 @@ function SignInContent() {
         body: JSON.stringify(data)
       });
       const result = await res.json();
-      setIsLoading(true);
+    
       console.log(result);
     }catch(err){
 

@@ -51,12 +51,12 @@ export default function SectionWrapper({ competition }: { competition: any }) {
                   {competition.category}
                 </span>
                 <span className="px-3 py-1.5 rounded-full bg-white/5 border border-white/10 text-xs uppercase tracking-[0.2em] text-white/50 font-mono backdrop-blur-md">
-                  {competition.teamSize}
+                  {competition.minTeamSize} - {competition.maxTeamSize} Members
                 </span>
                 <span className={`px-3 py-1.5 rounded-full border text-xs uppercase tracking-[0.2em] font-mono backdrop-blur-md ${
-                  competition.status === 'open' ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' :
-                  competition.status === 'closed' ? 'bg-rose-500/10 border-rose-500/20 text-rose-400' :
-                  competition.status === 'postponed' ? 'bg-amber-500/10 border-amber-500/20 text-amber-400' :
+                  competition.status === 'OPEN' ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' :
+                  competition.status === 'CLOSED' ? 'bg-rose-500/10 border-rose-500/20 text-rose-400' :
+                  competition.status === 'POSTPONED' ? 'bg-amber-500/10 border-amber-500/20 text-amber-400' :
                   'bg-white/5 border-white/10 text-white/30'
                 }`}>
                   {competition.status}
@@ -110,9 +110,9 @@ export default function SectionWrapper({ competition }: { competition: any }) {
                     The mission lifecycle demands endurance and high cognitive function. You will be pushed to your limits, but the data harvested will pave the way for future generations. Prepare for launch sequence initiation.
                   </ScrollReveal>
 
-                  <div className="pt-12">
+                  {/* <div className="pt-12">
                     <RulesSection rules={competition.rules} />
-                  </div>
+                  </div> */}
 
                   <p className="opacity-30 italic font-mono text-xs tracking-[0.3em] pt-12 uppercase border-t border-white/5">
                     End of Briefing • Awaiting Commander Input
@@ -138,9 +138,9 @@ export default function SectionWrapper({ competition }: { competition: any }) {
             <div className="hidden lg:flex flex-col justify-center h-full pr-12">
               <StickyScrollCards 
                 progress={scrollYProgress}
-                prizePool={competition.prizePool}
-                location={competition.location}
-                teamSize={competition.teamSize}
+                prizePool={`₹ ${competition.prizePool[0].cash}`}
+                location={competition.venueName}
+                teamSize={`${competition.minTeamSize} - ${competition.maxTeamSize} Members`}
                 competitionTitle={competition.title}
                 category={competition.category}
                 eventType={competition.eventType}
