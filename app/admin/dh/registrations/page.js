@@ -5,7 +5,6 @@ import {
   Box,
   Typography,
   Paper,
-  Button,
   Chip,
   TextField,
   MenuItem,
@@ -13,7 +12,6 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
-  CircularProgress,
   Table,
   TableBody,
   TableCell,
@@ -24,7 +22,14 @@ import {
   Tooltip,
   InputAdornment,
 } from "@mui/material";
-import { CheckCircle, XCircle, Search, ClipboardList, Eye } from "lucide-react";
+import {
+  CheckCircle,
+  XCircle,
+  Search,
+  ClipboardList,
+  Eye,
+  Loader2,
+} from "lucide-react";
 import { useSnackbar } from "notistack";
 import {
   usePendingRegistrations,
@@ -37,65 +42,44 @@ import { LoadingState } from "@/src/components/LoadingState";
 const cellSx = { color: "#d4d4d8", borderColor: "#27272a" };
 const headSx = { color: "#a1a1aa", borderColor: "#27272a", fontWeight: 600 };
 
-const subtleButtonSx = {
-  textTransform: "none",
-  fontFamily: "'Syne', sans-serif",
-  fontWeight: 600,
-  fontSize: 12,
-  borderRadius: "8px",
-  px: 1.8,
-  py: 0.7,
-  border: "1px solid rgba(255,255,255,0.12)",
-  color: "rgba(255,255,255,0.75)",
-  background: "rgba(255,255,255,0.04)",
-  backdropFilter: "blur(2px)",
-  transition: "all 0.18s",
-  "&:hover": {
-    background: "rgba(255,255,255,0.08)",
-    borderColor: "rgba(255,255,255,0.2)",
-    boxShadow: "0 8px 24px rgba(0,0,0,0.22)",
-  },
-};
+const renderFieldAnswer = (field) => {
+  if (field?.fieldType === "IMAGE" && field?.fileUrl) {
+    return (
+      <Box sx={{ mt: 0.2 }}>
+        <Box
+          component="img"
+          src={field.fileUrl}
+          alt={field.label || "Submitted image"}
+          sx={{
+            width: 180,
+            maxWidth: "100%",
+            height: 120,
+            objectFit: "cover",
+            borderRadius: "8px",
+            border: "1px solid rgba(255,255,255,0.12)",
+            background: "rgba(255,255,255,0.03)",
+          }}
+        />
+        <a
+          href={field.fileUrl}
+          target="_blank"
+          rel="noreferrer"
+          style={{
+            color: "#a78bfa",
+            fontSize: 12,
+            fontFamily: "'DM Mono', monospace",
+            display: "inline-block",
+            marginTop: 6,
+            textDecoration: "none",
+          }}
+        >
+          Open full image
+        </a>
+      </Box>
+    );
+  }
 
-const approveButtonSx = {
-  textTransform: "none",
-  fontWeight: 600,
-  fontFamily: "'Syne', sans-serif",
-  fontSize: 12,
-  borderRadius: "8px",
-  px: 1.8,
-  py: 0.7,
-  border: "1px solid rgba(74,222,128,0.3)",
-  background:
-    "linear-gradient(135deg, rgba(22,163,74,0.9) 0%, rgba(21,128,61,0.95) 100%)",
-  color: "#fff",
-  boxShadow: "0 4px 16px rgba(22,163,74,0.2)",
-  transition: "all 0.18s",
-  "&:hover": {
-    background:
-      "linear-gradient(135deg, rgba(34,197,94,0.95) 0%, rgba(22,163,74,1) 100%)",
-    boxShadow: "0 6px 20px rgba(22,163,74,0.28)",
-  },
-};
-
-const rejectButtonSx = {
-  textTransform: "none",
-  fontWeight: 600,
-  fontFamily: "'Syne', sans-serif",
-  fontSize: 12,
-  borderRadius: "8px",
-  px: 1.8,
-  py: 0.7,
-  border: "1px solid rgba(239,68,68,0.35)",
-  color: "#fca5a5",
-  background: "rgba(239,68,68,0.1)",
-  boxShadow: "0 4px 16px rgba(239,68,68,0.12)",
-  transition: "all 0.18s",
-  "&:hover": {
-    borderColor: "rgba(239,68,68,0.58)",
-    backgroundColor: "rgba(239,68,68,0.18)",
-    boxShadow: "0 6px 20px rgba(239,68,68,0.2)",
-  },
+  return field?.displayValue || "—";
 };
 
 const isUuid = (value) =>
@@ -121,6 +105,7 @@ export default function RegistrationsPage() {
 
   // In-flight tracking
   const [approvingId, setApprovingId] = useState(null);
+  const [approvingTeamKey, setApprovingTeamKey] = useState(null);
   const [formDialog, setFormDialog] = useState({
     open: false,
     row: null,
@@ -229,6 +214,29 @@ export default function RegistrationsPage() {
       );
     } finally {
       setApprovingId(null);
+    }
+  }
+
+  async function handleApproveTeam(group) {
+    setApprovingTeamKey(group.key);
+    try {
+      // Approve all members in the team
+      const approvalPromises = group.members
+        .map((member) => getRegistrationId(member))
+        .filter(Boolean)
+        .map((registrationId) => approve(registrationId));
+
+      await Promise.all(approvalPromises);
+      enqueueSnackbar(`All ${group.members.length} registrations approved`, {
+        variant: "success",
+      });
+    } catch (err) {
+      enqueueSnackbar(
+        err?.response?.data?.message || err?.message || "Failed to approve team",
+        { variant: "error" },
+      );
+    } finally {
+      setApprovingTeamKey(null);
     }
   }
 
@@ -453,6 +461,22 @@ export default function RegistrationsPage() {
                       fontSize: 11,
                     }}
                   />
+                  {group.members.some(
+                    (m) =>
+                      (m.status || m.registrationStatus) === "PENDING" &&
+                      getRegistrationId(m),
+                  ) && (
+                    <GreenBtn
+                      onClick={() => handleApproveTeam(group)}
+                      loading={approvingTeamKey === group.key}
+                      disabled={approvingTeamKey !== null}
+                      sx={{
+                        ml: 1,
+                      }}
+                    >
+                      <CheckCircle size={14} /> Approve All
+                    </GreenBtn>
+                  )}
                 </Box>
               </Box>
 
@@ -535,16 +559,13 @@ export default function RegistrationsPage() {
                               }}
                             >
                               <Avatar
+                                src="/images/bg.jpeg"
+                                alt={name}
                                 sx={{
                                   width: 36,
                                   height: 36,
-                                  backgroundColor: "#3f3f46",
-                                  fontSize: 14,
-                                  fontWeight: 700,
                                 }}
-                              >
-                                {name.charAt(0).toUpperCase()}
-                              </Avatar>
+                              />
                               <Box>
                                 <Typography
                                   variant="body2"
@@ -639,54 +660,36 @@ export default function RegistrationsPage() {
                                 flexWrap: "wrap",
                               }}
                             >
-                              <Button
-                                size="small"
-                                onClick={() => openFormDialog(row)}
-                                startIcon={<Eye size={14} />}
-                                sx={subtleButtonSx}
-                              >
+                              <PrimaryBtn onClick={() => openFormDialog(row)}>
+                                <Eye size={14} />
                                 View form
-                              </Button>
+                              </PrimaryBtn>
                               <Tooltip title={approvalTooltip}>
-                                <span>
-                                  <Button
-                                    size="small"
+                                <div>
+                                  <GreenBtn
                                     onClick={() =>
                                       handleApprove(registrationId)
                                     }
                                     disabled={!canApprove}
-                                    startIcon={
-                                      isApproving ? (
-                                        <CircularProgress
-                                          size={14}
-                                          sx={{
-                                            color: "rgba(255,255,255,0.9)",
-                                          }}
-                                        />
-                                      ) : (
-                                        <CheckCircle size={14} />
-                                      )
-                                    }
-                                    sx={approveButtonSx}
+                                    loading={isApproving}
                                   >
+                                    <CheckCircle size={14} />
                                     Approve
-                                  </Button>
-                                </span>
+                                  </GreenBtn>
+                                </div>
                               </Tooltip>
                               <Tooltip title="Reject">
-                                <Button
-                                  size="small"
+                                <DangerBtn
                                   onClick={() =>
                                     openRejectDialog(row, registrationId)
                                   }
                                   disabled={
                                     !registrationId || !isPendingRegistration
                                   }
-                                  startIcon={<XCircle size={14} />}
-                                  sx={rejectButtonSx}
                                 >
+                                  <XCircle size={14} />
                                   Reject
-                                </Button>
+                                </DangerBtn>
                               </Tooltip>
                             </Box>
                           </TableCell>
@@ -782,7 +785,7 @@ export default function RegistrationsPage() {
                     Scope: {field.scope}
                     {field.isRequired ? " • Required" : " • Optional"}
                   </Typography>
-                  <Typography
+                  <Box
                     sx={{
                       color: field.hasValue
                         ? "rgba(255,255,255,0.9)"
@@ -791,8 +794,8 @@ export default function RegistrationsPage() {
                       wordBreak: "break-word",
                     }}
                   >
-                    {field.displayValue || "—"}
-                  </Typography>
+                    {renderFieldAnswer(field)}
+                  </Box>
                 </Box>
               ))}
             </Box>
@@ -807,14 +810,12 @@ export default function RegistrationsPage() {
             px: 3,
             py: 2,
             borderTop: "1px solid rgba(255,255,255,0.06)",
+            gap: 1,
           }}
         >
-          <Button
-            onClick={() => setFormDialog({ open: false, row: null })}
-            sx={subtleButtonSx}
-          >
+          <GhostBtn onClick={() => setFormDialog({ open: false, row: null })}>
             Close
-          </Button>
+          </GhostBtn>
         </DialogActions>
       </Dialog>
 
@@ -885,7 +886,7 @@ export default function RegistrationsPage() {
             gap: 1,
           }}
         >
-          <Button
+          <GhostBtn
             onClick={() =>
               setRejectDialog({
                 open: false,
@@ -893,39 +894,167 @@ export default function RegistrationsPage() {
                 registrationId: null,
               })
             }
-            sx={subtleButtonSx}
           >
             Cancel
-          </Button>
-          <Button
+          </GhostBtn>
+          <DangerBtn
             onClick={handleReject}
             disabled={!rejectReason.trim() || isRejecting}
-            endIcon={
-              isRejecting ? (
-                <CircularProgress size={14} sx={{ color: "#fff" }} />
-              ) : (
-                <XCircle size={14} />
-              )
-            }
-            sx={{
-              ...rejectButtonSx,
-              color: "#fff",
-              border: "1px solid rgba(239,68,68,0.55)",
-              background:
-                "linear-gradient(135deg, rgba(239,68,68,0.92) 0%, rgba(220,38,38,0.96) 100%)",
-              "&:hover": {
-                background:
-                  "linear-gradient(135deg, rgba(248,113,113,0.95) 0%, rgba(239,68,68,1) 100%)",
-                borderColor: "rgba(248,113,113,0.75)",
-                boxShadow: "0 8px 24px rgba(239,68,68,0.35)",
-              },
-            }}
+            loading={isRejecting}
           >
+            <XCircle size={14} />
             Reject
-          </Button>
+          </DangerBtn>
         </DialogActions>
       </Dialog>
     </Box>
+  );
+}
+
+// ───────────────────────────────────────────────────────────────────────────────
+// Button Components (from Users page)
+// ───────────────────────────────────────────────────────────────────────────────
+
+const btnBase = {
+  border: "none",
+  borderRadius: 8,
+  cursor: "pointer",
+  fontSize: 13,
+  fontFamily: "'Syne', sans-serif",
+  fontWeight: 500,
+  padding: "9px 18px",
+  letterSpacing: "0.02em",
+  transition: "all 0.15s",
+  display: "flex",
+  alignItems: "center",
+  gap: 6,
+};
+
+function BtnSpinner({ color = "currentColor" }) {
+  return (
+    <>
+      <style>{`@keyframes _btnSpin { to { transform: rotate(360deg); } }`}</style>
+      <Loader2
+        size={13}
+        color={color}
+        style={{ animation: "_btnSpin 0.7s linear infinite", flexShrink: 0 }}
+      />
+    </>
+  );
+}
+
+function GhostBtn({ onClick, children, loading, disabled }) {
+  const isDisabled = disabled || loading;
+  return (
+    <button
+      onClick={onClick}
+      disabled={isDisabled}
+      style={{
+        ...btnBase,
+        background: "transparent",
+        border: "1px solid rgba(255,255,255,0.08)",
+        color: "rgba(255,255,255,0.45)",
+        opacity: isDisabled ? 0.5 : 1,
+        cursor: isDisabled ? "not-allowed" : "pointer",
+      }}
+      onMouseEnter={(e) => {
+        if (!isDisabled) {
+          e.currentTarget.style.borderColor = "rgba(255,255,255,0.18)";
+          e.currentTarget.style.color = "rgba(255,255,255,0.7)";
+        }
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.borderColor = "rgba(255,255,255,0.08)";
+        e.currentTarget.style.color = "rgba(255,255,255,0.45)";
+      }}
+    >
+      {loading && <BtnSpinner />}
+      {children}
+    </button>
+  );
+}
+
+function PrimaryBtn({ onClick, children, disabled, loading }) {
+  const isDisabled = disabled || loading;
+  return (
+    <button
+      onClick={onClick}
+      disabled={isDisabled}
+      style={{
+        ...btnBase,
+        background: "rgba(255,255,255,0.1)",
+        border: "1px solid rgba(255,255,255,0.15)",
+        color: "#f4f4f5",
+        opacity: isDisabled ? 0.5 : 1,
+        cursor: isDisabled ? "not-allowed" : "pointer",
+      }}
+      onMouseEnter={(e) => {
+        if (!isDisabled)
+          e.currentTarget.style.background = "rgba(255,255,255,0.15)";
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.background = "rgba(255,255,255,0.1)";
+      }}
+    >
+      {loading && <BtnSpinner />}
+      {children}
+    </button>
+  );
+}
+
+function GreenBtn({ onClick, children, disabled, loading }) {
+  const isDisabled = disabled || loading;
+  return (
+    <button
+      onClick={onClick}
+      disabled={isDisabled}
+      style={{
+        ...btnBase,
+        background: "rgba(74,222,128,0.1)",
+        border: "1px solid rgba(74,222,128,0.2)",
+        color: "#4ade80",
+        opacity: isDisabled ? 0.5 : 1,
+        cursor: isDisabled ? "not-allowed" : "pointer",
+      }}
+      onMouseEnter={(e) => {
+        if (!isDisabled)
+          e.currentTarget.style.background = "rgba(74,222,128,0.15)";
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.background = "rgba(74,222,128,0.1)";
+      }}
+    >
+      {loading && <BtnSpinner color="#4ade80" />}
+      {children}
+    </button>
+  );
+}
+
+function DangerBtn({ onClick, children, disabled, loading }) {
+  const isDisabled = disabled || loading;
+  return (
+    <button
+      onClick={onClick}
+      disabled={isDisabled}
+      style={{
+        ...btnBase,
+        background: "rgba(239,68,68,0.1)",
+        border: "1px solid rgba(239,68,68,0.2)",
+        color: "#f87171",
+        opacity: isDisabled ? 0.5 : 1,
+        cursor: isDisabled ? "not-allowed" : "pointer",
+      }}
+      onMouseEnter={(e) => {
+        if (!isDisabled)
+          e.currentTarget.style.background = "rgba(239,68,68,0.15)";
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.background = "rgba(239,68,68,0.1)";
+      }}
+    >
+      {loading && <BtnSpinner color="#f87171" />}
+      {children}
+    </button>
   );
 }
 
