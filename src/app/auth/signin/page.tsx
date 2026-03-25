@@ -16,13 +16,43 @@ function SignInContent() {
   const [isForgotModalOpen, setIsForgotModalOpen] = useState(false);
   const [isResetSent, setIsResetSent] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+
+  //google sign in
+  const googleSignIn = async()=>{
+    try{
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/auth/google`)      
+      const data = await res.json()
+      console.log(data)
+    }catch(err){
+      console.log(err)
+
+    }
+    
+  }
+
+
+  //Email sign in
+  const handleSubmit = async(e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
-    setTimeout(() => {
-      setIsLoading(false);
-      router.push(callbackUrl);
-    }, 2000);
+    try{
+      const formData = new FormData(e.target as HTMLFormElement);
+      const data = Object.fromEntries(formData.entries());
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/auth/login`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(data)
+      });
+      const result = await res.json();
+      setIsLoading(true);
+      console.log(result);
+    }catch(err){
+
+      console.log(err)
+    }finally{
+        setIsLoading(false);
+    }
   };
 
   const handleForgotSubmit = (e: React.FormEvent) => {
@@ -48,8 +78,12 @@ function SignInContent() {
         <div className="space-y-4">
           <AuthButton 
             variant="outline" 
-            className="w-full flex items-center justify-center space-x-3"
-            onClick={() => {}}
+            className="w-full flex items-center justify-center space-x-3 cursor-pointer"
+            onClick={() => {
+              googleSignIn()
+              
+            }}
+            
           >
             <svg width="20" height="20" viewBox="0 0 24 24">
               <path
@@ -86,11 +120,13 @@ function SignInContent() {
           <AuthInput 
             label="Email Address" 
             type="email" 
+            name="email"
             placeholder="eg. explorer@neutron.io" 
             required
           />
           <AuthInput 
             label="Password" 
+            name="password"
             type="password" 
             placeholder="Enter your password" 
             required
@@ -109,7 +145,7 @@ function SignInContent() {
             </button>
           </div>
 
-          <AuthButton type="submit" isLoading={isLoading}>
+          <AuthButton type="submit" isLoading={isLoading} className="cursor-pointer">
             Sign In
           </AuthButton>
         </form>

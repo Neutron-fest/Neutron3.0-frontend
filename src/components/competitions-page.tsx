@@ -52,33 +52,16 @@ function ParallaxCard({ title, description, image, heightClass, delay = 0,id}: C
 
       <div className="absolute inset-0 z-10 bg-linear-to-t from-black/80 via-black/20 to-transparent transition-opacity duration-500 group-hover:from-black/95" />
 
-        <div className="absolute bottom-0 left-0 right-0 z-20 p-8 md:p-10 flex flex-col items-start transition-transform duration-500 group-hover:-translate-y-2">
-          <h2 className="text-3xl md:text-[2.6rem] font-medium tracking-tight leading-[1.05] mb-4 text-white">
-            {title}
-          </h2>
-          {description && (
-            <p className="text-gray-400 text-sm md:text-[15px] leading-relaxed max-w-[90%] font-light mb-6">
-              {description}
-            </p>
-          )}
-
-          <div className="flex flex-wrap gap-2 mt-auto">
-            <span className="px-2 py-1 rounded-sm bg-white/5 border border-white/10 text-[10px] uppercase tracking-wider text-white/50 font-mono">
-              {category}
-            </span>
-            <span className="px-2 py-1 rounded-sm bg-white/5 border border-white/10 text-[10px] uppercase tracking-wider text-white/50 font-mono">
-              {teamSize}
-            </span>
-            <span className={`px-2 py-1 rounded-sm border text-[10px] uppercase tracking-wider font-mono ${
-              status === 'open' ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' :
-              status === 'closed' ? 'bg-rose-500/10 border-rose-500/20 text-rose-400' :
-              status === 'postponed' ? 'bg-amber-500/10 border-amber-500/20 text-amber-400' :
-              'bg-white/5 border-white/10 text-white/30'
-            }`}>
-              {status}
-            </span>
-          </div>
-        </div>
+      <div className="absolute bottom-0 left-0 right-0 z-20 p-8 md:p-10 flex flex-col items-start transition-transform duration-500 group-hover:-translate-y-2">
+        <h2 className="text-3xl md:text-[2.6rem] font-medium tracking-tight leading-[1.05] mb-4 text-white">
+          {title}
+        </h2>
+        {description && (
+          <p className="text-gray-300 text-sm md:text-[15px] leading-relaxed max-w-[90%] font-light">
+            {description}
+          </p>
+        )}
+      </div>
 
       <div className="absolute bottom-8 right-8 z-30 bg-white text-black p-3 rounded-sm opacity-0 translate-y-4 transition-all duration-300 group-hover:opacity-100 group-hover:translate-y-0 cursor-pointer hover:scale-105">
         <svg
@@ -189,39 +172,19 @@ export default function CompetitionsPage() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-12 relative z-10 items-start">
-          <div className="flex flex-col gap-8 lg:gap-12 w-full">
-            {COMPETITIONS_DATA.filter((_, i) => i % 2 === 0).map((comp) => (
-              <ParallaxCard
-                key={comp.slug}
-                slug={comp.slug}
-                title={comp.title}
-                description={comp.description}
-                image={comp.image}
-                heightClass={comp.heightClass}
-                delay={comp.delay}
-                category={comp.category}
-                teamSize={comp.teamSize}
-                status={comp.status}
-              />
-            ))}
-          </div>
-
-          <div className="flex flex-col gap-8 lg:gap-12 w-full pt-0 md:pt-40">
-            {COMPETITIONS_DATA.filter((_, i) => i % 2 !== 0).map((comp) => (
-              <ParallaxCard
-                key={comp.slug}
-                slug={comp.slug}
-                title={comp.title}
-                description={comp.description}
-                image={comp.image}
-                heightClass={comp.heightClass}
-                delay={comp.delay}
-                category={comp.category}
-                teamSize={comp.teamSize}
-                status={comp.status}
-              />
-            ))}
-          </div>
+          
+          {Array.isArray(competitions) && competitions.map((comp, index) => (
+            <ParallaxCard
+              id={comp.id}
+              key={comp.id}
+              title={comp.title}
+              description={comp.shortDescription}
+              image={comp.posterPath}
+              heightClass={index % 2 === 0 ? "h-[750px] md:h-[900px]" : "h-[500px] md:h-[600px]"}
+              delay={index * 0.2}
+              
+            />
+          ))}
         </div>
       </main>
     </div>

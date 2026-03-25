@@ -1,26 +1,43 @@
+"use client"
 import { notFound } from "next/navigation";
-import { getCompetitionBySlug } from "@/lib/competitions-data";
 import ScratchToReveal from "@/components/scratch-to-reveal";
 import SmoothScroll from "@/components/smooth-scroll";
 import Link from "next/link";
+import { useEffect ,useState} from "react";
+import { useParams } from "next/navigation";
 import React from "react";
 import SectionWrapper from "../../../components/competition-section-wrapper";
 import { ScrollRevealCards } from "@/components/scroll-reveal-cards";
 import CompetitionRegistration from "@/components/competition-registration";
+import { cos } from "three/tsl";
 
-export default async function CompetitionSlugPage({ params }: { params: { id: string } }) {
-  const { id } = await params;
+export default function CompetitionSlugPage({ params }: { params: { id: string } }) {
+  const {id} = useParams();
+  const [competition, setCompetition] = useState(null);
 
-  // Fetch competition data directly
-  const response = await fetch(
-    `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/competitions/${id}`
-  );
+  useEffect(()=>{
+    console.log(id);
+    const fetchCompe = async()=>{
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/competitions/${id}`);
+        
+      if (!res.ok) {
+   
+        notFound();
+      }
 
-  if (!response.ok) {
-    notFound();
+      const competition = await res.json();
+      console.log(competition.data);
+
+      setCompetition(competition.data);
+    }
+    fetchCompe();
+  }, [id])
+
+
+  // Display a loader while competition data is being fetched
+  if (!competition) {
+    return <div>Loading...</div>;
   }
-
-  const competition = await response.json();
 
   return (
     <SmoothScroll>
@@ -35,7 +52,7 @@ export default async function CompetitionSlugPage({ params }: { params: { id: st
           <div
             className="w-full h-[120%] bg-cover bg-center -mt-10 animate-[slow-pan_30s_ease-in-out_infinite_alternate]"
             style={{
-              backgroundImage: `url(${competition.data.posterPath})`,
+              backgroundImage: `url(helo)`,
               filter: "brightness(0.2) contrast(1.2) grayscale(70%) blur(4px)",
               transform: "translateZ(-100px) scale(1.3)",
             }}
@@ -65,14 +82,14 @@ export default async function CompetitionSlugPage({ params }: { params: { id: st
               <span className="px-4 py-1.5 bg-black/40 border border-[#444] text-xs font-mono uppercase tracking-[0.3em] rounded-full text-white/80 shadow-[0_0_15px_rgba(255,255,255,0.05)]">
                 {competition.isPaid ? 'Premium Access' : 'Open Entry'}
               </span>
-              <span className="text-white/30 font-mono text-sm tracking-widest uppercase">{competition.date}</span>
+              <span className="text-white/30 font-mono text-sm tracking-widest uppercase">{competition.endTime}</span>
             </div>
 
             <h1 className="text-6xl md:text-8xl lg:text-[7.5rem] font-bold tracking-tighter leading-[0.85] mb-10 uppercase bg-clip-text text-transparent bg-linear-to-b from-white to-white/30 drop-shadow-2xl">
               {competition.title}
             </h1>
             <p className="text-md md:text-2xl font-light text-white/50 leading-relaxed max-w-3xl border-l-2 border-white/20 pl-6">
-              {competition.description}
+              {competition.shortDescription}
             </p>
           </div>
 
@@ -86,13 +103,13 @@ export default async function CompetitionSlugPage({ params }: { params: { id: st
                   <h2 className="text-3xl tracking-wide uppercase font-light text-white/90">Mission Briefing</h2>
                 </div>
                 <div className="prose prose-invert max-w-none text-white/60 font-light leading-loose text-lg lg:text-xl">
-                  <p>{competition.about}</p>
+                  <p>{competition.shortDescription}</p>
                 </div>
               </div>
 
               <div className="pt-16 relative">
                 <div className="absolute top-0 left-0 w-1/3 h-px bg-linear-to-r from-white/30 to-transparent"></div>
-                <CompetitionRegistration competitionTitle={competition.title} teamSize={competition.teamSize} />
+                <CompetitionRegistration competitionTitle={competition.title} teamSize={competition.maxTeamSize} />
               </div>
             </div>
 
@@ -117,18 +134,18 @@ export default async function CompetitionSlugPage({ params }: { params: { id: st
                   
                   <li className="flex flex-col border-t border-white/5 pt-6">
                     <span className="text-[10px] font-mono text-white/30 uppercase mb-2 tracking-widest">Location</span>
-                    <span className="text-lg text-white/90 font-light">{competition.location}</span>
+                    <span className="text-lg text-white/90 font-light">{competition.venueName}</span>
                   </li>
 
                   <li className="flex flex-col border-t border-white/5 pt-6">
                     <span className="text-[10px] font-mono text-white/30 uppercase mb-2 tracking-widest">Team Size</span>
-                    <span className="text-lg text-white/90 font-light">{competition.teamSize}</span>
+                    <span className="text-lg text-white/90 font-light">{competition.maxTeamSize}</span>
                   </li>
 
                   <li className="flex flex-col border-t border-white/5 pt-6">
                     <span className="text-[10px] font-mono text-white/30 uppercase mb-2 tracking-widest">Registration Fee</span>
                     <span className="text-lg text-white/90 font-light">
-                      {competition.isPaid ? `₹${competition.price}` : "Free"}
+                      {competition.isPaid ? `₹${competition.registrationFee}` : "Free"}
                     </span>
                   </li>
                 </ul>
@@ -138,7 +155,8 @@ export default async function CompetitionSlugPage({ params }: { params: { id: st
 
           </div>
           <div className="h-[20vh]" />
-        </section>
+        </main>
+   
 
         <style>{`
           @keyframes fade-in-up {

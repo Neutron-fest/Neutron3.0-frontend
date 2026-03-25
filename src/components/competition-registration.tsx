@@ -6,7 +6,8 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 function parseTeamSize(sizeStr: string): number[] {
-  const match = sizeStr.match(/(\d+)(?:-(\d+))?/);
+  const str = typeof sizeStr === "string" ? sizeStr : String(sizeStr);
+  const match = str.match(/(\d+)(?:-(\d+))?/);
   if (!match) return [1];
   const min = parseInt(match[1]);
   const max = match[2] ? parseInt(match[2]) : min;

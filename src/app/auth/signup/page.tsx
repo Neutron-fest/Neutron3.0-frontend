@@ -14,13 +14,28 @@ function SignUpContent() {
   const [isLoading, setIsLoading] = useState(false);
   const [isSignedUp, setIsSignedUp] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async(e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
-    setTimeout(() => {
-      setIsLoading(false);
+   
+    try{
+      const formData = new FormData(e.target as HTMLFormElement);
+      const data = Object.fromEntries(formData.entries());
+      setIsLoading(true);
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/auth/register`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(data)
+      });
+      const result = await res.json();
+      console.log(result);
       setIsSignedUp(true);
-    }, 2000);
+    }catch(err){
+      console.log(err)
+    }finally{
+       setIsLoading(false);
+    }
   };
 
   return (
@@ -70,8 +85,9 @@ function SignUpContent() {
             <div className="space-y-4">
               <AuthButton 
                 variant="outline" 
-                className="w-full flex items-center justify-center space-x-3"
+                className="w-full flex items-center justify-center space-x-3 cursor-pointer"
                 onClick={() => {}}
+                
               >
                 <svg width="20" height="20" viewBox="0 0 24 24">
                   <path
@@ -105,23 +121,20 @@ function SignUpContent() {
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-6">
-              <div className="grid grid-cols-2 gap-4">
+             
                 <AuthInput 
-                  label="First Name" 
+                  label="Full Name" 
+                  name="name"
                   type="text" 
                   placeholder="eg. John" 
                   required
                 />
-                <AuthInput 
-                  label="Last Name" 
-                  type="text" 
-                  placeholder="eg. Francisco" 
-                  required
-                />
-              </div>
+              
+          
               
               <AuthInput 
                 label="Email Address" 
+                name="email"
                 type="email" 
                 placeholder="eg. johnfrans@gmail.com" 
                 required
@@ -129,6 +142,7 @@ function SignUpContent() {
               
               <AuthInput 
                 label="Password" 
+                name="password"
                 type="password" 
                 placeholder="Enter your password" 
                 required
@@ -136,7 +150,7 @@ function SignUpContent() {
               
               <p className="text-xs text-white/30 ml-1">Must be at least 8 characters.</p>
 
-              <AuthButton type="submit" isLoading={isLoading} variant="primary">
+              <AuthButton type="submit" isLoading={isLoading} variant="primary" className="cursor-pointer">
                 Sign Up
               </AuthButton>
             </form>
