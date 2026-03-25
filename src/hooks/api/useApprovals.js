@@ -96,3 +96,18 @@ export function useApprovalStats() {
     },
   });
 }
+
+/**
+ * Fetch user's own approval requests (sender view)
+ */
+export function useMyApprovalRequests(filters = {}) {
+  return useQuery({
+    queryKey: queryKeys.approvals.myRequests(filters),
+    queryFn: async () => {
+      const { data } = await apiClient.get("/auth/my-requests", {
+        params: filters,
+      });
+      return data?.data;
+    },
+  });
+}

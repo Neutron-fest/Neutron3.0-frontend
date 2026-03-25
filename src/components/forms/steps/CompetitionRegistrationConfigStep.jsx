@@ -505,7 +505,7 @@ export default function CompetitionRegistrationConfigStep({
               appendPromo({
                 code: generatePromoCode(),
                 discountType: "PERCENT",
-                discountValue: "",
+                discountValue: 10,
                 maxUses: "",
                 isActive: true,
                 description: "",

@@ -43,7 +43,7 @@ const SA_NAVIGATION = [
 
 const DH_NAVIGATION = [
   { name: "My Department", href: "/admin/dh/users", icon: Users },
-  { name: "Club", href: "/admin/club", icon: UserCircle2 },
+
   {
     name: "Registrations",
     href: "/admin/dh/registrations",
@@ -51,6 +51,7 @@ const DH_NAVIGATION = [
   },
   { name: "Competitions", href: "/admin/dh/competitions", icon: Trophy },
   { name: "Issues", href: "/admin/dh/issues", icon: AlertTriangle },
+  { name: "My Requests", href: "/admin/dh/requests", icon: ShieldCheck },
 ];
 
 const SA_DH_NAVIGATION = DH_NAVIGATION.filter(
@@ -67,6 +68,7 @@ const JUDGE_NAVIGATION = [
 
 const CH_NAVIGATION = [
   { name: "Club", href: "/admin/club", icon: UserCircle2 },
+  { name: "My Requests", href: "/admin/club/requests", icon: ShieldCheck },
 ];
 
 export const SIDEBAR_WIDTH = 272;

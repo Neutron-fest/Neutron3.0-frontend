@@ -69,6 +69,11 @@ export const queryKeys = {
     details: () => [...queryKeys.approvals.all, "detail"],
     detail: (id) => [...queryKeys.approvals.details(), id],
     pending: () => [...queryKeys.approvals.all, "pending"],
+    myRequests: (filters) => [
+      ...queryKeys.approvals.all,
+      "my-requests",
+      filters,
+    ],
   },
 
   // Issues queries (DH/SA resolution view)
