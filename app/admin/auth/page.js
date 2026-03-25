@@ -1,13 +1,22 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import { Box, Typography, CircularProgress, Paper } from "@mui/material";
 import { LoginForm } from "@/src/components/forms/LoginForm";
 import { useSnackbar } from "notistack";
 import { useRef } from "react";
+
 export default function AdminAuthPage() {
+  return (
+    <Suspense fallback={<FullScreenLoader />}>
+      <AdminAuthPageContent />
+    </Suspense>
+  );
+}
+
+function AdminAuthPageContent() {
   const { user, loading, login, checkAuth } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -83,19 +92,7 @@ export default function AdminAuthPage() {
   };
 
   if (loading) {
-    return (
-      <Box
-        sx={{
-          minHeight: "100vh",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          background: "#02040a",
-        }}
-      >
-        <CircularProgress size={28} sx={{ color: "rgba(120,160,255,0.7)" }} />
-      </Box>
-    );
+    return <FullScreenLoader />;
   }
 
   return (
@@ -311,6 +308,22 @@ export default function AdminAuthPage() {
           </Typography>
         </Box>
       </Box>
+    </Box>
+  );
+}
+
+function FullScreenLoader() {
+  return (
+    <Box
+      sx={{
+        minHeight: "100vh",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        background: "#02040a",
+      }}
+    >
+      <CircularProgress size={28} sx={{ color: "rgba(120,160,255,0.7)" }} />
     </Box>
   );
 }
