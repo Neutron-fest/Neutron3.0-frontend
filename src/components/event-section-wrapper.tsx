@@ -32,7 +32,7 @@ export default function EventSectionWrapper({ event }: { event: EventRecord }) {
         </div>
 
         <div className="absolute -inset-12 bg-white/5 border border-white/10 blur-3xl rounded-[4rem] -z-10 opacity-30"></div>
-        <div className="relative z-10 max-w-[1400px]">
+        <div className="relative z-10 max-w-[1400px] pt-60">
           <div className="flex items-center space-x-4 mb-10 overflow-hidden">
             <div className="h-px w-12 bg-white/20"></div>
             <span className="text-white/70 font-mono text-xs tracking-widest uppercase">{event.date}</span>
@@ -45,12 +45,8 @@ export default function EventSectionWrapper({ event }: { event: EventRecord }) {
           />
           
           <div className="relative max-w-3xl group pt-4">
-            <div className="absolute -left-6 top-0 bottom-0 w-[2px] bg-white/10 transition-all duration-700"></div>
+            {/* <div className="absolute -left-6 top-0 bottom-0 w-[2px] bg-white/10 transition-all duration-700"></div> */}
             <div className="pl-8 space-y-8">
-              <p className="text-lg md:text-xl font-light text-white/60 leading-relaxed tracking-wide">
-                {event.description}
-              </p>
-              
               <div className="flex flex-wrap gap-3">
                 <span className="px-3 py-1.5 rounded-full bg-white/5 border border-white/10 text-xs uppercase tracking-[0.2em] text-white/50 font-mono backdrop-blur-md">
                   {event.category}

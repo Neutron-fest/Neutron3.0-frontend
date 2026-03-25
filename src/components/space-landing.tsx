@@ -14,6 +14,7 @@ import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { OBJLoader } from "three/examples/jsm/loaders/OBJLoader.js";
 
 import { PLANET_RECORDS } from "@/lib/planet-data";
+import NebulaStar from "./nebula-star";
 
 type PlanetRuntimeEntry = {
   slug: string;
@@ -405,33 +406,31 @@ export default function SpaceLanding() {
               key={pos.slug}
               style={{ position: "fixed", left: pos.x, top: pos.y, transform: "translate(-50%,0)", zIndex: 15, pointerEvents: "auto", cursor: "pointer", userSelect: "none" }}
               initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: pos.visible ? (isActive ? 1 : 0.62) : 0, y: 0, scale: isHovered ? 1.05 : isActive ? 1.03 : 1 }}
+              animate={{ opacity: pos.visible ? (isActive ? 1 : 0.62) : 0, y: 0, scale: isActive ? 1.03 : 1 }}
               transition={{ duration: 0.32, ease: [0.16, 1, 0.3, 1] }}
               onClick={() => handlePlanetSelect(pos.slug)}
-              onMouseEnter={() => setHoveredPlanet(pos.slug)}
-              onMouseLeave={() => setHoveredPlanet(null)}
             >
               <div
                 className="flex flex-col items-center gap-[0.42rem] px-[0.9rem] py-[0.55rem] whitespace-nowrap"
                 style={{
                   border: isActive
-                    ? "1px solid rgba(220,140,40,0.45)"
-                    : "1px solid rgba(180,100,20,0.22)",
+                    ? "1px solid rgba(255,255,255,0.45)"
+                    : "1px solid rgba(255,255,255,0.12)",
                   background: isActive
-                    ? "rgba(18,8,0,0.82)"
-                    : "rgba(10,4,0,0.56)",
+                    ? "rgba(255,255,255,0.12)"
+                    : "rgba(255,255,255,0.06)",
                   backdropFilter: "blur(12px)",
                   WebkitBackdropFilter: "blur(12px)",
                   clipPath: "polygon(6px 0%,calc(100% - 6px) 0%,100% 6px,100% calc(100% - 6px),calc(100% - 6px) 100%,6px 100%,0% calc(100% - 6px),0% 6px)",
                   boxShadow: isActive
-                    ? "0 10px 44px rgba(0,0,0,0.55),0 0 30px rgba(200,120,20,0.15),inset 0 1px 0 rgba(255,180,60,0.08)"
-                    : "0 8px 32px rgba(0,0,0,0.42),inset 0 1px 0 rgba(255,180,60,0.04)",
+                    ? "0 10px 44px rgba(0,0,0,0.55),inset 0 1px 0 rgba(255,255,255,0.08)"
+                    : "0 8px 32px rgba(0,0,0,0.42),inset 0 1px 0 rgba(255,255,255,0.04)",
                   transition: "background 240ms ease,border-color 240ms ease,box-shadow 240ms ease",
                 }}
               >
                 <div
                   className="text-[0.78rem] font-bold uppercase tracking-[0.22em] leading-none"
-                  style={{ color: isActive ? "#ffbe6a" : "rgba(220,160,60,0.8)", fontFamily: "monospace" }}
+                  style={{ color: isActive ? "#ffffff" : "rgba(255,255,255,0.5)", fontFamily: "monospace" }}
                 >
                   {pd.name}
                 </div>
@@ -450,12 +449,12 @@ export default function SpaceLanding() {
             layout
             className="flex items-center gap-[0.7rem] px-4 py-3"
             style={{
-              border: "1px solid rgba(200,120,20,0.3)",
-              background: "rgba(12,5,0,0.72)",
+              border: "1px solid rgba(255,255,255,0.15)",
+              background: "rgba(0,0,0,0.72)",
               backdropFilter: "blur(14px)",
               WebkitBackdropFilter: "blur(14px)",
               clipPath: "polygon(8px 0%,calc(100% - 8px) 0%,100% 8px,100% calc(100% - 8px),calc(100% - 8px) 100%,8px 100%,0% calc(100% - 8px),0% 8px)",
-              boxShadow: "0 24px 80px rgba(0,0,0,0.5),0 0 40px rgba(180,100,10,0.08),inset 0 1px 0 rgba(255,180,50,0.07)",
+              boxShadow: "0 24px 80px rgba(0,0,0,0.5),inset 0 1px 0 rgba(255,255,255,0.07)",
             }}
           >
             {PLANET_RECORDS.map((planet) => {
@@ -471,16 +470,12 @@ export default function SpaceLanding() {
                   animate={{
                     width: isActive ? 48 : 10,
                     opacity: isActive ? 1 : 0.42,
-                    backgroundColor: isActive ? "#e08020" : "rgba(180,120,40,0.28)",
-                    boxShadow: isActive
-                      ? "0 0 0 1px rgba(255,200,80,0.18),0 0 22px rgba(220,140,30,0.55)"
-                      : "0 0 0 1px rgba(200,130,40,0.10)",
+                    backgroundColor: isActive ? "#ffffff" : "rgba(255,255,255,0.2)",
                   }}
                   whileHover={{
                     opacity: 1,
-                    scale: 1.28,
-                    backgroundColor: "#f0a030",
-                    boxShadow: "0 0 0 2px rgba(255,200,80,0.3),0 0 18px rgba(240,160,48,0.7)",
+                    backgroundColor: "#ffffff",
+                    scale: 1,
                   }}
                   transition={{ type: "spring", stiffness: 320, damping: 26 }}
                   onClick={() => handlePlanetSelect(planet.slug)}
@@ -488,9 +483,9 @@ export default function SpaceLanding() {
                   <span
                     className="pointer-events-none absolute bottom-full left-1/2 mb-2 -translate-x-1/2 whitespace-nowrap px-2.5 py-1 text-[0.62rem] uppercase tracking-[0.2em] opacity-0 transition-opacity duration-200 group-hover:opacity-100"
                     style={{
-                      background: "rgba(12,5,0,0.88)",
-                      border: "1px solid rgba(200,120,30,0.4)",
-                      color: "#f0c060",
+                      background: "rgba(0,0,0,0.88)",
+                      border: "1px solid rgba(255,255,255,0.2)",
+                      color: "#ffffff",
                       backdropFilter: "blur(10px)",
                       fontFamily: "monospace",
                       clipPath: "polygon(4px 0%,calc(100% - 4px) 0%,100% 4px,100% 100%,0% 100%,0% 4px)",
@@ -551,7 +546,6 @@ export default function SpaceLanding() {
             { label: "About",   href: "/about",   drift: "star-link-d 10s ease-in-out infinite", delay: "2s"    },
             { label: "FAQ",     href: "/faq",     drift: "star-link-e 12s ease-in-out infinite", delay: "0.9s"  },
           ].map(({ label, href, drift, delay }, index) => {
-            const color = "#f0c060";
             const pos = planetPositions[index];
             if (!pos) return null;
 
@@ -564,47 +558,15 @@ export default function SpaceLanding() {
                   top: pos.starY,
                   opacity: pos.starVisible && isScrolled ? 1 : 0,
                   pointerEvents: pos.starVisible && isScrolled ? "auto" : "none",
+                  transform: "translate(-50%, -50%)",
                 }}
               >
-                <div style={{ transform: "translate(-50%, -50%)" }}>
-                  <a
-                    href={href}
-                    className="group pointer-events-auto flex flex-col items-center gap-[0.4rem]"
-                    style={{ animation: drift, animationDelay: delay }}
-                  >
-                    <span
-                      className="relative block rounded-full transition-transform duration-300 group-hover:scale-150"
-                      style={{
-                        width: 14,
-                        height: 14,
-                        background: `radial-gradient(circle at 38% 34%, rgba(255,255,220,0.95), ${color} 60%)`,
-                        boxShadow: `0 0 10px 4px ${color}88, 0 0 30px 8px ${color}44`,
-                        animation: `star-glow-pulse 3s ease-in-out infinite`,
-                        animationDelay: delay,
-                        color,
-                      }}
-                    >
-                      <span
-                        className="absolute inset-0 rounded-full opacity-60"
-                        style={{ background: `radial-gradient(circle,transparent 30%,${color}55 100%)`, animation: `star-glow-pulse 3s ease-in-out infinite reverse`, animationDelay: delay }}
-                      />
-                    </span>
-                    <span
-                      className="whitespace-nowrap px-3 py-1 text-[0.62rem] font-medium uppercase tracking-[0.22em] opacity-0 transition-all duration-300 group-hover:opacity-100 group-hover:translate-y-0 translate-y-1"
-                      style={{
-                        background: "rgba(10,4,0,0.82)",
-                        border: `1px solid ${color}55`,
-                        backdropFilter: "blur(10px)",
-                        color,
-                        fontFamily: "monospace",
-                        boxShadow: `0 4px 20px ${color}22`,
-                        clipPath: "polygon(4px 0%,calc(100% - 4px) 0%,100% 4px,100% 100%,0% 100%,0% 4px)",
-                      }}
-                    >
-                      {label}
-                    </span>
-                  </a>
-                </div>
+                <NebulaStar 
+                  label={label}
+                  href={href}
+                  drift={drift}
+                  delay={delay}
+                />
               </div>
             );
           })}
@@ -645,19 +607,8 @@ async function createScene({
   const camera = new THREE.PerspectiveCamera(40, window.innerWidth / window.innerHeight, 0.1, 160);
   camera.position.set(0, 0.8, 15.5);
 
-  const dirLight = new THREE.DirectionalLight("#ffe8d0", 2.2);
-  dirLight.position.set(7, 9, 9);
-  const ptLight1 = new THREE.PointLight("#e07830", 2.2, 52, 1.8);
-  ptLight1.position.set(-8, 2.5, 7);
-  const ptLight2 = new THREE.PointLight("#a04010", 1.4, 44, 1.8);
-  ptLight2.position.set(9, -3.5, -8);
-  const ptLight3 = new THREE.PointLight("#f0c880", 0.7, 30, 2);
-  ptLight3.position.set(-2, 5, 12);
-  scene.add(
-    new THREE.AmbientLight("#4a2a10", 1.4),
-    new THREE.HemisphereLight("#f0c080", "#0a0400", 0.75),
-    dirLight, ptLight1, ptLight2, ptLight3,
-  );
+  const ambientLight = new THREE.AmbientLight("#ffffff", 3.0);
+  scene.add(ambientLight);
 
   const starsNear = createStarField(1100, 72, 0.034, "#ffe0a0");
   const starsMid  = createStarField(720,  90, 0.024, "#ffcc80");
@@ -669,7 +620,7 @@ async function createScene({
   scene.add(starsFar, starsMid, starsNear, starsWarm);
 
   const planetsRig = new THREE.Group();
-  const accentLight = new THREE.PointLight("#8fd4ff", 0, 18, 1.8);
+  const accentLight = new THREE.PointLight("#ffffff", 0, 0, 0); // Disabled
   scene.add(planetsRig, accentLight);
 
   const gltfLoader = new GLTFLoader();
@@ -713,7 +664,7 @@ async function createScene({
       textures.push(texture);
       obj.traverse((child: THREE.Object3D) => {
         const mesh = child as THREE.Mesh;
-        if (mesh.isMesh) mesh.material = new THREE.MeshStandardMaterial({ map: texture, roughness: 0.78, metalness: 0.06 });
+        if (mesh.isMesh) mesh.material = new THREE.MeshStandardMaterial({ map: texture, roughness: 1.0, metalness: 0 });
       });
       target = normalizeModel(obj, planet.size);
     }
@@ -754,7 +705,7 @@ async function createScene({
   const handlePointerMove = (e: PointerEvent) => {
     const slug = findPlanetAtPointer(e.clientX, e.clientY);
     hoveredSlugRef.current = slug;
-    onPlanetHover(slug);
+    onPlanetHover(""); // Disabled hover callback to remove effects
     canvas.style.cursor = slug ? "pointer" : "default";
   };
   const handlePointerLeave = () => { hoveredSlugRef.current = ""; onPlanetHover(""); canvas.style.cursor = "default"; };
@@ -813,8 +764,6 @@ async function createScene({
       const planet    = PLANET_RECORDS[index];
       const revealIn  = smoothstep(100 + index * 30, 220 + index * 30, scrolledVH);
       const visibility = clamp(revealIn, 0.001, 1);
-      const isScrollSelected = entry.slug === activePlanetRef.current;
-      const isHovered = entry.slug === hoveredSlugRef.current;
       
       let currentAngle = (index * (Math.PI * 2) / N) - globalAngleOffset;
       if (currentAngle > Math.PI) currentAngle -= Math.PI * 2;
@@ -826,8 +775,7 @@ async function createScene({
       
       const angleScale = Math.max(0, Math.cos(currentAngle));
       const frontBoost = Math.pow(angleScale, 5.0);
-      const continuousEmphasis = 1.0 + frontBoost * (mob ? 1.4 : 1.8);
-      const emphasis = continuousEmphasis * (isHovered ? 1.05 : 1.0);
+      const emphasis = 1.0 + frontBoost * (mob ? 1.4 : 1.8);
       
       const exitDrift = exit * (index % 2 === 0 ? -2.4 : 2.4);
       
@@ -848,17 +796,18 @@ async function createScene({
       entry.root.position.x = Math.sin(elapsed * 0.25 + index * 1.08) * 0.032;
       entry.scale = THREE.MathUtils.lerp(entry.scale, visibility * emphasis, 0.068);
       entry.root.scale.setScalar(Math.max(entry.scale, 0.001));
-      tintSelection(entry.target, planet.accent, isScrollSelected ? 0.26 : isHovered ? 0.12 : 0);
+      // Tinting and lighting disabled
     });
 
     const scrollPlanet = PLANET_RECORDS.find((p) => p.slug === activePlanetRef.current) ?? PLANET_RECORDS[0];
     const scrollEntry  = planetEntries.find((e) => e.slug === scrollPlanet.slug) ?? planetEntries[0];
 
-    if (scrollEntry) {
-      accentLight.position.lerp(idealFrontPosition, 0.11);
-      accentLight.color.set(scrollPlanet.accent);
-      accentLight.intensity = THREE.MathUtils.lerp(accentLight.intensity, 2.0 * focus, 0.065);
-    }
+    // accentLight disabled
+    // if (scrollEntry) {
+    //   accentLight.position.lerp(idealFrontPosition, 0.11);
+    //   accentLight.color.set(scrollPlanet.accent);
+    //   accentLight.intensity = THREE.MathUtils.lerp(accentLight.intensity, 2.0 * focus, 0.065);
+    // }
 
     cameraOffset.set(0, mob ? 3.8 : 5.2, mob ? 8.5 : 11.0);
     const focusLookAt = new THREE.Vector3(0, mob ? 0.0 : 0.5, ringCenterZ);

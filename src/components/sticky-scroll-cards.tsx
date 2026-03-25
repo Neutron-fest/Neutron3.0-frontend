@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import { motion, useTransform, MotionValue, useMotionValueEvent, useSpring, AnimatePresence } from "framer-motion";
 
 interface CardInfo {
@@ -31,7 +31,13 @@ export const StickyScrollCards: React.FC<StickyScrollCardsProps> = ({
   category,
   eventType,
 }) => {
-  const [index, setIndex] = useState(0);
+  const [frontIndex, setFrontIndex] = useState(0);
+  const [backIndex, setBackIndex] = useState(1);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const cardData: CardInfo[] = useMemo(() => [
     {
@@ -58,23 +64,21 @@ export const StickyScrollCards: React.FC<StickyScrollCardsProps> = ({
       bgImage: "https://images.unsplash.com/photo-1541185933-ef5d8ed016c2?w=1600&q=80",
       backColor: "#939393"
     },
-    {
-      name: competitionTitle,
-      title: `${category} • ${eventType}`,
-      handle: "mission_brief",
-      status: "Ready for Launch",
-      bgImage: "https://wallpapercave.com/wp/wp12457548.png",
-      backColor: "#0a0a0a"
-    }
   ], [prizePool, location, teamSize, competitionTitle, category, eventType]);
   useMotionValueEvent(progress, "change", (latest) => {
-    const newIndex = Math.min(Math.floor(latest * 4), 3);
-    if (newIndex !== index) {
-      setIndex(newIndex);
+    const totalHalfFlips = 3;
+    const currentHalfFlip = Math.floor(latest * totalHalfFlips);
+    
+    if (currentHalfFlip % 2 === 0) {
+      setFrontIndex(currentHalfFlip % cardData.length);
+      setBackIndex((currentHalfFlip + 1) % cardData.length);
+    } else {
+      setBackIndex(currentHalfFlip % cardData.length);
+      setFrontIndex((currentHalfFlip + 1) % cardData.length);
     }
   });
 
-  const rawRotation = useTransform(progress, [0, 1], [0, 1440]);
+  const rawRotation = useTransform(progress, [0, 1], [15, 540 + 15]);
   const rotateY = useSpring(rawRotation, { 
     stiffness: 30,
     damping: 25, 
@@ -83,11 +87,20 @@ export const StickyScrollCards: React.FC<StickyScrollCardsProps> = ({
   });
   
   const scale = useTransform(progress, (v) => {
-    const phaseProgress = (v * 4) % 1;
+    const phaseProgress = (v * cardData.length) % 1;
     return 1 - (Math.sin(phaseProgress * Math.PI) * 0.15);
   });
 
-  const currentData = cardData[index];
+  const frontData = cardData[frontIndex];
+  const backData = cardData[backIndex];
+
+  if (!mounted) {
+    return (
+      <div className="w-full flex justify-center items-center h-full py-20 opacity-0">
+        <div className="w-full aspect-[0.75] max-w-[420px] rounded-3xl bg-[#0a0a0a]" />
+      </div>
+    );
+  }
 
   return (
     <div className="w-full flex justify-center items-center perspective-[2000px] h-full py-20">
@@ -103,7 +116,7 @@ export const StickyScrollCards: React.FC<StickyScrollCardsProps> = ({
           style={{ backfaceVisibility: "hidden", WebkitBackfaceVisibility: "hidden" }}
           className="absolute inset-0 w-full h-full bg-[#0a0a0a] border border-white/10 rounded-3xl overflow-hidden flex flex-col justify-between p-10 z-20"
         >
-          <CardContent data={currentData} />
+          <CardContent data={frontData} />
         </div>
 
         <div 
@@ -114,7 +127,7 @@ export const StickyScrollCards: React.FC<StickyScrollCardsProps> = ({
           }}
           className="absolute inset-0 w-full h-full bg-[#0a0a0a] border border-white/10 rounded-3xl overflow-hidden flex flex-col justify-between p-10 z-10"
         >
-          <CardContent data={currentData} />
+          <CardContent data={backData} />
         </div>
       </motion.div>
     </div>
