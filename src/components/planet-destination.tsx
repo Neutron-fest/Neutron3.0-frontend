@@ -42,36 +42,35 @@ export default function PlanetDestination({ planet }: { planet: PlanetRecord }) 
             style={{
               height: "min(46vw,21rem)",
               width: "min(46vw,21rem)",
-              background: `radial-gradient(circle at 34% 30%,rgba(255,255,255,0.82),transparent 22%),radial-gradient(circle at 68% 72%,rgba(0,0,0,0.22),transparent 26%),linear-gradient(135deg,${planet.accent},rgba(255,255,255,0.28))`,
-              boxShadow: `inset -34px -28px 60px rgba(0,0,0,0.24),0 0 80px color-mix(in srgb,${planet.accent} 40%,transparent)`,
-              "--planet-accent": planet.accent,
+              background: `radial-gradient(circle at 34% 30%,rgba(255,255,255,0.82),transparent 22%),radial-gradient(circle at 68% 72%,rgba(0,0,0,0.22),transparent 26%),linear-gradient(135deg,rgba(255,255,255,0.1),rgba(255,255,255,0.28))`,
+              boxShadow: `inset -34px -28px 60px rgba(0,0,0,0.24),0 0 80px rgba(255,255,255,0.05)`,
             } as CSSProperties}
           />
-          <motion.div className="absolute rounded-full border border-[rgba(165,206,255,0.18)]" style={{ inset: "8%" }} animate={{ rotate: [16, 376] }} transition={{ duration: 45, repeat: Infinity, ease: "linear" }} />
-          <motion.div className="absolute rounded-full border border-[rgba(165,206,255,0.18)]" style={{ inset: "0%" }} animate={{ rotate: [-22, -382] }} transition={{ duration: 60, repeat: Infinity, ease: "linear" }} />
+          <motion.div className="absolute rounded-full border border-white/5" style={{ inset: "8%" }} animate={{ rotate: [16, 376] }} transition={{ duration: 45, repeat: Infinity, ease: "linear" }} />
+          <motion.div className="absolute rounded-full border border-white/5" style={{ inset: "0%" }} animate={{ rotate: [-22, -382] }} transition={{ duration: 60, repeat: Infinity, ease: "linear" }} />
         </motion.div>
 
         <motion.div
           className="mx-auto w-full max-w-3xl rounded-[1.9rem] p-6 md:p-8"
           style={{
-            border: "1px solid rgba(143,182,255,0.14)",
-            background: "linear-gradient(180deg,rgba(9,17,35,0.82),rgba(5,11,25,0.54))",
+            border: "1px solid rgba(255,255,255,0.08)",
+            background: "linear-gradient(180deg,rgba(255,255,255,0.05),rgba(255,255,255,0.02))",
             boxShadow: "0 30px 80px rgba(0,0,0,0.28)",
           }}
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7, delay: 0.16, ease: [0.16, 1, 0.3, 1] }}
         >
-          <p className="text-[0.78rem] uppercase tracking-[0.34em] text-[rgba(162,214,255,0.72)]">
+          <p className="text-[0.78rem] uppercase tracking-[0.34em] text-white/40">
             {planet.eyebrow}
           </p>
           <h1 className="mt-4 text-[clamp(3.2rem,8vw,6.2rem)] leading-[0.94] tracking-[-0.04em] text-white">
             {planet.name}
           </h1>
-          <p className="mt-4 max-w-2xl text-[clamp(1.1rem,2vw,1.45rem)] leading-[1.7] text-[rgba(244,247,255,0.92)]">
+          <p className="mt-4 max-w-2xl text-[clamp(1.1rem,2vw,1.45rem)] leading-[1.7] text-white/90">
             {planet.headline}
           </p>
-          <p className="mt-4 max-w-2xl text-base leading-[1.9] text-[rgba(221,231,246,0.72)]">
+          <p className="mt-4 max-w-2xl text-base leading-[1.9] text-white/60">
             {planet.summary}
           </p>
 
