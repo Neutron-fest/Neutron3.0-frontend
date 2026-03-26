@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useCallback, useMemo, useState } from 'react';
+import Noise from './Noise';
 
 const DEFAULT_INNER_GRADIENT = 'linear-gradient(145deg,#60496e8c 0%,#71C4FF44 100%)';
 
@@ -15,7 +16,6 @@ const round = (v: number, precision = 3): number => parseFloat(v.toFixed(precisi
 const adjust = (v: number, fMin: number, fMax: number, tMin: number, tMax: number): number =>
   round(tMin + ((tMax - tMin) * (v - fMin)) / (fMax - fMin));
 
-// Inject keyframes once
 const KEYFRAMES_ID = 'pc-keyframes';
 if (typeof document !== 'undefined' && !document.getElementById(KEYFRAMES_ID)) {
   const style = document.createElement('style');
@@ -376,7 +376,6 @@ const ProfileCardComponent: React.FC<ProfileCardProps> = ({
     onContactClick?.();
   }, [onContactClick]);
 
-  // Complex styles that require CSS variables and can't be done with Tailwind
   const shineStyle = {
     maskImage: 'var(--icon)',
     maskMode: 'luminance',
@@ -461,9 +460,9 @@ const ProfileCardComponent: React.FC<ProfileCardProps> = ({
         <section
           className="grid relative overflow-hidden"
           style={{
-            height: '80svh',
-            maxHeight: '540px',
+            width: '100%',
             aspectRatio: '0.718',
+            maxHeight: '540px',
             borderRadius: cardRadius,
             backgroundBlendMode: 'color-dodge, normal, normal, normal',
             boxShadow:
@@ -497,13 +496,10 @@ const ProfileCardComponent: React.FC<ProfileCardProps> = ({
               gridArea: '1 / -1'
             }}
           >
-            {/* Shine layer */}
             <div style={shineStyle} />
 
-            {/* Glare layer */}
             <div style={glareStyle} />
 
-            {/* Avatar content */}
             <div
               className="overflow-visible"
               style={{
@@ -515,11 +511,8 @@ const ProfileCardComponent: React.FC<ProfileCardProps> = ({
                 backfaceVisibility: 'hidden'
               }}
             >
-              <img
-                className="w-full absolute left-1/2 -bottom-px will-change-transform transition-transform duration-120 ease-out"
-                src={avatarUrl}
-                alt={`${name || 'User'} avatar`}
-                loading="lazy"
+              <div
+                className="w-full absolute left-1/2 -bottom-px will-change-transform transition-transform duration-120 ease-out overflow-hidden"
                 style={{
                   transformOrigin: '50% 100%',
                   transform:
@@ -527,11 +520,27 @@ const ProfileCardComponent: React.FC<ProfileCardProps> = ({
                   borderRadius: cardRadius,
                   backfaceVisibility: 'hidden'
                 }}
-                onError={e => {
-                  const t = e.target as HTMLImageElement;
-                  t.style.display = 'none';
-                }}
-              />
+              >
+                <img
+                  className="w-full block"
+                  src={avatarUrl}
+                  alt={`${name || 'User'} avatar`}
+                  loading="lazy"
+                  style={{
+                    borderRadius: cardRadius,
+                    backfaceVisibility: 'hidden'
+                  }}
+                  onError={e => {
+                    const t = e.target as HTMLImageElement;
+                    t.style.display = 'none';
+                  }}
+                />
+                <Noise 
+                  fullScreen={false} 
+                  patternAlpha={35} 
+                  className="mix-blend-soft-light opacity-50" 
+                />
+              </div>
               {showUserInfo && (
                 <div
                   className="absolute z-2 flex items-center justify-between backdrop-blur-[30px] border border-white/10 pointer-events-auto"
@@ -550,7 +559,7 @@ const ProfileCardComponent: React.FC<ProfileCardProps> = ({
                 >
                   <div className="flex items-center gap-3">
                     <div
-                      className="rounded-full overflow-hidden border border-white/10 shrink-0"
+                      className="rounded-full overflow-hidden border border-white/10 shrink-0 relative"
                       style={{ width: '48px', height: '48px' }}
                     >
                       <img
@@ -564,6 +573,11 @@ const ProfileCardComponent: React.FC<ProfileCardProps> = ({
                           t.style.opacity = '0.5';
                           t.src = avatarUrl;
                         }}
+                      />
+                      <Noise 
+                        fullScreen={false} 
+                        patternAlpha={30} 
+                        className="mix-blend-overlay opacity-40" 
                       />
                     </div>
                     <div className="flex flex-col items-start gap-1.5">
@@ -584,7 +598,6 @@ const ProfileCardComponent: React.FC<ProfileCardProps> = ({
               )}
             </div>
 
-            {/* Details content */}
             <div
               className="max-h-full overflow-hidden text-center relative z-5"
               style={{
@@ -596,44 +609,41 @@ const ProfileCardComponent: React.FC<ProfileCardProps> = ({
                 pointerEvents: 'none'
               }}
             >
-              <div className="w-full absolute flex flex-col" style={{ top: '3em', display: 'flex', gridArea: 'auto' }}>
-                <h3
-                  className="font-semibold m-0"
-                  style={{
-                    fontSize: 'min(5svh, 3em)',
-                    backgroundImage: 'linear-gradient(to bottom, #fff, #6f6fbe)',
-                    backgroundSize: '1em 1.5em',
-                    WebkitTextFillColor: 'transparent',
-                    backgroundClip: 'text',
-                    WebkitBackgroundClip: 'text',
-                    display: 'block',
-                    gridArea: 'auto',
-                    borderRadius: '0',
-                    pointerEvents: 'auto'
-                  }}
-                >
-                  {name}
-                </h3>
+              <div className="w-full absolute flex flex-col items-center" style={{ top: '2.4em', display: 'flex', gridArea: 'auto', padding: '0 10px' }}>
                 <p
-                  className="font-semibold whitespace-nowrap mx-auto w-min"
+                  className="font-sans font-medium uppercase tracking-[0.12em] text-white/50 mb-4"
                   style={{
-                    position: 'relative',
-                    top: '-12px',
-                    fontSize: '16px',
-                    margin: '0 auto',
-                    backgroundImage: 'linear-gradient(to bottom, #fff, #4a4ac0)',
-                    backgroundSize: '1em 1.5em',
-                    WebkitTextFillColor: 'transparent',
-                    backgroundClip: 'text',
-                    WebkitBackgroundClip: 'text',
+                    fontSize: 'clamp(6px, 1.8vw, 10px)',
+                    backgroundImage: 'none',
+                    WebkitTextFillColor: 'unset',
                     display: 'block',
                     gridArea: 'auto',
-                    borderRadius: '0',
-                    pointerEvents: 'auto'
+                    pointerEvents: 'auto',
+                    textAlign: 'center',
+                    width: '100%',
+                    whiteSpace: 'nowrap'
                   }}
                 >
                   {title}
                 </p>
+                <h3
+                  className="font-sans font-bold m-0 leading-[1.1] tracking-tight"
+                  style={{
+                    fontSize: 'min(8.5vw, 2.5em)',
+                    backgroundImage: 'linear-gradient(to bottom, #fff 30%, rgba(255,255,255,0.7) 100%)',
+                    WebkitTextFillColor: 'transparent',
+                    backgroundClip: 'text',
+                    WebkitBackgroundClip: 'text',
+                    display: 'block',
+                    gridArea: 'auto',
+                    borderRadius: '0',
+                    pointerEvents: 'auto',
+                    textAlign: 'center',
+                    maxWidth: '100%'
+                  }}
+                >
+                  {name}
+                </h3>
               </div>
             </div>
           </div>

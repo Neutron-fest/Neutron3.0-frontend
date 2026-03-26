@@ -7,9 +7,6 @@ import { COMPETITIONS_DATA } from "@/lib/competitions-data";
 import { EVENTS_DATA } from "@/lib/events-data";
 import ProfileCard from "./ProfileCard";
 
-/* ─────────────────────────────────────────────────────────────────
-   Types
-───────────────────────────────────────────────────────────────── */
 type NavItem = "profile" | "competitions" | "events" | "inbox";
 
 interface TeamMember {
@@ -32,9 +29,6 @@ interface EnrolledItem {
   team?: TeamMember[];
 }
 
-/* ─────────────────────────────────────────────────────────────────
-   Mock enrolled data with team info
-───────────────────────────────────────────────────────────────── */
 const MOCK_COMPETITIONS: EnrolledItem[] = COMPETITIONS_DATA.slice(0, 3).map((c, i) => ({
   slug: c.slug,
   title: c.title,
@@ -87,9 +81,6 @@ const MOCK_GLOBAL_USERS = [
   { id: "u-95", name: "Neha Gupta", email: "neha@neutron.in", avatar: "https://i.pravatar.cc/150?img=41" },
 ];
 
-/* ─────────────────────────────────────────────────────────────────
-   Helper: does a teamSize string allow >1 member?
-───────────────────────────────────────────────────────────────── */
 function isTeamEvent(teamSize: string): boolean {
   // e.g. "1-3 Members", "2 Members", "4 Members", "Solo"
   const match = teamSize.match(/\d+/g);
@@ -98,9 +89,6 @@ function isTeamEvent(teamSize: string): boolean {
   return max > 1;
 }
 
-/* ─────────────────────────────────────────────────────────────────
-   Reusable field primitives
-───────────────────────────────────────────────────────────────── */
 function EditableField({
   label,
   value,
@@ -273,9 +261,6 @@ function IdUploadField({ label, hint }: { label: string; hint?: string }) {
   );
 }
 
-/* ─────────────────────────────────────────────────────────────────
-   Team Modal
-───────────────────────────────────────────────────────────────── */
 function TeamModal({
   item,
   onClose,
@@ -357,7 +342,7 @@ function TeamModal({
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         onClick={onClose}
-        className="fixed inset-0 z-[100] bg-black/70 backdrop-blur-sm flex items-center justify-center p-4"
+        className="fixed inset-0 z-100 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4"
       >
         <motion.div
           initial={{ opacity: 0, scale: 0.92, y: 20 }}
@@ -394,7 +379,7 @@ function TeamModal({
               </div>
               <div className="h-1 bg-white/8 rounded-full overflow-hidden">
                 <div
-                  className="h-full bg-gradient-to-r from-purple-500 to-indigo-400 rounded-full transition-all duration-500"
+                  className="h-full bg-linear-to-r from-purple-500 to-indigo-400 rounded-full transition-all duration-500"
                   style={{ width: `${(members.length / maxMembers) * 100}%` }}
                 />
               </div>
@@ -571,9 +556,6 @@ function TeamModal({
   );
 }
 
-/* ─────────────────────────────────────────────────────────────────
-   Enrolled card (competitions & events)
-───────────────────────────────────────────────────────────────── */
 function EnrolledCard({
   item,
   href,
@@ -620,7 +602,6 @@ function EnrolledCard({
           </div>
         </div>
 
-        {/* Team section (if team event) */}
         {hasTeam && (
           <div className="px-4 pb-4 border-t border-white/5 pt-3">
             <div className="flex items-center justify-between">
@@ -662,9 +643,6 @@ function EnrolledCard({
   );
 }
 
-/* ─────────────────────────────────────────────────────────────────
-   Profile Panel
-───────────────────────────────────────────────────────────────── */
 function ProfilePanel() {
   const [profile, setProfile] = useState({
     name: "Yatharth Khandelwal",
@@ -704,7 +682,7 @@ function ProfilePanel() {
       transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
       className="space-y-5 pb-10"
     >
-      {/* Hero - Profile Card */}
+
       <div className="w-full flex justify-center py-4">
         <div className="w-full max-w-[320px] sm:max-w-sm">
           <ProfileCard
@@ -726,14 +704,18 @@ function ProfilePanel() {
         </div>
       </div>
 
-      {/* Stats */}
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
         {[
           { label: "Competitions", value: "5", sub: "Registered" },
           { label: "Events", value: "3", sub: "Enrolled" },
           { label: "Shortlisted", value: "2", sub: "This season" },
-        ].map(({ label, value, sub }) => (
-          <div key={label} className="bg-white/3 border border-white/8 rounded-2xl p-4">
+        ].map(({ label, value, sub }, i) => (
+          <div 
+            key={label} 
+            className={`bg-white/3 border border-white/8 rounded-2xl p-4 ${
+              i === 2 ? "col-span-2 sm:col-span-1" : ""
+            }`}
+          >
             <span className="text-[10px] uppercase tracking-widest text-white/25 font-mono block">{label}</span>
             <span className="text-2xl font-bold text-white mt-1 block">{value}</span>
             <span className="text-xs text-white/35">{sub}</span>
@@ -741,7 +723,6 @@ function ProfilePanel() {
         ))}
       </div>
 
-      {/* ── Personal Info ── */}
       <div className="rounded-2xl border border-white/8 bg-white/3 p-6">
         <h3 className="text-xs uppercase tracking-widest text-white/25 font-mono mb-5">Personal Information</h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-5">
@@ -752,11 +733,10 @@ function ProfilePanel() {
           <EditableField label="WhatsApp Number" value={profile.whatsapp} onChange={set("whatsapp")} type="tel" placeholder="+91 XXXXX XXXXX" hint="Used for competition notifications only" />
           <EditableField label="City" value={profile.city} onChange={set("city")} placeholder="e.g. Bengaluru" />
           <SelectField label="State" value={profile.state} options={INDIAN_STATES} onChange={set("state")} />
-          <div /> {/* spacer */}
+          <div /> 
         </div>
       </div>
 
-      {/* ── Academic Info ── */}
       <div className="rounded-2xl border border-white/8 bg-white/3 p-6">
         <h3 className="text-xs uppercase tracking-widest text-white/25 font-mono mb-5">Academic Details</h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-5">
@@ -765,7 +745,6 @@ function ProfilePanel() {
         </div>
       </div>
 
-      {/* ── Document Uploads ── */}
       <div className="rounded-2xl border border-white/8 bg-white/3 p-6">
         <h3 className="text-xs uppercase tracking-widest text-white/25 font-mono mb-1">Identity Documents</h3>
         <p className="text-[11px] text-white/25 mb-5">Required for prize disbursement verification. All uploads are encrypted.</p>
@@ -775,7 +754,6 @@ function ProfilePanel() {
         </div>
       </div>
 
-      {/* ── Social Links ── */}
       <div className="rounded-2xl border border-white/8 bg-white/3 p-6">
         <h3 className="text-xs uppercase tracking-widest text-white/25 font-mono mb-5">Social Links</h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-5">
@@ -826,9 +804,6 @@ function CompetitionsPanel() {
   );
 }
 
-/* ─────────────────────────────────────────────────────────────────
-   Events Panel
-───────────────────────────────────────────────────────────────── */
 function EventsPanel() {
   return (
     <motion.div
@@ -993,16 +968,12 @@ function SidebarNav({
   );
 }
 
-/* ─────────────────────────────────────────────────────────────────
-   Page root
-───────────────────────────────────────────────────────────────── */
 export default function ProfilePage() {
   const [active, setActive] = useState<NavItem>("profile");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
     <div className="min-h-screen bg-[#030303] text-white selection:bg-white/20 relative overflow-hidden">
-      {/* Ambient */}
       <div className="pointer-events-none fixed inset-0 z-0">
         <div className="absolute top-0 left-1/4 w-[600px] h-[600px] bg-purple-900/10 rounded-full blur-[120px]" />
         <div className="absolute bottom-0 right-1/4 w-[400px] h-[400px] bg-indigo-900/8 rounded-full blur-[100px]" />
@@ -1015,7 +986,6 @@ export default function ProfilePage() {
         />
       </div>
 
-      {/* Top bar */}
       <header className="fixed top-0 left-0 right-0 z-50 h-14 border-b border-white/6 backdrop-blur-xl bg-[#030303]/70 flex items-center px-6 gap-4">
         <Link href="/" className="shrink-0 flex items-center gap-2">
           <img src="/neutron.png" alt="Neutron" className="h-8 w-8 opacity-90" />
@@ -1023,14 +993,19 @@ export default function ProfilePage() {
         </Link>
         <div className="flex-1" />
         
-        {/* Mobile menu toggle */}
         <button 
-          onClick={() => setMobileMenuOpen(true)}
+          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
           className="md:hidden p-2 -mr-2 text-white/70 hover:text-white rounded-lg active:bg-white/10 transition-colors"
         >
-          <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-            <path d="M4 6h16M4 12h16M4 18h16" strokeLinecap="round" />
-          </svg>
+          {mobileMenuOpen ? (
+            <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+              <path d="M18 6L6 18M6 6l12 12" strokeLinecap="round" />
+            </svg>
+          ) : (
+            <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+              <path d="M4 6h16M4 12h16M4 18h16" strokeLinecap="round" />
+            </svg>
+          )}
         </button>
 
         <div className="hidden md:flex items-center gap-2.5">
@@ -1045,7 +1020,6 @@ export default function ProfilePage() {
         </div>
       </header>
 
-      {/* Mobile Menu Overlay */}
       <AnimatePresence>
         {mobileMenuOpen && (
           <motion.div
@@ -1054,17 +1028,6 @@ export default function ProfilePage() {
             exit={{ opacity: 0, y: -20 }}
             className="fixed inset-0 top-14 z-40 bg-[#0c0c0c] flex flex-col p-6 overflow-y-auto md:hidden"
           >
-            <div className="flex justify-end mb-6">
-              <button 
-                onClick={() => setMobileMenuOpen(false)}
-                className="p-2 text-white/70 hover:text-white rounded-lg bg-white/5 active:bg-white/10 transition-colors"
-              >
-                <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                  <path d="M18 6L6 18M6 6l12 12" strokeLinecap="round" />
-                </svg>
-              </button>
-            </div>
-            
             <SidebarNav active={active} setActive={(v) => { setActive(v); setMobileMenuOpen(false); }} />
             
             <div className="mt-8 pt-6 border-t border-white/10 flex flex-col gap-3">
@@ -1081,11 +1044,8 @@ export default function ProfilePage() {
         )}
       </AnimatePresence>
 
-      {/* Layout */}
       <div className="flex h-screen pt-14 relative z-10 w-full">
-        {/* Sidebar - hidden on mobile */}
         <aside className="w-56 shrink-0 h-full border-r border-white/6 bg-[#030303]/60 backdrop-blur-xl hidden md:flex flex-col px-3 py-6 overflow-y-auto">
-          {/* Identity chip */}
           <div className="flex items-center gap-3 px-3 pb-5 mb-4 border-b border-white/6">
             <div className="w-9 h-9 rounded-xl overflow-hidden border border-white/15 shrink-0">
               <img
@@ -1102,7 +1062,6 @@ export default function ProfilePage() {
 
           <SidebarNav active={active} setActive={setActive} />
 
-          {/* Bottom links */}
           <div className="mt-auto flex flex-col gap-1 pt-4 border-t border-white/6">
             {[
               { href: "/competitions", label: "All Competitions" },
@@ -1122,7 +1081,6 @@ export default function ProfilePage() {
           </div>
         </aside>
 
-        {/* Main */}
         <main className="flex-1 w-full overflow-y-auto overflow-x-hidden">
           <div className="max-w-3xl mx-auto px-4 sm:px-8 lg:px-10 py-6 sm:py-8 w-full">
             <AnimatePresence mode="wait">

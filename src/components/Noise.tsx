@@ -6,6 +6,8 @@ interface NoiseProps {
   patternScaleY?: number;
   patternRefreshInterval?: number;
   patternAlpha?: number;
+  className?: string;
+  fullScreen?: boolean;
 }
 
 const Noise: React.FC<NoiseProps> = ({
@@ -13,7 +15,9 @@ const Noise: React.FC<NoiseProps> = ({
   patternScaleX = 1,
   patternScaleY = 1,
   patternRefreshInterval = 2,
-  patternAlpha = 15
+  patternAlpha = 15,
+  className = '',
+  fullScreen = true
 }) => {
   const grainRef = useRef<HTMLCanvasElement | null>(null);
 
@@ -34,10 +38,20 @@ const Noise: React.FC<NoiseProps> = ({
       canvas.width = canvasSize;
       canvas.height = canvasSize;
 
-      canvas.style.width = '100vw';
-      canvas.style.height = '100vh';
+      if (fullScreen) {
+        canvas.style.width = '100vw';
+        canvas.style.height = '100vh';
+      } else {
+        canvas.style.width = '100%';
+        canvas.style.height = '100%';
+      }
     };
 
+    if (fullScreen) {
+      window.addEventListener('resize', resize);
+    }
+    resize();
+    
     const drawGrain = () => {
       const imageData = ctx.createImageData(canvasSize, canvasSize);
       const data = imageData.data;
@@ -61,22 +75,23 @@ const Noise: React.FC<NoiseProps> = ({
       animationId = window.requestAnimationFrame(loop);
     };
 
-    window.addEventListener('resize', resize);
-    resize();
     loop();
 
     return () => {
-      window.removeEventListener('resize', resize);
+      if (fullScreen) {
+        window.removeEventListener('resize', resize);
+      }
       window.cancelAnimationFrame(animationId);
     };
-  }, [patternSize, patternScaleX, patternScaleY, patternRefreshInterval, patternAlpha]);
+  }, [patternSize, patternScaleX, patternScaleY, patternRefreshInterval, patternAlpha, fullScreen]);
 
   return (
     <canvas
-      className="pointer-events-none absolute top-0 left-0 h-screen w-screen"
+      className={`pointer-events-none absolute top-0 left-0 ${className}`.trim()}
       ref={grainRef}
       style={{
-        imageRendering: 'pixelated'
+        imageRendering: 'pixelated',
+        ...(fullScreen ? { width: '100vw', height: '100vh' } : { width: '100%', height: '100%' })
       }}
     />
   );
