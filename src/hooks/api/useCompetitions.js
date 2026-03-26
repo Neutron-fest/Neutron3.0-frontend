@@ -430,7 +430,7 @@ export function useRemoveDepartmentFromCompetition() {
 }
 
 /**
- * Request promo code approval (DH only)
+ * Request promo code approval / direct apply (SA/DH)
  */
 export function useRequestPromoCodeApproval() {
   const queryClient = useQueryClient();
@@ -440,7 +440,7 @@ export function useRequestPromoCodeApproval() {
         `/competitions/${competitionId}/request-promo-code-approval`,
         { promoCodes },
       );
-      return data?.data || data;
+      return data;
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({

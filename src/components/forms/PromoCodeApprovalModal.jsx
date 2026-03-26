@@ -105,9 +105,11 @@ export default function PromoCodeApprovalModal({
         promoCodes,
       },
       {
-        onSuccess: () => {
+        onSuccess: (response) => {
+          const backendMessage = response?.message;
           enqueueSnackbar(
-            `Promo code approval request submitted (${promoCodes.length} code${promoCodes.length !== 1 ? "s" : ""})`,
+            backendMessage ||
+              `Promo code request submitted (${promoCodes.length} code${promoCodes.length !== 1 ? "s" : ""})`,
             { variant: "success" },
           );
           setPromoCodes([]);
