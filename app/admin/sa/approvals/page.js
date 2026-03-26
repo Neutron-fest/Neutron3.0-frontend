@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
 import {
@@ -274,6 +274,63 @@ const getChangedCompetitionFieldRows = (before, proposed) => {
     }));
 };
 
+const toAbsoluteUrl = (base, path) => {
+  if (!base || !path) return null;
+  const normalizedBase = base.endsWith("/") ? base.slice(0, -1) : base;
+  const normalizedPath = path.startsWith("/") ? path : `/${path}`;
+  return `${normalizedBase}${normalizedPath}`;
+};
+
+const buildMediaCandidates = (mediaPath) => {
+  if (!mediaPath || typeof mediaPath !== "string") return [];
+
+  const candidates = [];
+  const add = (value) => {
+    if (!value) return;
+    if (!candidates.includes(value)) {
+      candidates.push(value);
+    }
+  };
+
+  const normalizedPath = mediaPath.startsWith("/")
+    ? mediaPath
+    : `/${mediaPath}`;
+
+  if (/^https?:\/\//i.test(mediaPath)) {
+    add(mediaPath);
+  }
+
+  add(normalizedPath);
+
+  const apiBase = process.env.NEXT_PUBLIC_API_BASE_URL || "";
+  if (apiBase) {
+    add(toAbsoluteUrl(apiBase, normalizedPath));
+
+    const baseWithoutApiPrefix = apiBase.replace(/\/api\/v\d+\/?$/i, "");
+    add(toAbsoluteUrl(baseWithoutApiPrefix, normalizedPath));
+  }
+
+  if (typeof window !== "undefined") {
+    add(toAbsoluteUrl(window.location.origin, normalizedPath));
+    const host = window.location.hostname;
+    const protocol = window.location.protocol;
+    add(`${protocol}//${host}:8080${normalizedPath}`);
+    add(`${protocol}//${host}:3001${normalizedPath}`);
+  }
+
+  return candidates;
+};
+
+const extractMediaPath = (value) => {
+  if (!value) return null;
+  if (typeof value === "string") return value;
+  if (typeof value === "object") {
+    if (typeof value.path === "string") return value.path;
+    if (typeof value.url === "string") return value.url;
+  }
+  return null;
+};
+
 /* ── Sub-components ── */
 
 function Pill({ bg, text, border, children }) {
@@ -374,6 +431,48 @@ function EmptyRow({ message }) {
   );
 }
 
+function RequestMediaPreview({ label, path }) {
+  const candidates = useMemo(() => buildMediaCandidates(path), [path]);
+  const [candidateIndex, setCandidateIndex] = useState(0);
+
+  useEffect(() => {
+    setCandidateIndex(0);
+  }, [path]);
+
+  const src = candidates[candidateIndex] || null;
+  if (!src) return null;
+
+  return (
+    <Box>
+      <Label>{label}</Label>
+      <Box
+        sx={{
+          borderRadius: "8px",
+          overflow: "hidden",
+          border: "1px solid rgba(255,255,255,0.08)",
+          background: "#0c0c0c",
+        }}
+      >
+        <img
+          src={src}
+          alt={`${label} preview`}
+          style={{
+            display: "block",
+            width: "100%",
+            maxHeight: 180,
+            objectFit: "cover",
+          }}
+          onError={() => {
+            setCandidateIndex((current) =>
+              current < candidates.length - 1 ? current + 1 : current,
+            );
+          }}
+        />
+      </Box>
+    </Box>
+  );
+}
+
 /* ── Main page ── */
 
 export default function RequestsPage() {
@@ -413,6 +512,25 @@ export default function RequestsPage() {
     () => getCompetitionRequestPreview(detailApproval),
     [detailApproval],
   );
+
+  const competitionRequestMedia = useMemo(() => {
+    const requestData = detailApproval?.requestData || {};
+    const proposed =
+      competitionRequestPreview?.proposed || requestData?.proposed || {};
+    const before =
+      competitionRequestPreview?.before || requestData?.before || {};
+
+    return {
+      posterPath:
+        extractMediaPath(proposed.posterPath) ||
+        extractMediaPath(requestData.posterPath) ||
+        extractMediaPath(before.posterPath),
+      bannerPath:
+        extractMediaPath(proposed.bannerPath) ||
+        extractMediaPath(requestData.bannerPath) ||
+        extractMediaPath(before.bannerPath),
+    };
+  }, [detailApproval, competitionRequestPreview]);
 
   const changedCompetitionRows = useMemo(
     () =>
@@ -1931,6 +2049,29 @@ export default function RequestsPage() {
                               )}
                             />
                           ))}
+                        </Box>
+                      </>
+                    )}
+
+                    {(competitionRequestMedia.posterPath ||
+                      competitionRequestMedia.bannerPath) && (
+                      <>
+                        <Label>Media Preview</Label>
+                        <Box
+                          sx={{
+                            display: "grid",
+                            gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" },
+                            gap: 1.5,
+                          }}
+                        >
+                          <RequestMediaPreview
+                            label="Poster"
+                            path={competitionRequestMedia.posterPath}
+                          />
+                          <RequestMediaPreview
+                            label="Banner"
+                            path={competitionRequestMedia.bannerPath}
+                          />
                         </Box>
                       </>
                     )}
