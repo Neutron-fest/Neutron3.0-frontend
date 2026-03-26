@@ -1284,6 +1284,7 @@ export default function CompetitionsPage() {
   const [formTarget, setFormTarget] = useState(null);
   const [formOpen, setFormOpen] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState(null);
+  const [deleteConfirmText, setDeleteConfirmText] = useState("");
   const [promoCodeTarget, setPromoCodeTarget] = useState(null);
   const [menuAnchor, setMenuAnchor] = useState(null);
   const [menuComp, setMenuComp] = useState(null);
@@ -1357,10 +1358,21 @@ export default function CompetitionsPage() {
 
   function handleDeleteCompetition(comp) {
     setDeleteTarget(comp);
+    setDeleteConfirmText("");
   }
 
   function confirmDeleteCompetition() {
     if (!deleteTarget) return;
+
+    const requiresNameConfirmation = user?.role === "SA";
+    const targetName = (deleteTarget.title || deleteTarget.name || "").trim();
+
+    if (requiresNameConfirmation && deleteConfirmText.trim() !== targetName) {
+      enqueueSnackbar("Type the exact competition name to confirm deletion", {
+        variant: "warning",
+      });
+      return;
+    }
 
     setDeletingId(deleteTarget.id);
     deleteCompetition(deleteTarget.id, {
@@ -1375,6 +1387,7 @@ export default function CompetitionsPage() {
           enqueueSnackbar("Competition deleted", { variant: "success" });
         }
         setDeleteTarget(null);
+        setDeleteConfirmText("");
       },
       onError: (err) =>
         enqueueSnackbar(
@@ -1386,6 +1399,16 @@ export default function CompetitionsPage() {
       },
     });
   }
+
+  const deleteTargetName = (
+    deleteTarget?.title ||
+    deleteTarget?.name ||
+    ""
+  ).trim();
+  const requiresDeleteNameConfirmation = user?.role === "SA";
+  const isDeleteNameMatched =
+    !requiresDeleteNameConfirmation ||
+    (deleteTargetName && deleteConfirmText.trim() === deleteTargetName);
 
   const filtered = useMemo(() => {
     return competitions.filter((c) => {
@@ -1982,9 +2005,11 @@ export default function CompetitionsPage() {
 
       <Dialog
         open={!!deleteTarget}
-        onClose={() =>
-          deletingCompetition || deletingId ? null : setDeleteTarget(null)
-        }
+        onClose={() => {
+          if (deletingCompetition || deletingId) return;
+          setDeleteTarget(null);
+          setDeleteConfirmText("");
+        }}
         maxWidth="xs"
         fullWidth
         PaperProps={{
@@ -2049,16 +2074,53 @@ export default function CompetitionsPage() {
               : "Delete this competition?"}
           </Typography>
 
+          {requiresDeleteNameConfirmation && (
+            <Box sx={{ mb: 2.5 }}>
+              <Typography
+                sx={{
+                  fontSize: 11,
+                  color: "rgba(255,255,255,0.45)",
+                  fontFamily: "'Syne', sans-serif",
+                  mb: 1,
+                }}
+              >
+                Type <strong>{deleteTargetName}</strong> to confirm
+              </Typography>
+              <input
+                value={deleteConfirmText}
+                onChange={(e) => setDeleteConfirmText(e.target.value)}
+                placeholder="Type competition name"
+                style={{
+                  width: "100%",
+                  padding: "9px 12px",
+                  background: "rgba(255,255,255,0.04)",
+                  border: "1px solid rgba(255,255,255,0.1)",
+                  borderRadius: 8,
+                  color: "rgba(255,255,255,0.75)",
+                  fontSize: 13,
+                  fontFamily: "'Syne', sans-serif",
+                  outline: "none",
+                  boxSizing: "border-box",
+                }}
+              />
+            </Box>
+          )}
+
           <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 1 }}>
             <GhostBtn
-              onClick={() => setDeleteTarget(null)}
+              onClick={() => {
+                setDeleteTarget(null);
+                setDeleteConfirmText("");
+              }}
               disabled={deletingCompetition || !!deletingId}
             >
               Cancel
             </GhostBtn>
             <DangerBtn
               onClick={confirmDeleteCompetition}
-              disabled={deletingCompetition || !!deletingId}
+              disabled={
+                deletingCompetition || !!deletingId || !isDeleteNameMatched
+              }
             >
               {deletingCompetition || deletingId ? (
                 <CircularProgress size={11} sx={{ color: "#f87171" }} />

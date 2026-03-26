@@ -238,7 +238,18 @@ const toDateTimeLocal = (value) => {
 
 const toIsoOrNull = (value) => {
   if (!value) return null;
-  return new Date(value).toISOString();
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return null;
+
+  const pad = (num) => String(num).padStart(2, "0");
+  const year = date.getFullYear();
+  const month = pad(date.getMonth() + 1);
+  const day = pad(date.getDate());
+  const hours = pad(date.getHours());
+  const minutes = pad(date.getMinutes());
+  const seconds = pad(date.getSeconds());
+
+  return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`;
 };
 
 const createEmptyField = (index = 0) => ({
@@ -571,6 +582,19 @@ function FormBuilderDialog({
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [confirmCloseOpen, setConfirmCloseOpen] = useState(false);
 
+  const selectedCompetition = useMemo(
+    () => competitions.find((competition) => competition.id === competitionId),
+    [competitions, competitionId],
+  );
+
+  const registrationDeadlineLocal = useMemo(
+    () => toDateTimeLocal(selectedCompetition?.registrationDeadline),
+    [selectedCompetition?.registrationDeadline],
+  );
+
+  const isCompetitionFixed = !isEdit && Boolean(preselectedCompetitionId);
+  const isClosesAtLocked = !isEdit && Boolean(registrationDeadlineLocal);
+
   useEffect(() => {
     if (!open) return;
 
@@ -603,6 +627,16 @@ function FormBuilderDialog({
 
     return () => cancelAnimationFrame(frame);
   }, [open, isEdit, formDetails, preselectedCompetitionId]);
+
+  useEffect(() => {
+    if (!open || isEdit) return;
+    if (!registrationDeadlineLocal) return;
+    setClosesAt((current) =>
+      current === registrationDeadlineLocal
+        ? current
+        : registrationDeadlineLocal,
+    );
+  }, [open, isEdit, registrationDeadlineLocal]);
 
   const isStepOneValid = useMemo(() => {
     if (!competitionId || !opensAt || !closesAt) {
@@ -913,7 +947,7 @@ function FormBuilderDialog({
                     fullWidth
                     size="small"
                     value={competitionId}
-                    disabled={isEdit}
+                    disabled={isEdit || isCompetitionFixed}
                     onChange={(event) => {
                       setCompetitionId(event.target.value);
                       setHasUnsavedChanges(true);
@@ -947,11 +981,17 @@ function FormBuilderDialog({
                     fullWidth
                     size="small"
                     value={closesAt}
+                    disabled={isClosesAtLocked}
                     onChange={(event) => {
                       setClosesAt(event.target.value);
                       setHasUnsavedChanges(true);
                     }}
                     InputLabelProps={{ shrink: true }}
+                    helperText={
+                      isClosesAtLocked
+                        ? "Locked to linked competition registration deadline"
+                        : undefined
+                    }
                     sx={inputSx}
                   />
                 </Box>

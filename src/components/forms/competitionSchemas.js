@@ -452,7 +452,15 @@ const toDateTimeLocal = (value) => {
   if (!value) return "";
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return "";
-  return date.toISOString().slice(0, 16);
+
+  const pad = (num) => String(num).padStart(2, "0");
+  const year = date.getFullYear();
+  const month = pad(date.getMonth() + 1);
+  const day = pad(date.getDate());
+  const hours = pad(date.getHours());
+  const minutes = pad(date.getMinutes());
+
+  return `${year}-${month}-${day}T${hours}:${minutes}`;
 };
 
 export function getEditDefaults(competition = {}) {
@@ -513,11 +521,20 @@ export function getEditDefaults(competition = {}) {
   };
 }
 
-const toIsoOrNull = (value) => {
+const toDateTimePayloadOrNull = (value) => {
   if (!value) return null;
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return null;
-  return date.toISOString();
+
+  const pad = (num) => String(num).padStart(2, "0");
+  const year = date.getFullYear();
+  const month = pad(date.getMonth() + 1);
+  const day = pad(date.getDate());
+  const hours = pad(date.getHours());
+  const minutes = pad(date.getMinutes());
+  const seconds = pad(date.getSeconds());
+
+  return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`;
 };
 
 const normalizePrizePool = (prizePool = []) => {
@@ -608,9 +625,11 @@ export function buildCompetitionPayloadFormData(values, poster) {
   append("type", values.type);
   append("status", values.status);
 
-  const startTimeIso = toIsoOrNull(values.startTime);
-  const endTimeIso = toIsoOrNull(values.endTime);
-  const registrationDeadlineIso = toIsoOrNull(values.registrationDeadline);
+  const startTimeIso = toDateTimePayloadOrNull(values.startTime);
+  const endTimeIso = toDateTimePayloadOrNull(values.endTime);
+  const registrationDeadlineIso = toDateTimePayloadOrNull(
+    values.registrationDeadline,
+  );
 
   if (startTimeIso) formData.append("startTime", startTimeIso);
   if (endTimeIso) formData.append("endTime", endTimeIso);

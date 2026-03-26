@@ -55,7 +55,10 @@ const DH_NAVIGATION = [
 ];
 
 const SA_DH_NAVIGATION = DH_NAVIGATION.filter(
-  (item) => item.href !== "/admin/dh/users" && item.href !== "/admin/club",
+  (item) =>
+    item.href !== "/admin/dh/users" &&
+    item.href !== "/admin/club" &&
+    item.href !== "/admin/dh/requests",
 );
 
 const SHARED_NAVIGATION = [
