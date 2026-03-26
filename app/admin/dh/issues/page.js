@@ -324,6 +324,38 @@ export default function IssuesResolutionPage() {
                   {issue.message}
                 </Typography>
 
+                {issue.imagePath && (
+                  <Box
+                    sx={{
+                      mb: 1.25,
+                      width: "100%",
+                      maxWidth: 360,
+                      borderRadius: "10px",
+                      overflow: "hidden",
+                      border: "1px solid rgba(255,255,255,0.08)",
+                    }}
+                  >
+                    <a
+                      href={issue.imagePath}
+                      target="_blank"
+                      rel="noreferrer"
+                      style={{ display: "block" }}
+                    >
+                      <Box
+                        component="img"
+                        src={issue.imagePath}
+                        alt={issue.imageOriginalName || "Issue attachment"}
+                        sx={{
+                          display: "block",
+                          width: "100%",
+                          height: 180,
+                          objectFit: "cover",
+                        }}
+                      />
+                    </a>
+                  </Box>
+                )}
+
                 <Box
                   sx={{
                     display: "grid",

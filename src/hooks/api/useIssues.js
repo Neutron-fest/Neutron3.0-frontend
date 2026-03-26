@@ -16,8 +16,19 @@ export function useCreateIssue() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ message }) => {
-      const { data } = await apiClient.post("/issues", { message });
+    mutationFn: async ({ message, image }) => {
+      const hasImage = image instanceof File;
+
+      if (!hasImage) {
+        const { data } = await apiClient.post("/issues", { message });
+        return data;
+      }
+
+      const formData = new FormData();
+      formData.append("message", message);
+      formData.append("image", image);
+
+      const { data } = await apiClient.post("/issues", formData);
       return data;
     },
     onSuccess: () => {

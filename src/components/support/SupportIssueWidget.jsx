@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Box,
   Typography,
@@ -9,10 +9,15 @@ import {
   CircularProgress,
   IconButton,
 } from "@mui/material";
-import { LifeBuoy, X, Send } from "lucide-react";
+import { LifeBuoy, X, Send, Paperclip } from "lucide-react";
 import { useSnackbar } from "notistack";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCreateIssue } from "@/src/hooks/api/useIssues";
+
+const ISSUE_IMAGE_MAX_MB = 5;
+const ISSUE_IMAGE_MAX_BYTES = ISSUE_IMAGE_MAX_MB * 1024 * 1024;
+const ISSUE_IMAGE_ACCEPT =
+  "image/jpeg,image/png,image/webp,image/avif,image/gif";
 
 export default function SupportIssueWidget() {
   const { user, loading } = useAuth();
@@ -21,6 +26,23 @@ export default function SupportIssueWidget() {
 
   const [open, setOpen] = useState(false);
   const [message, setMessage] = useState("");
+  const [imageFile, setImageFile] = useState(null);
+
+  const [previewUrl, setPreviewUrl] = useState(null);
+
+  useEffect(() => {
+    if (!(imageFile instanceof File)) {
+      setPreviewUrl(null);
+      return;
+    }
+
+    const objectUrl = URL.createObjectURL(imageFile);
+    setPreviewUrl(objectUrl);
+
+    return () => {
+      URL.revokeObjectURL(objectUrl);
+    };
+  }, [imageFile]);
 
   if (loading || !user) return null;
 
@@ -39,9 +61,17 @@ export default function SupportIssueWidget() {
       return;
     }
 
+    if (imageFile && imageFile.size > ISSUE_IMAGE_MAX_BYTES) {
+      enqueueSnackbar(`Image exceeds ${ISSUE_IMAGE_MAX_MB}MB limit`, {
+        variant: "warning",
+      });
+      return;
+    }
+
     try {
-      await createIssue({ message: trimmed });
+      await createIssue({ message: trimmed, image: imageFile });
       setMessage("");
+      setImageFile(null);
       setOpen(false);
       enqueueSnackbar("Issue submitted to support queue", {
         variant: "success",
@@ -52,6 +82,31 @@ export default function SupportIssueWidget() {
         { variant: "error" },
       );
     }
+  };
+
+  const handleImageChange = (event) => {
+    const file = event.target.files?.[0] || null;
+
+    if (!file) {
+      setImageFile(null);
+      return;
+    }
+
+    if (!file.type.startsWith("image/")) {
+      enqueueSnackbar("Only image files are allowed", {
+        variant: "warning",
+      });
+      return;
+    }
+
+    if (file.size > ISSUE_IMAGE_MAX_BYTES) {
+      enqueueSnackbar(`Image exceeds ${ISSUE_IMAGE_MAX_MB}MB limit`, {
+        variant: "warning",
+      });
+      return;
+    }
+
+    setImageFile(file);
   };
 
   return (
@@ -145,6 +200,104 @@ export default function SupportIssueWidget() {
               }}
             />
 
+            <Box sx={{ mb: 1.25 }}>
+              <label
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 6,
+                  border: "1px solid rgba(168,85,247,0.3)",
+                  borderRadius: 8,
+                  padding: "8px 12px",
+                  color: "#e9d5ff",
+                  background: "rgba(168,85,247,0.12)",
+                  fontSize: 12,
+                  cursor: isPending ? "not-allowed" : "pointer",
+                  opacity: isPending ? 0.6 : 1,
+                }}
+              >
+                <Paperclip size={14} />
+                {imageFile instanceof File ? imageFile.name : "Attach image"}
+                <input
+                  type="file"
+                  accept={ISSUE_IMAGE_ACCEPT}
+                  disabled={isPending}
+                  style={{ display: "none" }}
+                  onChange={handleImageChange}
+                />
+              </label>
+
+              <Typography
+                sx={{
+                  mt: 0.75,
+                  fontSize: 10,
+                  color: "rgba(255,255,255,0.3)",
+                  fontFamily: "'DM Mono', monospace",
+                }}
+              >
+                Optional image · max {ISSUE_IMAGE_MAX_MB}MB ·
+                JPG/PNG/WEBP/AVIF/GIF
+              </Typography>
+
+              {imageFile instanceof File && (
+                <Typography
+                  sx={{
+                    mt: 0.5,
+                    fontSize: 10,
+                    color:
+                      imageFile.size > ISSUE_IMAGE_MAX_BYTES
+                        ? "#f87171"
+                        : "rgba(255,255,255,0.35)",
+                    fontFamily: "'DM Mono', monospace",
+                  }}
+                >
+                  Size: {(imageFile.size / (1024 * 1024)).toFixed(2)} MB
+                </Typography>
+              )}
+
+              {previewUrl && (
+                <Box
+                  sx={{
+                    mt: 1,
+                    position: "relative",
+                    width: "100%",
+                    borderRadius: "10px",
+                    overflow: "hidden",
+                    border: "1px solid rgba(255,255,255,0.1)",
+                  }}
+                >
+                  <Box
+                    component="img"
+                    src={previewUrl}
+                    alt="Issue image preview"
+                    sx={{
+                      display: "block",
+                      width: "100%",
+                      height: 140,
+                      objectFit: "cover",
+                    }}
+                  />
+                  <IconButton
+                    size="small"
+                    onClick={() => setImageFile(null)}
+                    disabled={isPending}
+                    sx={{
+                      position: "absolute",
+                      top: 6,
+                      right: 6,
+                      background: "rgba(0,0,0,0.45)",
+                      color: "#fff",
+                      "&:hover": {
+                        background: "rgba(0,0,0,0.62)",
+                      },
+                    }}
+                  >
+                    <X size={12} />
+                  </IconButton>
+                </Box>
+              )}
+            </Box>
+
             <Box
               sx={{
                 display: "flex",
@@ -165,7 +318,11 @@ export default function SupportIssueWidget() {
 
               <Button
                 onClick={handleSubmit}
-                disabled={isPending || message.trim().length < 10}
+                disabled={
+                  isPending ||
+                  message.trim().length < 10 ||
+                  (imageFile && imageFile.size > ISSUE_IMAGE_MAX_BYTES)
+                }
                 variant="contained"
                 sx={{
                   textTransform: "none",

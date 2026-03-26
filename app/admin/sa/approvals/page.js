@@ -117,6 +117,163 @@ const fmtDateTime = (d) =>
       })
     : "—";
 
+const COMPETITION_FIELD_LABELS = {
+  title: "Title",
+  shortDescription: "Short Description",
+  category: "Category",
+  eventType: "Event Type",
+  type: "Participation Type",
+  status: "Status",
+  registrationFee: "Registration Fee",
+  registrationDeadline: "Registration Deadline",
+  startTime: "Start Time",
+  endTime: "End Time",
+  venueName: "Venue Name",
+  venueRoom: "Room",
+  venueFloor: "Floor",
+  minTeamSize: "Min Team Size",
+  maxTeamSize: "Max Team Size",
+  maxRegistrations: "Max Registrations",
+  maxTeamsPerCollege: "Max Teams / College",
+  registrationsOpen: "Registrations Open",
+  requiresApproval: "Requires Approval",
+  autoApproveTeams: "Auto-Approve Teams",
+  attendanceRequired: "Attendance Required",
+  perPerson: "Fee Per Person",
+  isPaid: "Paid Event",
+};
+
+const COMPETITION_OVERVIEW_FIELDS = [
+  "title",
+  "eventType",
+  "type",
+  "status",
+  "registrationFee",
+  "registrationDeadline",
+  "startTime",
+  "endTime",
+  "venueName",
+  "venueRoom",
+  "venueFloor",
+  "minTeamSize",
+  "maxTeamSize",
+  "maxRegistrations",
+  "maxTeamsPerCollege",
+  "registrationsOpen",
+  "requiresApproval",
+  "autoApproveTeams",
+  "attendanceRequired",
+  "perPerson",
+  "isPaid",
+  "category",
+  "shortDescription",
+];
+
+const toCompetitionRequestActionLabel = (action) => {
+  if (action === "CREATE_COMPETITION") return "Create Competition";
+  if (action === "DELETE_COMPETITION") return "Delete Competition";
+  if (action) {
+    return action
+      .toLowerCase()
+      .split("_")
+      .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+      .join(" ");
+  }
+  return "Update Competition";
+};
+
+const formatCompetitionFieldValue = (key, value) => {
+  if (value === null || value === undefined || value === "") return "—";
+
+  if (typeof value === "boolean") {
+    return value ? "Yes" : "No";
+  }
+
+  if (key === "registrationFee") {
+    const amount = Number(value);
+    return Number.isFinite(amount) ? `₹${amount}` : String(value);
+  }
+
+  if (
+    key === "registrationDeadline" ||
+    key === "startTime" ||
+    key === "endTime"
+  ) {
+    return fmtDateTime(value);
+  }
+
+  if (Array.isArray(value)) {
+    if (!value.length) return "—";
+    return value
+      .map((item) => {
+        if (item === null || item === undefined) return "";
+        if (typeof item === "object") {
+          return (
+            item?.label || item?.name || item?.code || JSON.stringify(item)
+          );
+        }
+        return String(item);
+      })
+      .filter(Boolean)
+      .join(", ");
+  }
+
+  if (typeof value === "object") {
+    return JSON.stringify(value);
+  }
+
+  return String(value);
+};
+
+const getCompetitionRequestPreview = (approval) => {
+  const requestData = approval?.requestData;
+  if (!requestData) return null;
+
+  const action = requestData?.action;
+  const type = approval?.type;
+  const isCompetitionLike =
+    type === "COMPETITION_EDIT" ||
+    (typeof action === "string" && action.includes("COMPETITION")) ||
+    requestData?.relatedEntityType === "competition";
+
+  if (!isCompetitionLike) return null;
+
+  const before = requestData?.before || null;
+  const proposed = requestData?.proposed || requestData?.after || null;
+
+  if (!before && !proposed) return null;
+
+  return {
+    actionLabel: toCompetitionRequestActionLabel(action),
+    before,
+    proposed,
+  };
+};
+
+const getChangedCompetitionFieldRows = (before, proposed) => {
+  if (!before || !proposed) return [];
+
+  const keys = Array.from(
+    new Set([
+      ...Object.keys(before || {}),
+      ...Object.keys(proposed || {}),
+      ...COMPETITION_OVERVIEW_FIELDS,
+    ]),
+  );
+
+  return keys
+    .filter(
+      (key) =>
+        JSON.stringify(before?.[key]) !== JSON.stringify(proposed?.[key]),
+    )
+    .map((key) => ({
+      key,
+      label: COMPETITION_FIELD_LABELS[key] || key,
+      before: formatCompetitionFieldValue(key, before?.[key]),
+      proposed: formatCompetitionFieldValue(key, proposed?.[key]),
+    }));
+};
+
 /* ── Sub-components ── */
 
 function Pill({ bg, text, border, children }) {
@@ -251,6 +408,20 @@ export default function RequestsPage() {
     detailApproval?.requestData?.after?.status ||
     detailApproval?.requestData?.status ||
     null;
+
+  const competitionRequestPreview = useMemo(
+    () => getCompetitionRequestPreview(detailApproval),
+    [detailApproval],
+  );
+
+  const changedCompetitionRows = useMemo(
+    () =>
+      getChangedCompetitionFieldRows(
+        competitionRequestPreview?.before,
+        competitionRequestPreview?.proposed,
+      ),
+    [competitionRequestPreview],
+  );
 
   const publishPreviewCompetitionId =
     detailDialogOpen && detailApproval
@@ -1721,29 +1892,145 @@ export default function RequestsPage() {
             {detailApproval.requestData && (
               <Box>
                 <Label>Request Data</Label>
-                <Box
-                  sx={{
-                    p: 1.5,
-                    borderRadius: "8px",
-                    background: "rgba(255,255,255,0.03)",
-                    border: "1px solid rgba(255,255,255,0.06)",
-                    fontFamily: "'DM Mono', monospace",
-                    fontSize: 12,
-                    color: "rgba(255,255,255,0.55)",
-                    overflow: "auto",
-                    maxHeight: 200,
-                  }}
-                >
-                  <pre
-                    style={{
-                      margin: 0,
-                      whiteSpace: "pre-wrap",
-                      wordBreak: "break-all",
+                {competitionRequestPreview ? (
+                  <Box
+                    sx={{
+                      p: 1.5,
+                      borderRadius: "8px",
+                      background: "rgba(255,255,255,0.03)",
+                      border: "1px solid rgba(255,255,255,0.06)",
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: 1.5,
                     }}
                   >
-                    {JSON.stringify(detailApproval.requestData, null, 2)}
-                  </pre>
-                </Box>
+                    <PreviewItem
+                      label="Action"
+                      value={competitionRequestPreview.actionLabel}
+                    />
+
+                    {competitionRequestPreview.proposed && (
+                      <>
+                        <Label>Proposed Competition Overview</Label>
+                        <Box
+                          sx={{
+                            display: "grid",
+                            gridTemplateColumns: "1fr 1fr",
+                            gap: 1.5,
+                          }}
+                        >
+                          {COMPETITION_OVERVIEW_FIELDS.map((fieldKey) => (
+                            <PreviewItem
+                              key={fieldKey}
+                              label={
+                                COMPETITION_FIELD_LABELS[fieldKey] || fieldKey
+                              }
+                              value={formatCompetitionFieldValue(
+                                fieldKey,
+                                competitionRequestPreview.proposed?.[fieldKey],
+                              )}
+                            />
+                          ))}
+                        </Box>
+                      </>
+                    )}
+
+                    {changedCompetitionRows.length > 0 && (
+                      <>
+                        <Label>Changed Fields</Label>
+                        <Box
+                          sx={{
+                            maxHeight: 220,
+                            overflow: "auto",
+                            border: "1px solid rgba(255,255,255,0.06)",
+                            borderRadius: "8px",
+                          }}
+                        >
+                          {changedCompetitionRows.map((row, index) => (
+                            <Box key={row.key}>
+                              <Box sx={{ p: 1.25 }}>
+                                <Typography
+                                  sx={{
+                                    fontSize: 11,
+                                    color: "rgba(255,255,255,0.8)",
+                                    fontFamily: "'Syne', sans-serif",
+                                    fontWeight: 600,
+                                    mb: 0.75,
+                                  }}
+                                >
+                                  {row.label}
+                                </Typography>
+                                <Box
+                                  sx={{
+                                    display: "grid",
+                                    gridTemplateColumns: "1fr 1fr",
+                                    gap: 1,
+                                  }}
+                                >
+                                  <Box>
+                                    <Label>Before</Label>
+                                    <Typography
+                                      sx={{
+                                        fontSize: 11,
+                                        color: "rgba(255,255,255,0.45)",
+                                        fontFamily: "'DM Mono', monospace",
+                                        whiteSpace: "pre-wrap",
+                                        wordBreak: "break-word",
+                                      }}
+                                    >
+                                      {row.before}
+                                    </Typography>
+                                  </Box>
+                                  <Box>
+                                    <Label>Proposed</Label>
+                                    <Typography
+                                      sx={{
+                                        fontSize: 11,
+                                        color: "#c084fc",
+                                        fontFamily: "'DM Mono', monospace",
+                                        whiteSpace: "pre-wrap",
+                                        wordBreak: "break-word",
+                                      }}
+                                    >
+                                      {row.proposed}
+                                    </Typography>
+                                  </Box>
+                                </Box>
+                              </Box>
+                              {index < changedCompetitionRows.length - 1 && (
+                                <RowDivider />
+                              )}
+                            </Box>
+                          ))}
+                        </Box>
+                      </>
+                    )}
+                  </Box>
+                ) : (
+                  <Box
+                    sx={{
+                      p: 1.5,
+                      borderRadius: "8px",
+                      background: "rgba(255,255,255,0.03)",
+                      border: "1px solid rgba(255,255,255,0.06)",
+                      fontFamily: "'DM Mono', monospace",
+                      fontSize: 12,
+                      color: "rgba(255,255,255,0.55)",
+                      overflow: "auto",
+                      maxHeight: 200,
+                    }}
+                  >
+                    <pre
+                      style={{
+                        margin: 0,
+                        whiteSpace: "pre-wrap",
+                        wordBreak: "break-all",
+                      }}
+                    >
+                      {JSON.stringify(detailApproval.requestData, null, 2)}
+                    </pre>
+                  </Box>
+                )}
               </Box>
             )}
             {detailApproval.rejectionReason && (

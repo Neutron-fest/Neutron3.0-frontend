@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Box, Typography, Dialog, Button } from "@mui/material";
 import {
   ShieldCheck,
@@ -91,6 +91,62 @@ const fmtDateTime = (d) =>
       })
     : "—";
 
+const toAbsoluteUrl = (base, path) => {
+  if (!base || !path) return null;
+  const normalizedBase = base.endsWith("/") ? base.slice(0, -1) : base;
+  const normalizedPath = path.startsWith("/") ? path : `/${path}`;
+  return `${normalizedBase}${normalizedPath}`;
+};
+
+const buildImageCandidates = (mediaPath) => {
+  if (!mediaPath || typeof mediaPath !== "string") return [];
+
+  const candidates = [];
+  const add = (value) => {
+    if (!value) return;
+    if (!candidates.includes(value)) {
+      candidates.push(value);
+    }
+  };
+
+  const normalizedPath = mediaPath.startsWith("/")
+    ? mediaPath
+    : `/${mediaPath}`;
+
+  if (/^https?:\/\//i.test(mediaPath)) {
+    add(mediaPath);
+  }
+
+  add(normalizedPath);
+
+  const apiBase = process.env.NEXT_PUBLIC_API_BASE_URL || "";
+  if (apiBase) {
+    add(toAbsoluteUrl(apiBase, normalizedPath));
+    const baseWithoutApiPrefix = apiBase.replace(/\/api\/v\d+\/?$/i, "");
+    add(toAbsoluteUrl(baseWithoutApiPrefix, normalizedPath));
+  }
+
+  if (typeof window !== "undefined") {
+    add(toAbsoluteUrl(window.location.origin, normalizedPath));
+    const host = window.location.hostname;
+    const protocol = window.location.protocol;
+    add(`${protocol}//${host}:8080${normalizedPath}`);
+    add(`${protocol}//${host}:3001${normalizedPath}`);
+  }
+
+  return candidates;
+};
+
+const extractMediaPath = (value) => {
+  if (!value) return null;
+  if (typeof value === "string") return value;
+  if (typeof value === "object") {
+    if (typeof value.path === "string") return value.path;
+    if (typeof value.url === "string") return value.url;
+  }
+  return null;
+};
+
 /* ── Sub-components ── */
 
 function Pill({ bg, text, border, children }) {
@@ -170,6 +226,59 @@ function EmptyRow({ message }) {
   );
 }
 
+function RequestMediaPreview({ label, path }) {
+  const candidates = useMemo(() => buildImageCandidates(path), [path]);
+  const [candidateIndex, setCandidateIndex] = useState(0);
+
+  useEffect(() => {
+    setCandidateIndex(0);
+  }, [path]);
+
+  const src = candidates[candidateIndex] || null;
+  if (!src) return null;
+
+  return (
+    <Box>
+      <Typography
+        sx={{
+          fontSize: 11,
+          textTransform: "uppercase",
+          letterSpacing: "0.1em",
+          color: "rgba(255,255,255,0.3)",
+          fontFamily: "'Syne', sans-serif",
+          mb: 0.75,
+        }}
+      >
+        {label}
+      </Typography>
+      <Box
+        sx={{
+          borderRadius: "8px",
+          overflow: "hidden",
+          border: "1px solid rgba(255,255,255,0.08)",
+          background: "#0c0c0c",
+        }}
+      >
+        <img
+          src={src}
+          alt={`${label} preview`}
+          style={{
+            display: "block",
+            width: "100%",
+            maxHeight: 180,
+            objectFit: "cover",
+          }}
+          onError={() => {
+            setCandidateIndex((current) =>
+              current < candidates.length - 1 ? current + 1 : current,
+            );
+          }}
+        />
+      </Box>
+    </Box>
+  );
+}
+
 /* ── Main page ── */
 
 export default function MyRequestsPage() {
@@ -214,6 +323,23 @@ export default function MyRequestsPage() {
     setDetailRequest(request);
     setDetailDialogOpen(true);
   };
+
+  const detailMedia = useMemo(() => {
+    const requestData = detailRequest?.requestData || {};
+    const proposed = requestData?.proposed || {};
+    const before = requestData?.before || {};
+
+    return {
+      posterPath:
+        extractMediaPath(proposed.posterPath) ||
+        extractMediaPath(requestData.posterPath) ||
+        extractMediaPath(before.posterPath),
+      bannerPath:
+        extractMediaPath(proposed.bannerPath) ||
+        extractMediaPath(requestData.bannerPath) ||
+        extractMediaPath(before.bannerPath),
+    };
+  }, [detailRequest]);
 
   return (
     <Box sx={{ p: { xs: 2, md: 4 }, maxWidth: 1200 }}>
@@ -639,6 +765,28 @@ export default function MyRequestsPage() {
                 {detailRequest.description || "—"}
               </Typography>
             </Box>
+
+            {(detailMedia.posterPath || detailMedia.bannerPath) && (
+              <Box
+                sx={{
+                  mt: 2,
+                  pt: 2,
+                  borderTop: "1px solid rgba(255,255,255,0.06)",
+                  display: "grid",
+                  gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" },
+                  gap: 2,
+                }}
+              >
+                <RequestMediaPreview
+                  label="Poster"
+                  path={detailMedia.posterPath}
+                />
+                <RequestMediaPreview
+                  label="Banner"
+                  path={detailMedia.bannerPath}
+                />
+              </Box>
+            )}
 
             <Box
               sx={{
