@@ -1434,13 +1434,28 @@ export default function CompetitionFormsPage() {
   const [previewFormId, setPreviewFormId] = useState(null);
 
   const preselectedCompetitionId = searchParams.get("competitionId") || "";
+  const preselectedFormId = searchParams.get("formId") || "";
   const shouldOpenBuilderFromQuery = searchParams.get("openForm") === "true";
 
   useEffect(() => {
     if (!shouldOpenBuilderFromQuery || !preselectedCompetitionId) return;
-    setActiveFormId(null);
+
+    if (preselectedFormId) {
+      setActiveFormId(preselectedFormId);
+    } else {
+      const existingForm = forms.find(
+        (form) => form?.competitionId === preselectedCompetitionId,
+      );
+      setActiveFormId(existingForm?.id || null);
+    }
+
     setBuilderOpen(true);
-  }, [preselectedCompetitionId, shouldOpenBuilderFromQuery]);
+  }, [
+    forms,
+    preselectedCompetitionId,
+    preselectedFormId,
+    shouldOpenBuilderFromQuery,
+  ]);
 
   const closeBuilderDialog = () => {
     setBuilderOpen(false);

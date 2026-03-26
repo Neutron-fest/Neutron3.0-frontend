@@ -94,6 +94,7 @@ export default function RegistrationsPage() {
   // Filters
   const [competitionId, setCompetitionId] = useState("");
   const [search, setSearch] = useState("");
+  const [createdWindow, setCreatedWindow] = useState("all");
 
   // Reject dialog
   const [rejectDialog, setRejectDialog] = useState({
@@ -116,8 +117,8 @@ export default function RegistrationsPage() {
     useCompetitions();
   const { data: registrations = [], isLoading } = usePendingRegistrations(
     competitionId
-      ? { competitionId, status: "PENDING,REJECTED" }
-      : { status: "PENDING,REJECTED" },
+      ? { competitionId, status: "PENDING,REJECTED,APPROVED" }
+      : { status: "PENDING,REJECTED,APPROVED" },
   );
 
   const { mutateAsync: approve } = useApproveRegistration();
@@ -125,7 +126,25 @@ export default function RegistrationsPage() {
 
   // Client-side search filter
   const filtered = useMemo(() => {
+    const now = Date.now();
+    const minCreatedAt =
+      createdWindow === "24h"
+        ? now - 24 * 60 * 60 * 1000
+        : createdWindow === "7d"
+          ? now - 7 * 24 * 60 * 60 * 1000
+          : createdWindow === "30d"
+            ? now - 30 * 24 * 60 * 60 * 1000
+            : null;
+
     return registrations.filter((r) => {
+      if (minCreatedAt) {
+        const createdAt =
+          r.createdAt || r.registration?.createdAt || r.submittedAt || null;
+        if (!createdAt || new Date(createdAt).getTime() < minCreatedAt) {
+          return false;
+        }
+      }
+
       if (!search) return true;
       const q = search.toLowerCase();
       const name = (r.user?.name || r.userName || "").toLowerCase();
@@ -133,10 +152,16 @@ export default function RegistrationsPage() {
       const team = (r.team?.name || r.teamName || "").toLowerCase();
       return name.includes(q) || email.includes(q) || team.includes(q);
     });
-  }, [registrations, search]);
+  }, [registrations, search, createdWindow]);
 
   const groupedByTeam = useMemo(() => {
     const groups = new Map();
+    const getCreatedAtMs = (row) => {
+      const createdAt =
+        row?.createdAt || row?.registration?.createdAt || row?.submittedAt;
+      const time = createdAt ? new Date(createdAt).getTime() : Number.NaN;
+      return Number.isFinite(time) ? time : 0;
+    };
 
     filtered.forEach((row, index) => {
       const teamId = row.team?.id || row.teamId || null;
@@ -160,10 +185,16 @@ export default function RegistrationsPage() {
           competitionName,
           type,
           members: [],
+          latestCreatedAtMs: 0,
         });
       }
 
-      groups.get(groupKey).members.push(row);
+      const group = groups.get(groupKey);
+      group.members.push(row);
+      group.latestCreatedAtMs = Math.max(
+        group.latestCreatedAtMs,
+        getCreatedAtMs(row),
+      );
     });
 
     const normalized = Array.from(groups.values());
@@ -189,8 +220,9 @@ export default function RegistrationsPage() {
     });
 
     normalized.sort((a, b) => {
-      if (a.teamId && !b.teamId) return -1;
-      if (!a.teamId && b.teamId) return 1;
+      if (b.latestCreatedAtMs !== a.latestCreatedAtMs) {
+        return b.latestCreatedAtMs - a.latestCreatedAtMs;
+      }
       return (a.teamName || "").localeCompare(b.teamName || "");
     });
 
@@ -325,7 +357,7 @@ export default function RegistrationsPage() {
             ml: 0.5,
           }}
         >
-          Review competition registrations (pending and rejected)
+          Review competition registrations (pending, rejected, approved)
         </Typography>
       </Box>
 
@@ -357,6 +389,20 @@ export default function RegistrationsPage() {
               {c.name || c.title}
             </MenuItem>
           ))}
+        </TextField>
+
+        <TextField
+          select
+          label="Created"
+          value={createdWindow}
+          onChange={(e) => setCreatedWindow(e.target.value)}
+          size="small"
+          sx={{ minWidth: 170, ...inputSx }}
+        >
+          <MenuItem value="all">Any time</MenuItem>
+          <MenuItem value="24h">Last 24 hours</MenuItem>
+          <MenuItem value="7d">Last 7 days</MenuItem>
+          <MenuItem value="30d">Last 30 days</MenuItem>
         </TextField>
 
         <TextField
@@ -584,11 +630,15 @@ export default function RegistrationsPage() {
                                     backgroundColor:
                                       registrationStatus === "REJECTED"
                                         ? "rgba(239,68,68,0.14)"
-                                        : "rgba(245,158,11,0.2)",
+                                        : registrationStatus === "APPROVED"
+                                          ? "rgba(34,197,94,0.16)"
+                                          : "rgba(245,158,11,0.2)",
                                     color:
                                       registrationStatus === "REJECTED"
                                         ? "#fca5a5"
-                                        : "#f59e0b",
+                                        : registrationStatus === "APPROVED"
+                                          ? "#4ade80"
+                                          : "#f59e0b",
                                     fontWeight: 700,
                                     fontSize: 10,
                                   }}

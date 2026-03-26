@@ -1734,6 +1734,16 @@ export default function CompetitionsPage() {
     return ids;
   }, [competitionForms]);
 
+  const formByCompetitionId = useMemo(() => {
+    const map = new Map();
+    competitionForms.forEach((form) => {
+      if (form?.competitionId && !map.has(form.competitionId)) {
+        map.set(form.competitionId, form);
+      }
+    });
+    return map;
+  }, [competitionForms]);
+
   function handleTogglePublishCompetition(comp) {
     const isCurrentlyOpen = comp.status === "OPEN";
     const isDH = user?.role === "DH";
@@ -2337,10 +2347,14 @@ export default function CompetitionsPage() {
         <MenuItem
           onClick={() => {
             if (menuComp?.id) {
+              const linkedForm = formByCompetitionId.get(menuComp.id);
               const params = new URLSearchParams({
                 openForm: "true",
                 competitionId: menuComp.id,
               });
+              if (linkedForm?.id) {
+                params.set("formId", linkedForm.id);
+              }
               router.push(`/admin/dh/competitions/forms?${params.toString()}`);
             }
             setMenuAnchor(null);
@@ -2357,7 +2371,9 @@ export default function CompetitionsPage() {
           }}
         >
           <FileText size={13} />
-          Create Form
+          {menuComp?.id && formByCompetitionId.has(menuComp.id)
+            ? "Edit Form"
+            : "Create Form"}
         </MenuItem>
         <MenuItem
           onClick={() => {

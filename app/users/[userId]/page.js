@@ -699,19 +699,47 @@ export default function PublicUserProfilePage() {
 
   const teamCards = useMemo(() => {
     if (isOwner) {
-      const withTeams = myRegistrations.filter((r) => Boolean(r?.team?.id));
       const map = new Map();
-      for (const row of withTeams) {
-        if (!map.has(row.team.id))
-          map.set(row.team.id, {
-            registration: row.registration,
-            competition: row.competition,
-            team: row.team,
-          });
+
+      for (const row of myRegistrations) {
+        const teamId = row?.team?.id;
+        if (teamId) {
+          if (!map.has(`team:${teamId}`)) {
+            map.set(`team:${teamId}`, {
+              registration: row.registration,
+              competition: row.competition,
+              team: row.team,
+            });
+          }
+          continue;
+        }
+
+        const registrationId = row?.registration?.id || row?.id;
+        map.set(`solo:${registrationId}`, {
+          registration: row.registration || row,
+          competition: row.competition,
+          team: null,
+        });
       }
+
       return Array.from(map.values());
     }
-    return profileRegs.filter((r) => Boolean(r?.team?.id));
+
+    const map = new Map();
+    for (const row of profileRegs) {
+      const teamId = row?.team?.id;
+      if (teamId) {
+        if (!map.has(`team:${teamId}`)) {
+          map.set(`team:${teamId}`, row);
+        }
+        continue;
+      }
+
+      const registrationId = row?.registration?.id;
+      map.set(`solo:${registrationId}`, row);
+    }
+
+    return Array.from(map.values());
   }, [isOwner, myRegistrations, profileRegs]);
 
   const adminDashboardPath = useMemo(
@@ -1178,7 +1206,7 @@ export default function PublicUserProfilePage() {
                     key={item?.team?.id || item?.registration?.id}
                     item={item}
                     viewer={viewer}
-                    showManagement={isOwner}
+                    showManagement={isOwner && Boolean(item?.team?.id)}
                   />
                 ))
               )}

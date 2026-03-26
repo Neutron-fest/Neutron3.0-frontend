@@ -274,6 +274,42 @@ const getChangedCompetitionFieldRows = (before, proposed) => {
     }));
 };
 
+const toFormRequestActionLabel = (action) => {
+  if (action === "CREATE_FORM") return "Create Form";
+  if (action === "UPDATE_FORM") return "Update Form";
+  if (action === "DELETE_FORM") return "Delete Form";
+  if (!action) return "Form Update";
+  return action
+    .toLowerCase()
+    .split("_")
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(" ");
+};
+
+const getFormRequestPreview = (approval) => {
+  const requestData = approval?.requestData;
+  if (!requestData) return null;
+
+  const isFormRequest =
+    approval?.type === "EVENT_UPDATE" &&
+    (requestData?.category === "FORM" ||
+      ["CREATE_FORM", "UPDATE_FORM", "DELETE_FORM"].includes(
+        requestData?.action,
+      ));
+
+  if (!isFormRequest) return null;
+
+  return {
+    actionLabel: toFormRequestActionLabel(requestData?.action),
+    competitionId:
+      requestData?.competitionId ||
+      requestData?.proposed?.competitionId ||
+      null,
+    formId: requestData?.formId || null,
+    proposed: requestData?.proposed || null,
+  };
+};
+
 const toAbsoluteUrl = (base, path) => {
   if (!base || !path) return null;
   const normalizedBase = base.endsWith("/") ? base.slice(0, -1) : base;
@@ -510,6 +546,11 @@ export default function RequestsPage() {
 
   const competitionRequestPreview = useMemo(
     () => getCompetitionRequestPreview(detailApproval),
+    [detailApproval],
+  );
+
+  const formRequestPreview = useMemo(
+    () => getFormRequestPreview(detailApproval),
     [detailApproval],
   );
 
@@ -2145,6 +2186,156 @@ export default function RequestsPage() {
                           ))}
                         </Box>
                       </>
+                    )}
+                  </Box>
+                ) : formRequestPreview ? (
+                  <Box
+                    sx={{
+                      p: 1.5,
+                      borderRadius: "8px",
+                      background: "rgba(255,255,255,0.03)",
+                      border: "1px solid rgba(255,255,255,0.06)",
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: 1.5,
+                    }}
+                  >
+                    <PreviewItem
+                      label="Action"
+                      value={formRequestPreview.actionLabel}
+                    />
+
+                    <Box
+                      sx={{
+                        display: "grid",
+                        gridTemplateColumns: "1fr 1fr",
+                        gap: 1.5,
+                      }}
+                    >
+                      <PreviewItem
+                        label="Competition ID"
+                        value={formRequestPreview.competitionId || "—"}
+                      />
+                      <PreviewItem
+                        label="Form ID"
+                        value={formRequestPreview.formId || "—"}
+                      />
+                    </Box>
+
+                    {formRequestPreview.proposed ? (
+                      <>
+                        <Label>Proposed Form Overview</Label>
+                        <Box
+                          sx={{
+                            display: "grid",
+                            gridTemplateColumns: "1fr 1fr 1fr",
+                            gap: 1.5,
+                          }}
+                        >
+                          <PreviewItem
+                            label="Status"
+                            value={formatCompetitionFieldValue(
+                              "status",
+                              formRequestPreview.proposed?.status,
+                            )}
+                          />
+                          <PreviewItem
+                            label="Opens At"
+                            value={formatCompetitionFieldValue(
+                              "startTime",
+                              formRequestPreview.proposed?.opensAt,
+                            )}
+                          />
+                          <PreviewItem
+                            label="Closes At"
+                            value={formatCompetitionFieldValue(
+                              "endTime",
+                              formRequestPreview.proposed?.closesAt,
+                            )}
+                          />
+                        </Box>
+
+                        <Label>
+                          Form Fields (
+                          {formRequestPreview.proposed?.fields?.length || 0})
+                        </Label>
+                        {Array.isArray(formRequestPreview.proposed?.fields) &&
+                        formRequestPreview.proposed.fields.length > 0 ? (
+                          <Box
+                            sx={{
+                              maxHeight: 240,
+                              overflow: "auto",
+                              border: "1px solid rgba(255,255,255,0.06)",
+                              borderRadius: "8px",
+                            }}
+                          >
+                            {formRequestPreview.proposed.fields.map(
+                              (field, index) => (
+                                <Box
+                                  key={`${field?.label || "field"}-${index}`}
+                                >
+                                  <Box sx={{ p: 1.25 }}>
+                                    <Typography
+                                      sx={{
+                                        fontSize: 12,
+                                        color: "rgba(255,255,255,0.85)",
+                                        fontFamily: "'Syne', sans-serif",
+                                        fontWeight: 600,
+                                        mb: 0.75,
+                                      }}
+                                    >
+                                      {field?.label || `Field ${index + 1}`}
+                                    </Typography>
+                                    <Box
+                                      sx={{
+                                        display: "grid",
+                                        gridTemplateColumns: "1fr 1fr 1fr",
+                                        gap: 1,
+                                      }}
+                                    >
+                                      <PreviewItem
+                                        label="Type"
+                                        value={field?.fieldType || "—"}
+                                      />
+                                      <PreviewItem
+                                        label="Scope"
+                                        value={field?.scope || "—"}
+                                      />
+                                      <PreviewItem
+                                        label="Required"
+                                        value={field?.isRequired ? "Yes" : "No"}
+                                      />
+                                    </Box>
+                                  </Box>
+                                  {index <
+                                    formRequestPreview.proposed.fields.length -
+                                      1 && <RowDivider />}
+                                </Box>
+                              ),
+                            )}
+                          </Box>
+                        ) : (
+                          <Typography
+                            sx={{
+                              fontSize: 12,
+                              color: "rgba(255,255,255,0.45)",
+                              fontFamily: "'DM Mono', monospace",
+                            }}
+                          >
+                            No form field changes in this request.
+                          </Typography>
+                        )}
+                      </>
+                    ) : (
+                      <Typography
+                        sx={{
+                          fontSize: 12,
+                          color: "rgba(255,255,255,0.45)",
+                          fontFamily: "'DM Mono', monospace",
+                        }}
+                      >
+                        No proposed form payload attached to this request.
+                      </Typography>
                     )}
                   </Box>
                 ) : (
