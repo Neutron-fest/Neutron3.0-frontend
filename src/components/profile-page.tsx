@@ -704,11 +704,6 @@ function ProfilePanel() {
       transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
       className="space-y-5 pb-10"
     >
-      <div className="mb-2">
-        <h1 className="text-xl font-bold text-white tracking-tight">My Profile</h1>
-        <p className="text-xs text-white/30 mt-1">Manage your personal details and identity</p>
-      </div>
-
       {/* Hero - Profile Card */}
       <div className="w-full flex justify-center py-4">
         <div className="w-full max-w-[320px] sm:max-w-sm">
@@ -719,7 +714,7 @@ function ProfilePanel() {
             status="Online"
             contactText="Contact Me"
             avatarUrl="https://ik.imagekit.io/YatharthKhandelwal/AVAT.jpeg"
-            showUserInfo
+            showUserInfo={false}
             enableTilt={true}
             enableMobileTilt={false}
             onContactClick={() => {}}
