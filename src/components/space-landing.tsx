@@ -15,6 +15,10 @@ import { OBJLoader } from "three/examples/jsm/loaders/OBJLoader.js";
 
 import { PLANET_RECORDS } from "@/lib/planet-data";
 import NebulaStar from "./nebula-star";
+import Noise from "./Noise";
+import Grainient from "./Grainient";
+import MobileLanding from "./MobileLanding";
+import MobileNavbar from "./MobileNavbar";
 
 type PlanetRuntimeEntry = {
   slug: string;
@@ -121,6 +125,17 @@ export default function SpaceLanding() {
   const [hoveredPlanet, setHoveredPlanet] = useState<string | null>(null);
   const [videoOpacity, setVideoOpacity] = useState(1);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
 
   const currentPlanet = PLANET_RECORDS.find((p) => p.slug === activePlanet) ?? PLANET_RECORDS[0];
 
@@ -147,15 +162,64 @@ export default function SpaceLanding() {
     }
   }, []);
 
+  const [handsProgress, setHandsProgress] = useState(0);
+  const handsRef = useRef<HTMLDivElement | null>(null);
+  const handsLRef = useRef<HTMLDivElement | null>(null);
+  const handsRRef = useRef<HTMLDivElement | null>(null);
+
   useEffect(() => {
     const onScroll = () => {
       const scrolledVH = (window.scrollY / window.innerHeight) * 100;
-      setVideoOpacity(Math.max(0, 1 - scrolledVH / 150));
+      // Fade video out slowly — keep it visible through the zoom phase (first 80vh)
+      setVideoOpacity(Math.max(0, 1 - scrolledVH / 320));
       setIsScrolled(scrolledVH > 50);
+      const raw = Math.min(1, scrolledVH / 160);
+      const eased = raw * raw * (3 - 2 * raw);
+      const fadeOut = scrolledVH > 140 ? Math.max(0, 1 - (scrolledVH - 140) / 100) : 1;
+      setHandsProgress(eased * fadeOut);
     };
     window.addEventListener("scroll", onScroll, { passive: true });
     onScroll();
     return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  useEffect(() => {
+    if (!handsLRef.current || !handsRRef.current) return;
+    const ctx = gsap.context(() => {
+      // Start with hands 38% below their container (only gloves visible at the bottom)
+      // then sink fully off-screen as the user scrolls
+      gsap.fromTo(
+        handsLRef.current,
+        { yPercent: 38, rotation: 10 },
+        {
+          yPercent: 120,
+          rotation: 5,
+          ease: "power2.inOut",
+          scrollTrigger: {
+            trigger: document.documentElement,
+            start: "top top",
+            end: "+=160vh",
+            scrub: 1.8,
+          },
+        }
+      );
+      gsap.fromTo(
+        handsRRef.current,
+        { yPercent: 38, rotation: -10 },
+        {
+          yPercent: 120,
+          rotation: -5,
+          ease: "power2.inOut",
+          scrollTrigger: {
+            trigger: document.documentElement,
+            start: "top top",
+            end: "+=160vh",
+            scrub: 1.8,
+          },
+        }
+      );
+    });
+    return () => ctx.revert();
   }, []);
 
   useEffect(() => {
@@ -244,6 +308,19 @@ export default function SpaceLanding() {
   return (
     <MotionConfig transition={{ type: "spring", stiffness: 240, damping: 28 }}>
       <div className="relative min-h-[50000svh] overflow-x-clip">
+        
+        {isMobile && (
+          <div className="fixed inset-0 z-100 h-screen w-full pointer-events-auto">
+            <MobileLanding 
+              isMenuOpen={isMobileMenuOpen} 
+              onMenuToggle={() => setIsMobileMenuOpen(!isMobileMenuOpen)} 
+            />
+            <MobileNavbar 
+              isOpen={isMobileMenuOpen} 
+              onClose={() => setIsMobileMenuOpen(false)} 
+            />
+          </div>
+        )}
 
         <style>{`
           @keyframes drift-stars    { from{transform:translate(0,0)} to{transform:translate(-22px,-18px)} }
@@ -273,8 +350,20 @@ export default function SpaceLanding() {
         <div
           aria-hidden
           className="pointer-events-none fixed inset-0 z-0"
-          style={{ background: "linear-gradient(180deg,rgba(10,4,0,0.2) 0%,rgba(4,2,0,0.6) 100%)" }}
+          style={{ background: "linear-gradient(180deg,rgba(5,5,5,0.4) 0%,rgba(5,5,5,0.95) 100%)" }}
         />
+
+         <div className="fixed inset-0 z-0 pointer-events-none opacity-[0.14]">
+            <Grainient
+               color1="#3e2723"
+               color2="#5d4037"
+               color3="#0d0a08"
+               timeSpeed={0.2}
+               warpStrength={0.6}
+               zoom={1.2}
+               className="w-full h-full"
+             />
+         </div>
 
         <div aria-hidden className="pointer-events-none fixed inset-0 z-1 overflow-hidden">
           <div
@@ -333,31 +422,163 @@ export default function SpaceLanding() {
             loop
             playsInline
             className="absolute inset-0 w-full h-full object-cover"
-            style={{ filter: "brightness(0.55) saturate(1.1) contrast(1)" }}
+            style={{
+              filter: "brightness(0.48) saturate(0.78) sepia(0.62) contrast(1.12) hue-rotate(-10deg)",
+            }}
           >
             <source src="https://res.cloudinary.com/dpod2sj9t/video/upload/v1774324189/Neu_edaxyz.mp4" type="video/mp4" />
           </video>
 
           <div
-            className="absolute inset-[-20%] opacity-[0.4]"
+            className="absolute inset-0 pointer-events-none"
             style={{
-              backgroundImage: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='grain'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23grain)' opacity='0.22'/%3E%3C/svg%3E\")",
-              backgroundSize: "200px 200px",
+              background: "linear-gradient(180deg,rgba(50,18,2,0.42) 0%,rgba(20,6,0,0.62) 100%)",
               mixBlendMode: "multiply",
-              animation: "grain-shift 1.8s steps(1) infinite",
             }}
-          />
-
-          <div
-            className="absolute inset-0"
-            style={{ background: "radial-gradient(ellipse at center,transparent 30%,rgba(0,0,0,0.85) 85%,rgba(0,0,0,0.98) 100%)" }}
           />
 
           <div
             className="absolute inset-0 pointer-events-none"
             style={{
-              background: "repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.1) 2px,rgba(0,0,0,0.1) 4px)",
+              background: "radial-gradient(ellipse 55% 42% at 50% 38%, rgba(160,80,20,0.18) 0%, transparent 70%)",
+              mixBlendMode: "screen",
+            }}
+          />
+
+          <div
+            className="absolute inset-0"
+            style={{
+              background: [
+                "radial-gradient(ellipse 70% 65% at 50% 38%, transparent 35%, rgba(0,0,0,0.78) 75%, rgba(0,0,0,0.97) 100%)",
+                "linear-gradient(180deg, rgba(0,0,0,0.65) 0%, transparent 20%, transparent 72%, rgba(0,0,0,0.92) 100%)",
+                "linear-gradient(90deg, rgba(0,0,0,0.60) 0%, transparent 18%, transparent 82%, rgba(0,0,0,0.60) 100%)",
+              ].join(","),
+            }}
+          />
+
+          <Noise patternAlpha={18} patternRefreshInterval={2} />
+
+          <div
+            className="absolute inset-0 pointer-events-none"
+            style={{
+              background: "repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.06) 2px,rgba(0,0,0,0.06) 4px)",
               mixBlendMode: "multiply",
+            }}
+          />
+        </div>
+
+        <div
+          aria-hidden
+          className="pointer-events-none fixed inset-0 overflow-hidden"
+          style={{ opacity: videoOpacity, zIndex: 3, transition: "opacity 0.3s ease" }}
+        >
+          <Image
+            src="/Landing/ASTR-INS.png"
+            alt=""
+            fill
+            className="object-cover object-center"
+            style={{ mixBlendMode: "screen", opacity: 0.88 }}
+            priority
+          />
+
+          <div
+            className="absolute inset-0 pointer-events-none"
+            style={{
+              background: "radial-gradient(ellipse 48% 36% at 50% 36%, rgba(200,110,20,0.22) 0%, rgba(150,70,10,0.08) 55%, transparent 75%)",
+              mixBlendMode: "screen",
+            }}
+          />
+
+          <div
+            className="absolute inset-0 pointer-events-none"
+            style={{
+              background: "radial-gradient(ellipse 52% 40% at 50% 36%, transparent 55%, rgba(0,0,0,0.55) 72%, transparent 82%)",
+            }}
+          />
+
+          <div
+            className="absolute inset-0"
+            style={{
+              background: [
+                "radial-gradient(ellipse 74% 68% at 50% 38%, transparent 38%, rgba(0,0,0,0.80) 78%, rgba(0,0,0,0.98) 100%)",
+                "linear-gradient(180deg, rgba(0,0,0,0.78) 0%, transparent 15%, transparent 78%, rgba(0,0,0,0.92) 100%)",
+                "linear-gradient(90deg, rgba(0,0,0,0.68) 0%, transparent 12%, transparent 88%, rgba(0,0,0,0.68) 100%)",
+              ].join(","),
+            }}
+          />
+        </div>
+
+        <div
+          ref={handsRef}
+          aria-hidden
+          className="pointer-events-none fixed inset-x-0 bottom-0 overflow-visible"
+          style={{
+            zIndex: 4,
+            height: "100vh",
+            opacity: videoOpacity,
+            transition: "opacity 0.3s ease",
+          }}
+        >
+          {/* Left hand — GSAP controls yPercent & rotation via handsLRef */}
+          <div
+            ref={handsLRef}
+            className="absolute bottom-0 left-0"
+            style={{
+              transformOrigin: "bottom left",
+              width: "clamp(220px, 36vw, 520px)",
+              willChange: "transform",
+            }}
+          >
+            <Image
+              src="/Landing/ASTR-BC-L.png"
+              alt=""
+              width={520}
+              height={760}
+              className="w-full h-auto object-contain object-bottom"
+              style={{
+                filter: [
+                  "drop-shadow(0 -18px 50px rgba(200,120,30,0.5))",
+                  "drop-shadow(0 8px 30px rgba(0,0,0,0.75))",
+                  "drop-shadow(0 0 100px rgba(140,70,10,0.32))",
+                ].join(" "),
+              }}
+              priority
+            />
+          </div>
+
+          {/* Right hand — GSAP controls yPercent & rotation via handsRRef */}
+          <div
+            ref={handsRRef}
+            className="absolute bottom-0 right-0"
+            style={{
+              transformOrigin: "bottom right",
+              width: "clamp(220px, 36vw, 520px)",
+              willChange: "transform",
+            }}
+          >
+            <Image
+              src="/Landing/ASTR-BC-R.png"
+              alt=""
+              width={520}
+              height={760}
+              className="w-full h-auto object-contain object-bottom"
+              style={{
+                filter: [
+                  "drop-shadow(0 -18px 50px rgba(200,120,30,0.5))",
+                  "drop-shadow(0 8px 30px rgba(0,0,0,0.75))",
+                  "drop-shadow(0 0 100px rgba(140,70,10,0.32))",
+                ].join(" "),
+              }}
+              priority
+            />
+          </div>
+
+          {/* Bottom glow fades with hands */}
+          <div
+            className="absolute bottom-0 inset-x-0 h-40 pointer-events-none"
+            style={{
+              background: "linear-gradient(0deg, rgba(120,55,8,0.28) 0%, transparent 100%)",
+              opacity: 1 - handsProgress,
             }}
           />
         </div>
@@ -736,9 +957,12 @@ async function createScene({
     const vh = window.innerHeight || 800;
     const scrolledVH = (scrolledPx / vh) * 100;
     
-    const intro  = smoothstep(20, 150, scrolledVH);
-    const spread = smoothstep(120, 300, scrolledVH);
-    const focus  = smoothstep(280, 420, scrolledVH);
+    // intro: camera zooms forward — completes in the first 80vh (no overlap with spread)
+    const intro  = smoothstep(0, 80, scrolledVH);
+    // spread: planets fan out — starts AFTER zoom is done (240-420vh)
+    const spread = smoothstep(240, 420, scrolledVH);
+    // focus: front-facing planet lock-in
+    const focus  = smoothstep(420, 560, scrolledVH);
     const exit   = 0;
 
     const mob = window.innerWidth < 768;
@@ -783,7 +1007,7 @@ async function createScene({
 
       entry.pivot.position.x = THREE.MathUtils.lerp(entry.basePosition.x * 0.08, entry.basePosition.x, spread);
       entry.pivot.position.y = THREE.MathUtils.lerp(
-        entry.basePosition.y + 5.4 + index * 0.25,
+        entry.basePosition.y - 5.4 - index * 0.25,
         entry.basePosition.y + Math.sin(elapsed * 0.66 + index * 1.28) * 0.13 + Math.sin(elapsed * 0.38 + index * 0.72) * 0.048 + Math.cos(elapsed * 0.22 + index * 1.05) * 0.022,
         revealIn,
       );
@@ -812,20 +1036,43 @@ async function createScene({
     cameraOffset.set(0, mob ? 3.8 : 5.2, mob ? 8.5 : 11.0);
     const focusLookAt = new THREE.Vector3(0, mob ? 0.0 : 0.5, ringCenterZ);
 
-    targetCameraPosition.set(0, mob ? 0.35 : 0.7, THREE.MathUtils.lerp(mob ? 19.5 : 18, mob ? 14.6 : 13.2, intro));
-    targetLookAt.set(0, 0.2, -2.8);
-    
+    // Phase 1 — aggressive zoom INTO center: z shrinks from 16 → 2.5 in first 80vh of scroll
+    // Camera stays low (y barely moves) so it reads as flying straight into the portal.
+    const startZ = mob ? 16.8 : 16.0;
+    const endZ   = mob ? 3.2  : 2.5;   // fly deep into the scene
+    const startY = mob ? 0.40 : 0.70;
+    const endY   = mob ? 0.20 : 0.30;  // slightly lower — follows natural sightline
+    targetCameraPosition.set(
+      0,
+      THREE.MathUtils.lerp(startY, endY, intro),
+      THREE.MathUtils.lerp(startZ, endZ, intro)
+    );
+    // Look ahead, slightly downward at the end of zoom to feel like breaking through
+    targetLookAt.set(0, THREE.MathUtils.lerp(0.1, -0.3, intro), THREE.MathUtils.lerp(-1.5, -5.0, intro));
+
+    // Animate FOV: widen during zoom-in for a "punch-through" cinematic feeling
+    camera.fov = THREE.MathUtils.lerp(40, 52, intro * (1 - spread));
+    camera.updateProjectionMatrix();
+
+    // Animate scene fog density: less fog as camera charges forward, more as it backs off
+    if (scene.fog instanceof THREE.FogExp2) {
+      (scene.fog as THREE.FogExp2).density = THREE.MathUtils.lerp(0.022, 0.010, intro * (1 - spread));
+    }
+
+    // Phase 2 — spread: pull back to show full ring from above
     targetCameraPosition.lerp(new THREE.Vector3(0, mob ? 3.0 : 4.8, mob ? 18.2 : 20.5), spread);
     targetLookAt.lerp(new THREE.Vector3(0, 0.2, ringCenterZ), spread);
-    
+
+    // Phase 3 — focus: zoom toward active planet
     targetCameraPosition.lerp(idealFrontPosition.clone().add(cameraOffset), focus);
     targetLookAt.lerp(focusLookAt, focus);
-    
+
     exitOffset.set(mob ? 1.4 : 2.1, 2.4, 5.8);
     targetCameraPosition.lerp(idealFrontPosition.clone().add(exitOffset), exit);
     targetLookAt.lerp(idealFrontPosition.clone().add(new THREE.Vector3(0.2, 0.1, 0)), exit);
-    camera.position.lerp(targetCameraPosition, 0.055);
-    cameraLookAt.lerp(targetLookAt, 0.068);
+    // Slightly faster lerp for more punchy camera response
+    camera.position.lerp(targetCameraPosition, 0.065);
+    cameraLookAt.lerp(targetLookAt, 0.078);
     camera.lookAt(cameraLookAt);
 
     starsNear.rotation.y += delta * 0.0065;
