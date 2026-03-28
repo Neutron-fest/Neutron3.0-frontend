@@ -1,3 +1,14 @@
+// Hook to fetch pending team invites
+export function usePendingTeamInvites(enabled = true) {
+  return useQuery({
+    queryKey: queryKeys.publicRegistrations.pendingInvites(),
+    queryFn: async () => {
+      const { data } = await apiClient.get("/registration/my/pending-invites");
+      return Array.isArray(data?.data) ? data.data : [];
+    },
+    enabled,
+  });
+}
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import apiClient from "@/lib/axios";
 import { queryKeys } from "@/src/lib/queryKeys";
