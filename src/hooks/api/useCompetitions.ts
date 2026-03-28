@@ -2,20 +2,88 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { queryKeys } from "@/src/lib/queryKeys";
 import apiClient from "@/lib/axios";
 
-const normalizeList = (data) =>
+// Define types for competition data
+interface Competition {
+  id: string;
+  name: string;
+  [key: string]: any; // Extendable for additional fields
+}
+
+interface CompetitionFilters {
+  [key: string]: any;
+}
+
+const normalizeList = (data: any): Competition[] =>
   data?.data?.competitions ||
   data?.competitions ||
   (Array.isArray(data?.data) ? data.data : null) ||
   (Array.isArray(data) ? data : []);
 
-const normalizeOne = (data) =>
+const normalizeOne = (data: any): Competition | null =>
   data?.data?.competition || data?.competition || data?.data || data || null;
+
+// Define types for mutation parameters
+interface CancelOrPostponeParams {
+  competitionId: string;
+  status: string;
+  autoNotify?: boolean;
+  newDate?: string;
+  notes?: string;
+}
+
+interface AssignJudgeParams {
+  competitionId: string;
+  judgeUserId: string;
+  isHeadJudge?: boolean;
+}
+
+interface RemoveJudgeParams {
+  judgeAssignmentId: string;
+  competitionId: string;
+}
+
+interface AssignVolunteerParams {
+  competitionId: string;
+  volunteerUserId?: string;
+  userId?: string;
+  role: string;
+}
+
+interface RemoveVolunteerParams {
+  volunteerAssignmentId: string;
+  competitionId: string;
+}
+
+interface AssignClubParams {
+  competitionId: string;
+  clubId: string;
+}
+
+interface RemoveClubParams {
+  competitionId: string;
+  clubId: string;
+}
+
+interface AssignDepartmentParams {
+  competitionId: string;
+  departmentId: string;
+}
+
+interface RemoveDepartmentParams {
+  competitionId: string;
+  departmentId: string;
+}
+
+interface RequestPromoCodeApprovalParams {
+  competitionId: string;
+  promoCodes: string[];
+}
 
 /**
  * All competitions (public, no auth required but auth cookie sent)
  */
-export function useCompetitions(filters = {}) {
-  return useQuery({
+export function useCompetitions(filters: CompetitionFilters = {}) {
+  return useQuery<Competition[]>({
     queryKey: queryKeys.competitions.list(filters),
     queryFn: async () => {
       const { data } = await apiClient.get("/competitions", {
@@ -29,8 +97,8 @@ export function useCompetitions(filters = {}) {
 /**
  * Single competition
  */
-export function useCompetition(competitionId) {
-  return useQuery({
+export function useCompetition(competitionId: string) {
+  return useQuery<Competition | null>({
     queryKey: queryKeys.competitions.detail(competitionId),
     queryFn: async () => {
       const { data } = await apiClient.get(`/competitions/${competitionId}`);
@@ -46,7 +114,7 @@ export function useCompetition(competitionId) {
 export function useCreateCompetition() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (payload) => {
+    mutationFn: async (payload: Partial<Competition>) => {
       const { data } = await apiClient.post("/competitions", payload);
       return data;
     },
@@ -62,7 +130,7 @@ export function useCreateCompetition() {
 export function useUpdateCompetition() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async ({ competitionId, formData, ...rest }) => {
+    mutationFn: async ({ competitionId, formData, ...rest }: { competitionId: string; formData?: FormData; [key: string]: any }) => {
       // Accept either a FormData instance (for file uploads) or a plain object
       const body = formData instanceof FormData ? formData : rest;
       const { data } = await apiClient.put(
@@ -86,7 +154,7 @@ export function useUpdateCompetition() {
 export function useDeleteCompetition() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (competitionId) => {
+    mutationFn: async (competitionId: string) => {
       const { data } = await apiClient.delete(`/competitions/${competitionId}`);
       return data;
     },
@@ -102,7 +170,7 @@ export function useDeleteCompetition() {
 export function useToggleRegistrations() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async ({ competitionId, registrationsOpen }) => {
+    mutationFn: async ({ competitionId, registrationsOpen }: { competitionId: string; registrationsOpen: boolean }) => {
       const { data } = await apiClient.patch(
         `/competitions/${competitionId}/toggle-registrations`,
         { registrationsOpen },
@@ -124,7 +192,7 @@ export function useToggleRegistrations() {
 export function useFreezeChanges() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async ({ competitionId, frozen }) => {
+    mutationFn: async ({ competitionId, frozen }: { competitionId: string; frozen: boolean }) => {
       const { data } = await apiClient.patch(
         `/competitions/${competitionId}/freeze-changes`,
         { frozen },
@@ -146,7 +214,7 @@ export function useFreezeChanges() {
 export function useToggleReadOnlyMode() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async ({ competitionId, readOnly }) => {
+    mutationFn: async ({ competitionId, readOnly }: { competitionId: string; readOnly: boolean }) => {
       const { data } = await apiClient.patch(
         `/competitions/${competitionId}/read-only-mode`,
         { readOnly },
@@ -168,16 +236,10 @@ export function useToggleReadOnlyMode() {
 export function useCancelOrPostpone() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async ({
-      competitionId,
-      status,
-      autoNotify = false,
-      newDate,
-      notes,
-    }) => {
+    mutationFn: async (params: CancelOrPostponeParams) => {
       const { data } = await apiClient.patch(
-        `/competitions/${competitionId}/cancel-postpone`,
-        { status, autoNotify, newDate, notes },
+        `/competitions/${params.competitionId}/cancel-postpone`,
+        params,
       );
       return data;
     },
@@ -193,7 +255,7 @@ export function useCancelOrPostpone() {
 /**
  * Get judges for a competition
  */
-export function useCompetitionJudges(competitionId) {
+export function useCompetitionJudges(competitionId: string) {
   return useQuery({
     queryKey: queryKeys.competitions.judges(competitionId),
     queryFn: async () => {
@@ -217,10 +279,10 @@ export function useCompetitionJudges(competitionId) {
 export function useAssignJudge() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async ({ competitionId, judgeUserId, isHeadJudge = false }) => {
+    mutationFn: async (params: AssignJudgeParams) => {
       const { data } = await apiClient.post(
-        `/competitions/${competitionId}/judges`,
-        { judgeUserId, isHeadJudge },
+        `/competitions/${params.competitionId}/judges`,
+        params,
       );
       return data;
     },
@@ -238,9 +300,9 @@ export function useAssignJudge() {
 export function useRemoveJudge() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async ({ judgeAssignmentId, competitionId }) => {
+    mutationFn: async (params: RemoveJudgeParams) => {
       const { data } = await apiClient.delete(
-        `/competitions/judges/${judgeAssignmentId}`,
+        `/competitions/judges/${params.judgeAssignmentId}`,
       );
       return data;
     },
@@ -255,7 +317,7 @@ export function useRemoveJudge() {
 /**
  * Get volunteers for a competition
  */
-export function useCompetitionVolunteers(competitionId) {
+export function useCompetitionVolunteers(competitionId: string) {
   return useQuery({
     queryKey: queryKeys.competitions.volunteers(competitionId),
     queryFn: async () => {
@@ -279,11 +341,11 @@ export function useCompetitionVolunteers(competitionId) {
 export function useAssignVolunteer() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async ({ competitionId, volunteerUserId, userId, role }) => {
-      const resolvedVolunteerUserId = volunteerUserId ?? userId;
+    mutationFn: async (params: AssignVolunteerParams) => {
+      const resolvedVolunteerUserId = params.volunteerUserId ?? params.userId;
       const { data } = await apiClient.post(
-        `/competitions/${competitionId}/volunteers`,
-        { volunteerUserId: resolvedVolunteerUserId, role },
+        `/competitions/${params.competitionId}/volunteers`,
+        { volunteerUserId: resolvedVolunteerUserId, role: params.role },
       );
       return data;
     },
@@ -301,9 +363,9 @@ export function useAssignVolunteer() {
 export function useRemoveVolunteer() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async ({ volunteerAssignmentId, competitionId }) => {
+    mutationFn: async (params: RemoveVolunteerParams) => {
       const { data } = await apiClient.delete(
-        `/competitions/volunteers/${volunteerAssignmentId}`,
+        `/competitions/volunteers/${params.volunteerAssignmentId}`,
       );
       return data;
     },
@@ -318,7 +380,7 @@ export function useRemoveVolunteer() {
 /**
  * Get clubs assigned to a competition
  */
-export function useCompetitionClubs(competitionId) {
+export function useCompetitionClubs(competitionId: string) {
   return useQuery({
     queryKey: ["competitions", competitionId, "clubs"],
     queryFn: async () => {
@@ -337,10 +399,10 @@ export function useCompetitionClubs(competitionId) {
 export function useAssignClubToCompetition() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async ({ competitionId, clubId }) => {
+    mutationFn: async (params: AssignClubParams) => {
       const { data } = await apiClient.post(
-        `/competitions/${competitionId}/clubs`,
-        { clubId },
+        `/competitions/${params.competitionId}/clubs`,
+        { clubId: params.clubId },
       );
       return data;
     },
@@ -358,9 +420,9 @@ export function useAssignClubToCompetition() {
 export function useRemoveClubFromCompetition() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async ({ competitionId, clubId }) => {
+    mutationFn: async (params: RemoveClubParams) => {
       const { data } = await apiClient.delete(
-        `/competitions/${competitionId}/clubs/${clubId}`,
+        `/competitions/${params.competitionId}/clubs/${params.clubId}`,
       );
       return data;
     },
@@ -375,7 +437,7 @@ export function useRemoveClubFromCompetition() {
 /**
  * Get departments assigned to a competition (SA)
  */
-export function useCompetitionDepartments(competitionId) {
+export function useCompetitionDepartments(competitionId: string) {
   return useQuery({
     queryKey: ["competitions", competitionId, "departments"],
     queryFn: async () => {
@@ -394,10 +456,10 @@ export function useCompetitionDepartments(competitionId) {
 export function useAssignDepartmentToCompetition() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async ({ competitionId, departmentId }) => {
+    mutationFn: async (params: AssignDepartmentParams) => {
       const { data } = await apiClient.post(
-        `/competitions/${competitionId}/departments`,
-        { departmentId },
+        `/competitions/${params.competitionId}/departments`,
+        { departmentId: params.departmentId },
       );
       return data;
     },
@@ -415,9 +477,9 @@ export function useAssignDepartmentToCompetition() {
 export function useRemoveDepartmentFromCompetition() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async ({ competitionId, departmentId }) => {
+    mutationFn: async (params: RemoveDepartmentParams) => {
       const { data } = await apiClient.delete(
-        `/competitions/${competitionId}/departments/${departmentId}`,
+        `/competitions/${params.competitionId}/departments/${params.departmentId}`,
       );
       return data;
     },
@@ -435,16 +497,16 @@ export function useRemoveDepartmentFromCompetition() {
 export function useRequestPromoCodeApproval() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async ({ competitionId, promoCodes }) => {
+    mutationFn: async (params: RequestPromoCodeApprovalParams) => {
       const { data } = await apiClient.post(
-        `/competitions/${competitionId}/request-promo-code-approval`,
-        { promoCodes },
+        `/competitions/${params.competitionId}/request-promo-code-approval`,
+        { promoCodes: params.promoCodes },
       );
       return data;
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({
-        queryKey: queryKeys.approvals.list(),
+        queryKey: queryKeys.approvals.list({}),
       });
       queryClient.invalidateQueries({
         queryKey: queryKeys.competitions.detail(variables.competitionId),

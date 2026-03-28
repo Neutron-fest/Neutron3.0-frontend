@@ -3,13 +3,38 @@ import { queryKeys } from "@/src/lib/queryKeys";
 import apiClient from "@/lib/axios";
 
 /**
- * Check current authenticated user
+ * Types
+ */
+
+export interface User {
+  _id: string;
+  name: string;
+  email: string;
+  role?: string;
+  [key: string]: any;
+}
+
+export interface Session {
+  _id: string;
+  device?: string;
+  ip?: string;
+  createdAt?: string;
+  [key: string]: any;
+}
+
+export interface LoginCredentials {
+  email: string;
+  password: string;
+}
+
+/**
+ * Get current authenticated user
  */
 export function useAuthMe() {
-  return useQuery({
+  return useQuery<User>({
     queryKey: queryKeys.auth.me(),
     queryFn: async () => {
-      const { data } = await apiClient.get("/auth/me");
+      const { data } = await apiClient.get<User>("/auth/me");
       return data;
     },
     retry: false,
@@ -23,13 +48,15 @@ export function useAuthMe() {
 export function useLogin() {
   const queryClient = useQueryClient();
 
-  return useMutation({
+  return useMutation<User, Error, LoginCredentials>({
     mutationFn: async (credentials) => {
-      const { data } = await apiClient.post("/auth/login", credentials);
+      const { data } = await apiClient.post<User>(
+        "/auth/login",
+        credentials
+      );
       return data;
     },
     onSuccess: (data) => {
-      // Update auth.me cache with logged-in user
       queryClient.setQueryData(queryKeys.auth.me(), data);
     },
   });
@@ -41,13 +68,11 @@ export function useLogin() {
 export function useLogout() {
   const queryClient = useQueryClient();
 
-  return useMutation({
+  return useMutation<void, Error, void>({
     mutationFn: async () => {
-      const { data } = await apiClient.post("/auth/logout");
-      return data;
+      await apiClient.post("/auth/logout");
     },
     onSuccess: () => {
-      // Clear all caches on logout
       queryClient.clear();
     },
   });
@@ -59,9 +84,11 @@ export function useLogout() {
 export function useGoogleLogin() {
   const queryClient = useQueryClient();
 
-  return useMutation({
-    mutationFn: async (token) => {
-      const { data } = await apiClient.post("/auth/google", { token });
+  return useMutation<User, Error, { token: string }>({
+    mutationFn: async ({ token }) => {
+      const { data } = await apiClient.post<User>("/auth/google", {
+        token,
+      });
       return data;
     },
     onSuccess: (data) => {
@@ -71,28 +98,29 @@ export function useGoogleLogin() {
 }
 
 /**
- * Get all active sessions for the current user
- * GET /api/v1/auth/sessions
+ * Get all active sessions
  */
 export function useSessions() {
-  return useQuery({
+  return useQuery<Session[]>({
     queryKey: [...queryKeys.auth.all, "sessions"],
     queryFn: async () => {
-      const { data } = await apiClient.get("/auth/sessions");
+      const { data } = await apiClient.get<any>("/auth/sessions");
       return data?.data?.sessions || data?.sessions || [];
     },
   });
 }
 
 /**
- * Revoke a single session
- * DELETE /api/v1/auth/sessions/:sessionId
+ * Revoke single session
  */
 export function useRevokeSession() {
   const queryClient = useQueryClient();
-  return useMutation({
+
+  return useMutation<any, Error, string>({
     mutationFn: async (sessionId) => {
-      const { data } = await apiClient.delete(`/auth/sessions/${sessionId}`);
+      const { data } = await apiClient.delete(
+        `/auth/sessions/${sessionId}`
+      );
       return data;
     },
     onSuccess: () => {
@@ -104,15 +132,14 @@ export function useRevokeSession() {
 }
 
 /**
- * Revoke all sessions (logout everywhere)
- * DELETE /api/v1/auth/sessions
+ * Revoke all sessions
  */
 export function useRevokeAllSessions() {
   const queryClient = useQueryClient();
-  return useMutation({
+
+  return useMutation<void, Error, void>({
     mutationFn: async () => {
-      const { data } = await apiClient.delete("/auth/sessions");
-      return data;
+      await apiClient.delete("/auth/sessions");
     },
     onSuccess: () => {
       queryClient.clear();
@@ -121,16 +148,22 @@ export function useRevokeAllSessions() {
 }
 
 /**
- * Change password for authenticated user
- * POST /api/v1/auth/change-password
+ * Change password
  */
 export function useChangePassword() {
-  return useMutation({
+  return useMutation<
+    any,
+    Error,
+    { currentPassword: string; newPassword: string }
+  >({
     mutationFn: async ({ currentPassword, newPassword }) => {
-      const { data } = await apiClient.post("/auth/change-password", {
-        currentPassword,
-        newPassword,
-      });
+      const { data } = await apiClient.post(
+        "/auth/change-password",
+        {
+          currentPassword,
+          newPassword,
+        }
+      );
       return data;
     },
   });

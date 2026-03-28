@@ -1,16 +1,37 @@
+/* ================= CONSTANTS ================= */
+
 const AUTH_CONTINUATION_KEY = "neutron.auth.continuation";
 
-const isBrowser = () => typeof window !== "undefined";
+/* ================= TYPES ================= */
 
-const normalizeNextPath = (nextPath) => {
+export interface AuthContinuation {
+  next: string;
+  forceLogin: boolean;
+}
+
+export interface SetAuthContinuationPayload {
+  next?: string;
+  forceLogin?: boolean;
+}
+
+/* ================= HELPERS ================= */
+
+const isBrowser = (): boolean => typeof window !== "undefined";
+
+const normalizeNextPath = (nextPath?: string): string => {
   if (!nextPath || typeof nextPath !== "string") return "";
+
   const trimmed = nextPath.trim();
+
   if (!trimmed.startsWith("/")) return "";
   if (trimmed.startsWith("//")) return "";
+
   return trimmed;
 };
 
-export const getAuthContinuation = () => {
+/* ================= FUNCTIONS ================= */
+
+export const getAuthContinuation = (): AuthContinuation => {
   if (!isBrowser()) {
     return { next: "", forceLogin: false };
   }
@@ -19,7 +40,8 @@ export const getAuthContinuation = () => {
     const raw = window.localStorage.getItem(AUTH_CONTINUATION_KEY);
     if (!raw) return { next: "", forceLogin: false };
 
-    const parsed = JSON.parse(raw);
+    const parsed: Partial<AuthContinuation> = JSON.parse(raw);
+
     return {
       next: normalizeNextPath(parsed?.next),
       forceLogin: Boolean(parsed?.forceLogin),
@@ -29,7 +51,10 @@ export const getAuthContinuation = () => {
   }
 };
 
-export const setAuthContinuation = ({ next, forceLogin = false }) => {
+export const setAuthContinuation = ({
+  next,
+  forceLogin = false,
+}: SetAuthContinuationPayload): void => {
   if (!isBrowser()) return;
 
   const normalizedNext = normalizeNextPath(next);
@@ -42,23 +67,29 @@ export const setAuthContinuation = ({ next, forceLogin = false }) => {
 
     window.localStorage.setItem(
       AUTH_CONTINUATION_KEY,
-      JSON.stringify({ next: "", forceLogin: true }),
+      JSON.stringify({ next: "", forceLogin: true })
     );
     return;
   }
 
   window.localStorage.setItem(
     AUTH_CONTINUATION_KEY,
-    JSON.stringify({ next: normalizedNext, forceLogin: Boolean(forceLogin) }),
+    JSON.stringify({
+      next: normalizedNext,
+      forceLogin: Boolean(forceLogin),
+    })
   );
 };
 
-export const clearAuthContinuation = () => {
+export const clearAuthContinuation = (): void => {
   if (!isBrowser()) return;
   window.localStorage.removeItem(AUTH_CONTINUATION_KEY);
 };
 
-export const buildAuthPageHref = (basePath, { next, forceLogin = false }) => {
+export const buildAuthPageHref = (
+  basePath: string,
+  { next, forceLogin = false }: SetAuthContinuationPayload
+): string => {
   const params = new URLSearchParams();
   const normalizedNext = normalizeNextPath(next);
 

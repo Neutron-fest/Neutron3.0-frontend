@@ -3,6 +3,15 @@
  * Centralized query key management for TanStack Query cache
  */
 
+// Define types for query keys
+export interface QueryKey {
+  all: string[];
+  lists?: () => string[];
+  list?: (filters: any) => string[];
+  details?: () => string[];
+  detail?: (id: string | number) => string[];
+}
+
 export const queryKeys = {
   // Auth queries
   auth: {
@@ -14,23 +23,23 @@ export const queryKeys = {
   users: {
     all: ["users"],
     lists: () => [...queryKeys.users.all, "list"],
-    list: (filters) => [...queryKeys.users.lists(), filters],
+    list: (filters: any) => [...queryKeys.users.lists(), filters],
     details: () => [...queryKeys.users.all, "detail"],
-    detail: (id) => [...queryKeys.users.details(), id],
+    detail: (id: string | number) => [...queryKeys.users.details(), id],
   },
 
   // Public profile queries
   publicProfiles: {
     all: ["public-profiles"],
     details: () => [...queryKeys.publicProfiles.all, "detail"],
-    detail: (userId) => [...queryKeys.publicProfiles.details(), userId],
+    detail: (userId: string | number) => [...queryKeys.publicProfiles.details(), userId],
   },
 
   // Public registration + team management queries
   publicRegistrations: {
     all: ["public-registrations"],
     my: () => [...queryKeys.publicRegistrations.all, "my"],
-    invitePreview: (inviteToken) => [
+    invitePreview: (inviteToken: string) => [
       ...queryKeys.publicRegistrations.all,
       "invite-preview",
       inviteToken,
@@ -40,36 +49,36 @@ export const queryKeys = {
       "pending-invites",
     ],
     teams: () => [...queryKeys.publicRegistrations.all, "teams"],
-    team: (teamId) => [...queryKeys.publicRegistrations.teams(), teamId],
+    team: (teamId: string | number) => [...queryKeys.publicRegistrations.teams(), teamId],
   },
 
   // Department queries
   departments: {
     all: ["departments"],
     lists: () => [...queryKeys.departments.all, "list"],
-    list: (filters) => [...queryKeys.departments.lists(), filters],
+    list: (filters: any) => [...queryKeys.departments.lists(), filters],
     details: () => [...queryKeys.departments.all, "detail"],
-    detail: (id) => [...queryKeys.departments.details(), id],
+    detail: (id: string | number) => [...queryKeys.departments.details(), id],
   },
 
   // SA clubs management queries
   clubs: {
     all: ["clubs"],
     lists: () => [...queryKeys.clubs.all, "list"],
-    list: (filters) => [...queryKeys.clubs.lists(), filters],
+    list: (filters: any) => [...queryKeys.clubs.lists(), filters],
     details: () => [...queryKeys.clubs.all, "detail"],
-    detail: (id) => [...queryKeys.clubs.details(), id],
+    detail: (id: string | number) => [...queryKeys.clubs.details(), id],
   },
 
   // Approval queries
   approvals: {
     all: ["approvals"],
     lists: () => [...queryKeys.approvals.all, "list"],
-    list: (filters) => [...queryKeys.approvals.lists(), filters],
+    list: (filters: any) => [...queryKeys.approvals.lists(), filters],
     details: () => [...queryKeys.approvals.all, "detail"],
-    detail: (id) => [...queryKeys.approvals.details(), id],
+    detail: (id: string | number) => [...queryKeys.approvals.details(), id],
     pending: () => [...queryKeys.approvals.all, "pending"],
-    myRequests: (filters) => [
+    myRequests: (filters: any) => [
       ...queryKeys.approvals.all,
       "my-requests",
       filters,
@@ -80,13 +89,13 @@ export const queryKeys = {
   issues: {
     all: ["issues"],
     lists: () => [...queryKeys.issues.all, "list"],
-    list: (filters = {}) => [...queryKeys.issues.lists(), filters],
+    list: (filters: any = {}) => [...queryKeys.issues.lists(), filters],
   },
 
   // Registration queries (DH)
   registrations: {
     all: ["registrations"],
-    pending: (filters = {}) => [
+    pending: (filters: any = {}) => [
       ...queryKeys.registrations.all,
       "pending",
       filters,
@@ -97,11 +106,11 @@ export const queryKeys = {
   competitions: {
     all: ["competitions"],
     lists: () => [...queryKeys.competitions.all, "list"],
-    list: (filters) => [...queryKeys.competitions.lists(), filters],
+    list: (filters: any) => [...queryKeys.competitions.lists(), filters],
     details: () => [...queryKeys.competitions.all, "detail"],
-    detail: (id) => [...queryKeys.competitions.details(), id],
-    judges: (id) => [...queryKeys.competitions.all, "judges", id],
-    volunteers: (id) => [...queryKeys.competitions.all, "volunteers", id],
+    detail: (id: string | number) => [...queryKeys.competitions.details(), id],
+    judges: (id: string | number) => [...queryKeys.competitions.all, "judges", id],
+    volunteers: (id: string | number) => [...queryKeys.competitions.all, "volunteers", id],
   },
 
   // Competition forms queries (DH/SA)
@@ -110,51 +119,51 @@ export const queryKeys = {
     lists: () => [...queryKeys.forms.all, "list"],
     list: () => [...queryKeys.forms.lists()],
     details: () => [...queryKeys.forms.all, "detail"],
-    detail: (id) => [...queryKeys.forms.details(), id],
+    detail: (id: string | number) => [...queryKeys.forms.details(), id],
   },
 
   // Judging queries (DH)
   judging: {
     all: ["judging"],
     myCompetitions: () => [...queryKeys.judging.all, "my-competitions"],
-    rounds: (competitionId) => [
+    rounds: (competitionId: string | number) => [
       ...queryKeys.judging.all,
       "rounds",
       competitionId,
     ],
-    participants: (roundId) => [
+    participants: (roundId: string | number) => [
       ...queryKeys.judging.all,
       "participants",
       roundId,
     ],
-    criteria: (roundId) => [...queryKeys.judging.all, "criteria", roundId],
-    leaderboard: (roundId) => [
+    criteria: (roundId: string | number) => [...queryKeys.judging.all, "criteria", roundId],
+    leaderboard: (roundId: string | number) => [
       ...queryKeys.judging.all,
       "leaderboard",
       roundId,
     ],
-    pendingJudges: (roundId) => [
+    pendingJudges: (roundId: string | number) => [
       ...queryKeys.judging.all,
       "pending-judges",
       roundId,
     ],
-    allScored: (roundId) => [...queryKeys.judging.all, "all-scored", roundId],
-    adminRounds: (competitionId) => [
+    allScored: (roundId: string | number) => [...queryKeys.judging.all, "all-scored", roundId],
+    adminRounds: (competitionId: string | number) => [
       ...queryKeys.judging.all,
       "admin-rounds",
       competitionId,
     ],
-    adminTeams: (competitionId) => [
+    adminTeams: (competitionId: string | number) => [
       ...queryKeys.judging.all,
       "admin-teams",
       competitionId,
     ],
-    adminRoundTeams: (roundId) => [
+    adminRoundTeams: (roundId: string | number) => [
       ...queryKeys.judging.all,
       "admin-round-teams",
       roundId,
     ],
-    teamScoreDetails: (roundId, teamId) => [
+    teamScoreDetails: (roundId: string | number, teamId: string | number) => [
       ...queryKeys.judging.all,
       "team-score-details",
       roundId,
@@ -175,17 +184,17 @@ export const queryKeys = {
       ...queryKeys.attendance.all,
       "registration-desk-volunteers",
     ],
-    competitionStats: (id) => [
+    competitionStats: (id: string | number) => [
       ...queryKeys.attendance.all,
       "competition-stats",
       id,
     ],
-    participants: (query) => [
+    participants: (query: string) => [
       ...queryKeys.attendance.all,
       "participants",
       query,
     ],
-    participant: (id) => [...queryKeys.attendance.all, "participant", id],
+    participant: (id: string | number) => [...queryKeys.attendance.all, "participant", id],
   },
 
   // Settings queries
@@ -199,10 +208,10 @@ export const queryKeys = {
     all: ["campaigns"],
     metadata: () => [...queryKeys.campaigns.all, "metadata"],
     lists: () => [...queryKeys.campaigns.all, "list"],
-    list: (filters) => [...queryKeys.campaigns.lists(), filters],
+    list: (filters: any) => [...queryKeys.campaigns.lists(), filters],
     details: () => [...queryKeys.campaigns.all, "detail"],
-    detail: (id) => [...queryKeys.campaigns.details(), id],
-    recipients: (id, filters = {}) => [
+    detail: (id: string | number) => [...queryKeys.campaigns.details(), id],
+    recipients: (id: string | number, filters: any = {}) => [
       ...queryKeys.campaigns.all,
       "recipients",
       id,
@@ -215,26 +224,26 @@ export const queryKeys = {
     all: ["club"],
     myClubs: () => [...queryKeys.club.all, "my-clubs"],
     dashboard: () => [...queryKeys.club.all, "dashboard"],
-    members: (clubId) => [...queryKeys.club.all, "members", clubId],
+    members: (clubId: string | number) => [...queryKeys.club.all, "members", clubId],
     competitions: () => [...queryKeys.club.all, "competitions"],
-    competitionDetail: (competitionId) => [
+    competitionDetail: (competitionId: string | number) => [
       ...queryKeys.club.all,
       "competition",
       competitionId,
     ],
-    competitionRegistrations: (competitionId) => [
+    competitionRegistrations: (competitionId: string | number) => [
       ...queryKeys.club.all,
       "competition-registrations",
       competitionId,
     ],
-    competitionFormResponses: (competitionId) => [
+    competitionFormResponses: (competitionId: string | number) => [
       ...queryKeys.club.all,
       "competition-form-responses",
       competitionId,
     ],
     proposals: {
       all: () => [...queryKeys.club.all, "proposals"],
-      mine: (filters = {}) => [
+      mine: (filters: any = {}) => [
         ...queryKeys.club.all,
         "proposals",
         "my",
@@ -246,7 +255,7 @@ export const queryKeys = {
   // Review queue queries (SA/DH)
   reviews: {
     all: ["reviews"],
-    list: (filters = {}) => [...queryKeys.reviews.all, "list", filters],
-    detail: (proposalId) => [...queryKeys.reviews.all, "detail", proposalId],
+    list: (filters: any = {}) => [...queryKeys.reviews.all, "list", filters],
+    detail: (proposalId: string | number) => [...queryKeys.reviews.all, "detail", proposalId],
   },
 };

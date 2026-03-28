@@ -1,4 +1,4 @@
-import axios from "axios";
+import axios, { AxiosRequestConfig, AxiosError, AxiosInstance, InternalAxiosRequestConfig } from "axios";
 import {
   connectSocket,
   disconnectSocket,
@@ -21,15 +21,15 @@ const AUTH_REJECTION_ERRORS = new Set([
   "NO_DEPARTMENT_ASSIGNED",
 ]);
 
-const isExplicitAuthRejection = (error) => {
-  const status = error?.response?.status;
-  const code = error?.response?.data?.error;
-
+const isExplicitAuthRejection = (error: unknown): boolean => {
+  const err = error as { response?: { status?: number; data?: { error?: string } } };
+  const status = err?.response?.status;
+  const code = err?.response?.data?.error;
   if (status !== 401 && status !== 403) return false;
-  return AUTH_REJECTION_ERRORS.has(code);
+  return code ? AUTH_REJECTION_ERRORS.has(code) : false;
 };
 
-const emitServerRejectedAuth = () => {
+const emitServerRejectedAuth = (): void => {
   if (typeof window === "undefined") return;
   window.dispatchEvent(new Event("auth:server-rejected"));
 };
@@ -52,12 +52,12 @@ const PUBLIC_PATHS = [
   "/auth/invite/accept",
 ];
 
-const isPublicPath = (url = "") => {
+const isPublicPath = (url: string = ""): boolean => {
   return PUBLIC_PATHS.some((path) => url.includes(path));
 };
 
-const buildSocketRequiredError = () => {
-  const socketError = new Error("Active socket connection required.");
+const buildSocketRequiredError = (): any => {
+  const socketError: any = new Error("Active socket connection required.");
   socketError.response = {
     status: 401,
     data: {
@@ -65,11 +65,10 @@ const buildSocketRequiredError = () => {
       message: "Active socket connection required.",
     },
   };
-
   return socketError;
 };
 
-const recoverSocketWithRefresh = async () => {
+const recoverSocketWithRefresh = async (): Promise<boolean> => {
   try {
     await apiClient.post("/auth/refresh");
     connectSocket();
@@ -85,35 +84,33 @@ const recoverSocketWithRefresh = async () => {
   }
 };
 
-const ensureSocketAccessForProtectedRequest = async () => {
+const ensureSocketAccessForProtectedRequest = async (): Promise<boolean> => {
   if (isSocketConnectionAllowed()) {
     return true;
   }
-
   connectSocket();
   const reconnected = await waitForSocketConnection(2000);
   if (reconnected || isSocketConnectionAllowed()) {
     return true;
   }
-
   return recoverSocketWithRefresh();
 };
 
 // Queue for managing concurrent refresh requests
-let refreshPromise = null;
-const pendingRequests = [];
+let refreshPromise: Promise<any> | null = null;
+const pendingRequests: Array<() => void> = [];
 
-const onRefreshed = () => {
+const onRefreshed = (): void => {
   pendingRequests.forEach((callback) => callback());
   pendingRequests.length = 0;
 };
 
-const addPendingRequest = (callback) => {
+const addPendingRequest = (callback: () => void): void => {
   pendingRequests.push(callback);
 };
 
 // Create axios instance with default config
-const apiClient = axios.create({
+const apiClient: AxiosInstance = axios.create({
   baseURL: `${API_BASE_URL}/api/v1`,
   withCredentials: true, // Send cookies with requests
   headers: {
@@ -124,24 +121,22 @@ const apiClient = axios.create({
 
 // Request interceptor
 apiClient.interceptors.request.use(
-  async (config) => {
+  async (config: InternalAxiosRequestConfig) => {
     if (typeof FormData !== "undefined" && config.data instanceof FormData) {
       if (config.headers) {
         delete config.headers["Content-Type"];
       }
     }
-
     if (typeof window !== "undefined" && !isPublicPath(config.url || "")) {
       const hasSocketAccess = await ensureSocketAccessForProtectedRequest();
       if (!hasSocketAccess) {
         return Promise.reject(buildSocketRequiredError());
       }
     }
-
     // You can add additional headers here if needed
     return config;
   },
-  (error) => {
+  (error: any) => {
     return Promise.reject(error);
   },
 );
@@ -151,8 +146,8 @@ apiClient.interceptors.response.use(
   (response) => {
     return response;
   },
-  async (error) => {
-    const originalRequest = error.config;
+  async (error: any) => {
+    const originalRequest = error.config as any;
 
     if (!error.response) {
       return Promise.reject(error);
@@ -191,7 +186,7 @@ apiClient.interceptors.response.use(
           onRefreshed();
           return apiClient(originalRequest);
         })
-        .catch((refreshError) => {
+        .catch((refreshError: unknown) => {
           refreshPromise = null;
           if (isExplicitAuthRejection(refreshError)) {
             disconnectSocket();

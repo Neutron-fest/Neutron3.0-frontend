@@ -1,12 +1,31 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, ComponentType } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 
-export default function withAuth(Component, allowedRoles = []) {
-  return function ProtectedRoute(props) {
-    const { user, loading } = useAuth();
+/* ================= TYPES ================= */
+
+type Role = string; // you can later restrict this: "ADMIN" | "USER" | "DH" etc.
+
+interface AuthUser {
+  role?: Role;
+  [key: string]: any;
+}
+
+interface AuthContextType {
+  user: AuthUser | null;
+  loading: boolean;
+}
+
+/* ================= HOC ================= */
+
+export default function withAuth<P extends object>(
+  Component: ComponentType<P>,
+  allowedRoles: Role[] = []
+) {
+  return function ProtectedRoute(props: P) {
+    const { user, loading } = useAuth() as AuthContextType;
     const router = useRouter();
 
     useEffect(() => {
@@ -15,7 +34,7 @@ export default function withAuth(Component, allowedRoles = []) {
           router.replace("/admin/auth");
         } else if (
           allowedRoles.length > 0 &&
-          !allowedRoles.includes(user.role)
+          !allowedRoles.includes(user.role || "")
         ) {
           router.replace("/admin/unauthorized");
         }
@@ -32,7 +51,8 @@ export default function withAuth(Component, allowedRoles = []) {
 
     if (
       !user ||
-      (allowedRoles.length > 0 && !allowedRoles.includes(user.role))
+      (allowedRoles.length > 0 &&
+        !allowedRoles.includes(user.role || ""))
     ) {
       return null;
     }

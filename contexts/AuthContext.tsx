@@ -6,6 +6,7 @@ import {
   useState,
   useEffect,
   useCallback,
+  ReactNode,
 } from "react";
 import apiClient from "@/lib/axios";
 import { useRouter } from "next/navigation";
@@ -17,7 +18,27 @@ import {
   waitForSocketConnection,
 } from "@/lib/socket";
 
-const AuthContext = createContext(null);
+interface AuthUser {
+  id?: string;
+  role?: string;
+  [key: string]: any;
+}
+
+interface AuthContextType {
+  user: AuthUser | null;
+  loading: boolean;
+  login: (credentials: Record<string, any>) => Promise<{ success: boolean; user?: AuthUser; errorCode?: string; error?: string }>;
+  logout: () => Promise<void>;
+  checkAuth: () => Promise<void>;
+  isAuthenticated: boolean;
+  isSocketReady: boolean;
+  isSA: boolean;
+  isDH: boolean;
+  isVH: boolean;
+  isJudge: boolean;
+}
+
+const AuthContext = createContext<AuthContextType | null>(null);
 const AUTH_USER_CACHE_KEY = "neutron.auth.user";
 const AUTH_REJECTION_ERRORS = new Set([
   "UNAUTHORIZED",
@@ -34,17 +55,18 @@ const AUTH_REJECTION_ERRORS = new Set([
   "NO_DEPARTMENT_ASSIGNED",
 ]);
 
-const isExplicitAuthRejection = (error) => {
-  const status = error?.response?.status;
-  const code = error?.response?.data?.error;
+const isExplicitAuthRejection = (error: unknown): boolean => {
+  const err = error as { response?: { status?: number; data?: { error?: string } } };
+  const status = err?.response?.status;
+  const code = err?.response?.data?.error;
 
   if (status !== 401 && status !== 403) return false;
-  return AUTH_REJECTION_ERRORS.has(code);
+  return code ? AUTH_REJECTION_ERRORS.has(code) : false;
 };
 
-const getCachedUser = () => {
-  if (typeof window === "undefined") return null;
 
+const getCachedUser = (): AuthUser | null => {
+  if (typeof window === "undefined") return null;
   try {
     const raw = window.localStorage.getItem(AUTH_USER_CACHE_KEY);
     return raw ? JSON.parse(raw) : null;
@@ -53,18 +75,16 @@ const getCachedUser = () => {
   }
 };
 
-const cacheUser = (user) => {
+const cacheUser = (user: AuthUser | null) => {
   if (typeof window === "undefined") return;
-
   if (!user) {
     window.localStorage.removeItem(AUTH_USER_CACHE_KEY);
     return;
   }
-
   window.localStorage.setItem(AUTH_USER_CACHE_KEY, JSON.stringify(user));
 };
 
-const buildFallbackDeviceName = (userAgent = "") => {
+const buildFallbackDeviceName = (userAgent: string = ""): string | null => {
   const ua = userAgent.toLowerCase();
 
   let platform = "";
@@ -97,33 +117,29 @@ const buildFallbackDeviceName = (userAgent = "") => {
   return platform || browser || null;
 };
 
-const getClientDeviceName = async () => {
+const getClientDeviceName = async (): Promise<string | null> => {
   if (typeof window === "undefined" || typeof navigator === "undefined") {
     return null;
   }
-
   try {
-    if (navigator.userAgentData?.getHighEntropyValues) {
-      const values = await navigator.userAgentData.getHighEntropyValues([
+   
+    if ((navigator as any).userAgentData?.getHighEntropyValues) {
+
+      const values = await (navigator as any).userAgentData.getHighEntropyValues([
         "model",
         "platform",
       ]);
-
       const model = values?.model?.trim();
       const platform = values?.platform?.trim();
-
       if (model) {
         const normalizedModel = /^SM-/i.test(model)
           ? `Samsung ${model.toUpperCase()}`
           : model;
-
         if (platform) {
           return `${normalizedModel} ${platform}`;
         }
-
         return normalizedModel;
       }
-
       if (platform) {
         return buildFallbackDeviceName(navigator.userAgent) || platform;
       }
@@ -131,17 +147,21 @@ const getClientDeviceName = async () => {
   } catch {
     // Fall back to user-agent-derived naming below.
   }
-
   return buildFallbackDeviceName(navigator.userAgent);
 };
 
-export function AuthProvider({ children }) {
-  const [user, setUser] = useState(() => getCachedUser());
-  const [loading, setLoading] = useState(true);
-  const [isSocketReady, setIsSocketReady] = useState(false);
+
+interface AuthProviderProps {
+  children: ReactNode;
+}
+
+export function AuthProvider({ children }: AuthProviderProps) {
+  const [user, setUser] = useState<AuthUser | null>(() => getCachedUser());
+  const [loading, setLoading] = useState<boolean>(true);
+  const [isSocketReady, setIsSocketReady] = useState<boolean>(false);
   const router = useRouter();
 
-  const clearUserAndRedirect = useCallback(() => {
+  const clearUserAndRedirect = useCallback((): void => {
     setUser(null);
     cacheUser(null);
     disconnectSocket();
@@ -153,9 +173,8 @@ export function AuthProvider({ children }) {
       onConnect: () => {
         setIsSocketReady(true);
       },
-      onDisconnect: (reason) => {
+      onDisconnect: (reason?: string) => {
         setIsSocketReady(false);
-
         if (reason === "io server disconnect") {
           clearUserAndRedirect();
         }
@@ -202,7 +221,7 @@ export function AuthProvider({ children }) {
     };
   }, [clearUserAndRedirect]);
 
-  const checkAuth = async () => {
+  const checkAuth = async (): Promise<void> => {
     try {
       if (!isSocketConnectionAllowed()) {
         connectSocket();
@@ -214,17 +233,17 @@ export function AuthProvider({ children }) {
         setUser(response.data.data.user);
         cacheUser(response.data.data.user);
       }
-    } catch (error) {
-      if (error?.response?.data?.error === "SOCKET_NOT_CONNECTED") {
+    } catch (error: unknown) {
+      if ((error as any)?.response?.data?.error === "SOCKET_NOT_CONNECTED") {
         console.warn("Auth check paused until socket reconnects.");
       }
 
       if (isExplicitAuthRejection(error)) {
         setUser(null);
         cacheUser(null);
-      } else if (error.response?.status >= 500 || !error.response) {
+      } else if ((error as any).response?.status >= 500 || !(error as any).response) {
         console.warn("Auth check skipped due to backend/network issue.");
-      } else if (error.response?.status !== 401) {
+      } else if ((error as any).response?.status !== 401) {
         console.error("Auth check failed:", error);
       }
     } finally {
@@ -232,7 +251,7 @@ export function AuthProvider({ children }) {
     }
   };
 
-  const login = async (credentials) => {
+  const login = async (credentials: Record<string, any>): Promise<{ success: boolean; user?: AuthUser; errorCode?: string; error?: string }> => {
     try {
       const deviceName = await getClientDeviceName();
       const response = await apiClient.post("/auth/login", {
@@ -246,21 +265,24 @@ export function AuthProvider({ children }) {
         await waitForSocketConnection(2000);
         return { success: true, user: response.data.data.user };
       }
-    } catch (error) {
+    } catch (error: unknown) {
+      const err = error as { response?: { data?: { error?: string; message?: string } } };
       return {
         success: false,
-        errorCode: error.response?.data?.error,
-        error: error.response?.data?.message || "Login failed",
+        errorCode: err.response?.data?.error,
+        error: err.response?.data?.message || "Login failed",
       };
     }
+    return { success: false, error: "Login failed" };
   };
 
-  const logout = async () => {
+  const logout = async (): Promise<void> => {
     try {
       await apiClient.post("/auth/logout");
-    } catch (error) {
+    } catch (error: unknown) {
+      const err = error as { response?: { status?: number } };
       // Logout errors are usually not critical, only log non-401 errors
-      if (error.response?.status !== 401) {
+      if (err.response?.status !== 401) {
         console.error("Logout error:", error);
       }
     } finally {
@@ -288,7 +310,7 @@ export function AuthProvider({ children }) {
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
-export function useAuth() {
+export function useAuth(): AuthContextType {
   const context = useContext(AuthContext);
   if (!context) {
     throw new Error("useAuth must be used within an AuthProvider");

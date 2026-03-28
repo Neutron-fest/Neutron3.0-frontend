@@ -1,4 +1,4 @@
-import { io } from "socket.io-client";
+import { io, Socket } from "socket.io-client";
 
 const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3001";
@@ -8,23 +8,32 @@ const SOCKET_GRACE_MS = Number.parseInt(
   10,
 );
 
-let socket = null;
+
+type ForceLogoutPayload = { code?: string; reason?: string };
+type Listeners = {
+  onForceLogout: ((payload?: ForceLogoutPayload) => void) | null;
+  onConnect: (() => void) | null;
+  onDisconnect: ((reason?: string) => void) | null;
+  onConnectError: ((error?: any) => void) | null;
+};
+
+let socket: Socket | null = null;
 let connected = false;
 let initialized = false;
-let lastDisconnectedAt = null;
-let listeners = {
+let lastDisconnectedAt: number | null = null;
+let listeners: Listeners = {
   onForceLogout: null,
   onConnect: null,
   onDisconnect: null,
   onConnectError: null,
 };
 
-const isPublicSocketError = (error) => {
+const isPublicSocketError = (error: any): boolean => {
   const code = error?.data?.code || error?.code || "";
   return code === "UNAUTHORIZED";
 };
 
-const setConnected = (nextConnected) => {
+const setConnected = (nextConnected: boolean): void => {
   connected = nextConnected;
   if (!nextConnected) {
     lastDisconnectedAt = Date.now();
@@ -38,7 +47,7 @@ export const initSocket = ({
   onConnect,
   onDisconnect,
   onConnectError,
-} = {}) => {
+}: Partial<Listeners> = {}): Socket => {
   listeners = {
     onForceLogout: onForceLogout || null,
     onConnect: onConnect || null,
@@ -66,12 +75,12 @@ export const initSocket = ({
     listeners.onConnect?.();
   });
 
-  socket.on("disconnect", (reason) => {
+  socket.on("disconnect", (reason: string) => {
     setConnected(false);
     listeners.onDisconnect?.(reason);
   });
 
-  socket.on("connect_error", (error) => {
+  socket.on("connect_error", (error: any) => {
     setConnected(false);
     listeners.onConnectError?.(error);
 
@@ -83,7 +92,7 @@ export const initSocket = ({
     }
   });
 
-  socket.on("force_logout", (payload) => {
+  socket.on("force_logout", (payload?: ForceLogoutPayload) => {
     listeners.onForceLogout?.(payload);
   });
 
@@ -91,29 +100,29 @@ export const initSocket = ({
   return socket;
 };
 
-export const connectSocket = () => {
+export const connectSocket = (): void => {
   if (!socket) return;
   if (!socket.connected) {
     socket.connect();
   }
 };
 
-export const disconnectSocket = () => {
+export const disconnectSocket = (): void => {
   if (!socket) return;
   socket.disconnect();
 };
 
-export const getSocket = () => socket;
+export const getSocket = (): Socket | null => socket;
 
-export const isSocketConnected = () => connected;
+export const isSocketConnected = (): boolean => connected;
 
-export const isSocketConnectionAllowed = () => {
+export const isSocketConnectionAllowed = (): boolean => {
   if (connected) return true;
   if (!lastDisconnectedAt) return false;
   return Date.now() - lastDisconnectedAt <= SOCKET_GRACE_MS;
 };
 
-export const waitForSocketConnection = async (timeoutMs = 2500) => {
+export const waitForSocketConnection = async (timeoutMs: number = 2500): Promise<boolean> => {
   if (!socket) return false;
   if (socket.connected) return true;
 
@@ -130,9 +139,9 @@ export const waitForSocketConnection = async (timeoutMs = 2500) => {
 
     const cleanup = () => {
       window.clearTimeout(timeout);
-      socket.off("connect", onConnect);
+      socket?.off("connect", onConnect);
     };
 
-    socket.on("connect", onConnect);
+    socket?.on("connect", onConnect);
   });
 };

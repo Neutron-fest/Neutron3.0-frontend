@@ -2,15 +2,56 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { queryKeys } from "@/src/lib/queryKeys";
 import apiClient from "@/lib/axios";
 
+// Define types for user data
+interface User {
+  id: string;
+  name: string;
+  email: string;
+  role: string;
+  isSuspended?: boolean;
+  isRevoked?: boolean;
+  [key: string]: any;
+}
+
+interface UserFilters {
+  [key: string]: any;
+}
+
+interface UpdateUserRoleParams {
+  userId: string;
+  role: string;
+}
+
+interface SuspendUserParams {
+  userId: string;
+  data: any;
+}
+
+interface RevokeUserParams {
+  userId: string;
+  reason: string;
+}
+
+interface InviteUserParams {
+  name: string;
+  email: string;
+  role: string;
+}
+
+interface BulkInviteParams {
+  email: string;
+  role: string;
+}
+
 /**
  * Fetch all users with optional filters
  */
-export function useUsers(filters = {}, queryOptions = {}) {
-  return useQuery({
+export function useUsers(filters: UserFilters = {}, queryOptions = {}) {
+  return useQuery<User[]>({
     queryKey: queryKeys.users.list(filters),
     queryFn: async () => {
       const { data } = await apiClient.get("/sa/users", { params: filters });
-      return data.data.users; // Return just the users array
+      return data.data.users;
     },
     ...queryOptions,
   });
@@ -19,8 +60,8 @@ export function useUsers(filters = {}, queryOptions = {}) {
 /**
  * Fetch single user by ID
  */
-export function useUser(userId) {
-  return useQuery({
+export function useUser(userId: string) {
+  return useQuery<User>({
     queryKey: queryKeys.users.detail(userId),
     queryFn: async () => {
       const { data } = await apiClient.get(`/sa/users/${userId}`);
@@ -37,26 +78,22 @@ export function useUpdateUserRole() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ userId, role }) => {
-      const { data } = await apiClient.put(`/sa/users/${userId}/role`, {
-        role,
+    mutationFn: async (params: UpdateUserRoleParams) => {
+      const { data } = await apiClient.put(`/sa/users/${params.userId}/role`, {
+        role: params.role,
       });
       return data;
     },
-    onMutate: async ({ userId, role }) => {
-      // Cancel outgoing refetches
+    onMutate: async (params: UpdateUserRoleParams) => {
       await queryClient.cancelQueries({ queryKey: queryKeys.users.all });
+      const previousUsers = queryClient.getQueryData<User[]>(queryKeys.users.lists());
 
-      // Snapshot previous value
-      const previousUsers = queryClient.getQueryData(queryKeys.users.lists());
-
-      // Optimistically update to new value
-      queryClient.setQueriesData(
+      queryClient.setQueriesData<User[]>(
         { queryKey: queryKeys.users.lists() },
         (old) => {
           if (!old || !Array.isArray(old)) return old;
           return old.map((user) =>
-            user.id === userId ? { ...user, role } : user,
+            user.id === params.userId ? { ...user, role: params.role } : user,
           );
         },
       );
@@ -64,16 +101,11 @@ export function useUpdateUserRole() {
       return { previousUsers };
     },
     onError: (err, variables, context) => {
-      // Rollback on error
       if (context?.previousUsers) {
-        queryClient.setQueryData(
-          queryKeys.users.lists(),
-          context.previousUsers,
-        );
+        queryClient.setQueryData(queryKeys.users.lists(), context.previousUsers);
       }
     },
     onSettled: () => {
-      // Refetch to ensure consistency
       queryClient.invalidateQueries({ queryKey: queryKeys.users.all });
     },
   });
@@ -86,23 +118,23 @@ export function useSuspendUser() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ userId, data: suspendData }) => {
+    mutationFn: async (params: SuspendUserParams) => {
       const { data } = await apiClient.post(
-        `/auth/admin/users/${userId}/suspend`,
-        suspendData,
+        `/auth/admin/users/${params.userId}/suspend`,
+        params.data,
       );
       return data;
     },
-    onMutate: async ({ userId }) => {
+    onMutate: async (params: SuspendUserParams) => {
       await queryClient.cancelQueries({ queryKey: queryKeys.users.all });
-      const previousUsers = queryClient.getQueryData(queryKeys.users.lists());
+      const previousUsers = queryClient.getQueryData<User[]>(queryKeys.users.lists());
 
-      queryClient.setQueriesData(
+      queryClient.setQueriesData<User[]>(
         { queryKey: queryKeys.users.lists() },
         (old) => {
           if (!old || !Array.isArray(old)) return old;
           return old.map((user) =>
-            user.id === userId ? { ...user, isSuspended: true } : user,
+            user.id === params.userId ? { ...user, isSuspended: true } : user,
           );
         },
       );
@@ -111,10 +143,7 @@ export function useSuspendUser() {
     },
     onError: (err, variables, context) => {
       if (context?.previousUsers) {
-        queryClient.setQueryData(
-          queryKeys.users.lists(),
-          context.previousUsers,
-        );
+        queryClient.setQueryData(queryKeys.users.lists(), context.previousUsers);
       }
     },
     onSettled: () => {
@@ -130,17 +159,17 @@ export function useUnsuspendUser() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (userId) => {
+    mutationFn: async (userId: string) => {
       const { data } = await apiClient.post(
         `/auth/admin/users/${userId}/unsuspend`,
       );
       return data;
     },
-    onMutate: async (userId) => {
+    onMutate: async (userId: string) => {
       await queryClient.cancelQueries({ queryKey: queryKeys.users.all });
-      const previousUsers = queryClient.getQueryData(queryKeys.users.lists());
+      const previousUsers = queryClient.getQueryData<User[]>(queryKeys.users.lists());
 
-      queryClient.setQueriesData(
+      queryClient.setQueriesData<User[]>(
         { queryKey: queryKeys.users.lists() },
         (old) => {
           if (!old || !Array.isArray(old)) return old;
@@ -154,10 +183,7 @@ export function useUnsuspendUser() {
     },
     onError: (err, variables, context) => {
       if (context?.previousUsers) {
-        queryClient.setQueryData(
-          queryKeys.users.lists(),
-          context.previousUsers,
-        );
+        queryClient.setQueryData(queryKeys.users.lists(), context.previousUsers);
       }
     },
     onSettled: () => {
@@ -173,23 +199,23 @@ export function useRevokeUser() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ userId, reason }) => {
+    mutationFn: async (params: RevokeUserParams) => {
       const { data } = await apiClient.post(
-        `/auth/admin/users/${userId}/revoke`,
-        { reason },
+        `/auth/admin/users/${params.userId}/revoke`,
+        { reason: params.reason },
       );
       return data;
     },
-    onMutate: async ({ userId }) => {
+    onMutate: async (params: RevokeUserParams) => {
       await queryClient.cancelQueries({ queryKey: queryKeys.users.all });
-      const previousUsers = queryClient.getQueryData(queryKeys.users.lists());
+      const previousUsers = queryClient.getQueryData<User[]>(queryKeys.users.lists());
 
-      queryClient.setQueriesData(
+      queryClient.setQueriesData<User[]>(
         { queryKey: queryKeys.users.lists() },
         (old) => {
           if (!old || !Array.isArray(old)) return old;
           return old.map((user) =>
-            user.id === userId ? { ...user, isRevoked: true } : user,
+            user.id === params.userId ? { ...user, isRevoked: true } : user,
           );
         },
       );
@@ -198,10 +224,7 @@ export function useRevokeUser() {
     },
     onError: (err, variables, context) => {
       if (context?.previousUsers) {
-        queryClient.setQueryData(
-          queryKeys.users.lists(),
-          context.previousUsers,
-        );
+        queryClient.setQueryData(queryKeys.users.lists(), context.previousUsers);
       }
     },
     onSettled: () => {
@@ -217,15 +240,15 @@ export function useDeleteUser() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (userId) => {
+    mutationFn: async (userId: string) => {
       const { data } = await apiClient.delete(`/sa/users/${userId}`);
       return data;
     },
-    onMutate: async (userId) => {
+    onMutate: async (userId: string) => {
       await queryClient.cancelQueries({ queryKey: queryKeys.users.all });
-      const previousUsers = queryClient.getQueryData(queryKeys.users.lists());
+      const previousUsers = queryClient.getQueryData<User[]>(queryKeys.users.lists());
 
-      queryClient.setQueriesData(
+      queryClient.setQueriesData<User[]>(
         { queryKey: queryKeys.users.lists() },
         (old) => {
           if (!old || !Array.isArray(old)) return old;
@@ -237,10 +260,7 @@ export function useDeleteUser() {
     },
     onError: (err, variables, context) => {
       if (context?.previousUsers) {
-        queryClient.setQueryData(
-          queryKeys.users.lists(),
-          context.previousUsers,
-        );
+        queryClient.setQueryData(queryKeys.users.lists(), context.previousUsers);
       }
     },
     onSettled: () => {
@@ -256,9 +276,8 @@ export function useInviteUser() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ name, email, role }) => {
-      // Map frontend role codes to backend enum values
-      const roleMap = {
+    mutationFn: async (params: InviteUserParams) => {
+      const roleMap: Record<string, string> = {
         SA: "SA",
         BOARD: "BOARD",
         DH: "DH",
@@ -271,7 +290,7 @@ export function useInviteUser() {
         VH: "VOLUNTEER",
       };
 
-      const apiRole = roleMap[role] || role;
+      const apiRole = roleMap[params.role] || params.role;
 
       const validRoles = new Set([
         "SA",
@@ -288,7 +307,7 @@ export function useInviteUser() {
       }
 
       const { data } = await apiClient.post("/auth/invite", {
-        email,
+        email: params.email,
         role: apiRole,
       });
       return data;
@@ -306,8 +325,8 @@ export function useBulkInviteUsers() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (invites) => {
-      const roleMap = {
+    mutationFn: async (invites: BulkInviteParams[]) => {
+      const roleMap: Record<string, string> = {
         SA: "SA",
         BOARD: "BOARD",
         DH: "DH",

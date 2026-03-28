@@ -1,12 +1,13 @@
 "use client";
 
-import React from "react";
+import React, { ReactNode } from "react";
 import { ThemeProvider } from "@mui/material/styles";
 import CssBaseline from "@mui/material/CssBaseline";
 import {
   SnackbarProvider,
   MaterialDesignContent,
   closeSnackbar,
+  SnackbarKey,
 } from "notistack";
 import { styled } from "@mui/material";
 import { CheckCircle, XCircle, AlertTriangle, Info, X } from "lucide-react";
@@ -16,6 +17,14 @@ import { theme } from "@/src/theme";
 import EmotionRegistry from "./EmotionRegistry";
 import ClarityTracker from "@/src/components/analytics/ClarityTracker";
 import SupportIssueWidget from "@/src/components/support/SupportIssueWidget";
+
+/* ================= TYPES ================= */
+
+interface AppProvidersProps {
+  children: ReactNode;
+}
+
+/* ================= STYLES ================= */
 
 const base = {
   fontFamily: "'Syne', sans-serif",
@@ -69,9 +78,13 @@ const StyledContent = styled(MaterialDesignContent)(() => ({
   },
 }));
 
+/* ================= ICON CONFIG ================= */
+
 const iconProps = { size: 15, strokeWidth: 2 };
 
-export function AppProviders({ children }) {
+/* ================= COMPONENT ================= */
+
+export function AppProviders({ children }: AppProvidersProps) {
   return (
     <QueryProvider>
       <EmotionRegistry>
@@ -93,7 +106,7 @@ export function AppProviders({ children }) {
               warning: <AlertTriangle {...iconProps} />,
               info: <Info {...iconProps} />,
             }}
-            action={(id) => (
+            action={(id: SnackbarKey) => (
               <button
                 onClick={() => closeSnackbar(id)}
                 style={{
@@ -109,10 +122,10 @@ export function AppProviders({ children }) {
                   lineHeight: 0,
                   transition: "color 0.15s",
                 }}
-                onMouseEnter={(e) =>
+                onMouseEnter={(e: React.MouseEvent<HTMLButtonElement>) =>
                   (e.currentTarget.style.color = "rgba(255,255,255,0.6)")
                 }
-                onMouseLeave={(e) =>
+                onMouseLeave={(e: React.MouseEvent<HTMLButtonElement>) =>
                   (e.currentTarget.style.color = "rgba(255,255,255,0.22)")
                 }
               >

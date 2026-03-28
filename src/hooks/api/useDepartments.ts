@@ -2,7 +2,36 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { queryKeys } from "@/src/lib/queryKeys";
 import apiClient from "@/lib/axios";
 
-const normalizeDepartment = (dept) => ({
+/* ================= TYPES ================= */
+
+type Department = {
+  id: string;
+  name?: string;
+  deptHeadIds?: string[];
+  deptHeadId?: string;
+  deptHeads?: any[];
+  deptHead?: any;
+  members?: any[];
+  membersCount?: number;
+  memberCount?: number;
+  members_count?: number;
+  [key: string]: any;
+};
+
+type ApiResponse<T> = {
+  data?: {
+    departments?: T[];
+    department?: T;
+  };
+  departments?: T[];
+  department?: T;
+};
+
+type MutationResponse = any;
+
+/* ================= HELPERS ================= */
+
+const normalizeDepartment = (dept: Department): Department => ({
   ...dept,
   deptHeadIds: Array.isArray(dept?.deptHeadIds)
     ? dept.deptHeadIds
@@ -26,74 +55,87 @@ const normalizeDepartment = (dept) => ({
     (Array.isArray(dept?.members) ? dept.members.length : 0),
 });
 
-/**
- * Fetch all departments
- */
-export function useDepartments(filters = {}) {
-  const { enabled = true, ...params } = filters || {};
+/* ================= QUERIES ================= */
 
-  return useQuery({
+export function useDepartments(
+  filters: Record<string, any> & { enabled?: boolean } = {}
+) {
+  const { enabled = true, ...params } = filters;
+
+  return useQuery<Department[]>({
     queryKey: queryKeys.departments.list(params),
     queryFn: async () => {
-      const { data } = await apiClient.get("/sa/departments", {
-        params,
-      });
+      const { data } = await apiClient.get<ApiResponse<Department>>(
+        "/sa/departments",
+        { params }
+      );
 
-      const departments = data?.data?.departments || data?.departments || [];
+      const departments =
+        data?.data?.departments || data?.departments || [];
+
       return departments.map(normalizeDepartment);
     },
     enabled,
   });
 }
 
-/**
- * Fetch single department by ID
- */
-export function useDepartment(deptId) {
-  return useQuery({
-    queryKey: queryKeys.departments.detail(deptId),
+export function useDepartment(deptId?: string) {
+  return useQuery<Department | null>({
+    queryKey: queryKeys.departments.detail(deptId ?? "" ),
     queryFn: async () => {
-      const { data } = await apiClient.get(`/sa/departments/${deptId}`);
-      const department = data?.data?.department || data?.department;
-      return department ? normalizeDepartment(department) : department;
+      const { data } = await apiClient.get<ApiResponse<Department>>(
+        `/sa/departments/${deptId}`
+      );
+
+      const department =
+        data?.data?.department || data?.department;
+
+      return department ? normalizeDepartment(department) : null;
     },
     enabled: !!deptId,
   });
 }
 
-/**
- * Create department
- */
+/* ================= MUTATIONS ================= */
+
 export function useCreateDepartment() {
   const queryClient = useQueryClient();
 
-  return useMutation({
+  return useMutation<MutationResponse, Error, Record<string, any>>({
     mutationFn: async (departmentData) => {
-      const { data } = await apiClient.post("/sa/departments", departmentData);
+      const { data } = await apiClient.post(
+        "/sa/departments",
+        departmentData
+      );
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.departments.all });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.departments.all,
+      });
     },
   });
 }
 
-/**
- * Update department
- */
 export function useUpdateDepartment() {
   const queryClient = useQueryClient();
 
-  return useMutation({
+  return useMutation<
+    MutationResponse,
+    Error,
+    { deptId: string; [key: string]: any }
+  >({
     mutationFn: async ({ deptId, ...updateData }) => {
       const { data } = await apiClient.put(
         `/sa/departments/${deptId}`,
-        updateData,
+        updateData
       );
       return data;
     },
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.departments.all });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.departments.all,
+      });
       queryClient.invalidateQueries({
         queryKey: queryKeys.departments.detail(variables.deptId),
       });
@@ -101,19 +143,20 @@ export function useUpdateDepartment() {
   });
 }
 
-/**
- * Delete department
- */
 export function useDeleteDepartment() {
   const queryClient = useQueryClient();
 
-  return useMutation({
+  return useMutation<MutationResponse, Error, string>({
     mutationFn: async (deptId) => {
-      const { data } = await apiClient.delete(`/sa/departments/${deptId}`);
+      const { data } = await apiClient.delete(
+        `/sa/departments/${deptId}`
+      );
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.departments.all });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.departments.all,
+      });
     },
   });
 }
@@ -121,15 +164,18 @@ export function useDeleteDepartment() {
 export function useAssignUserToDepartment() {
   const queryClient = useQueryClient();
 
-  return useMutation({
+  return useMutation<
+    MutationResponse,
+    Error,
+    { departmentId: string; userId: string }
+  >({
     mutationFn: async ({ departmentId, userId }) => {
       const { data } = await apiClient.post(
         `/sa/departments/${departmentId}/members`,
-        { userId },
+        { userId }
       );
       return data;
     },
-
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({
         queryKey: queryKeys.departments.detail(variables.departmentId),
@@ -145,13 +191,16 @@ export function useAssignUserToDepartment() {
 export function useRemoveUserFromDepartment() {
   const queryClient = useQueryClient();
 
-  return useMutation({
+  return useMutation<
+    void,
+    Error,
+    { departmentId: string; userId: string }
+  >({
     mutationFn: async ({ departmentId, userId }) => {
       await apiClient.delete(
-        `/sa/departments/${departmentId}/members/${userId}`,
+        `/sa/departments/${departmentId}/members/${userId}`
       );
     },
-
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({
         queryKey: queryKeys.departments.detail(variables.departmentId),
