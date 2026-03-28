@@ -7,6 +7,7 @@ import { motion, useScroll, useTransform } from "framer-motion";
 import Link from "next/link";
 import BlurHeading from "./blur-heading";
 import gsap from "gsap";
+import Lenis from "lenis";
 
 
 type CardProps = {
@@ -202,7 +203,7 @@ export default function CompetitionsPage() {
           />
         </div>
 
-        <div className="relative z-20 mb-16 flex flex-col gap-6">
+        {/* <div className="relative z-20 mb-16 flex flex-col gap-6">
           <div className="flex flex-col md:flex-row gap-4 items-center">
             <div className="relative w-full md:w-[400px]">
               <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
@@ -270,7 +271,7 @@ export default function CompetitionsPage() {
               </button>
             </div>
           )}
-        </div>
+        </div> */}
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-12 relative z-10 items-start">
           
