@@ -2,11 +2,15 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { queryKeys } from "@/src/lib/queryKeys";
 import apiClient from "@/lib/axios";
 
+type Id = string | number;
+type Filters = Record<string, unknown>;
+type RejectRegistrationPayload = { registrationId: Id; reason?: string };
+
 /**
  * Fetch pending registrations (DH & SA only)
  * GET /api/v1/registration/pending?competitionId=X
  */
-export function usePendingRegistrations(filters = {}) {
+export function usePendingRegistrations(filters: Filters = {}) {
   return useQuery({
     queryKey: queryKeys.registrations.pending(filters),
     queryFn: async () => {
@@ -19,7 +23,7 @@ export function usePendingRegistrations(filters = {}) {
         (Array.isArray(data?.data) ? data.data : null) ||
         (Array.isArray(data) ? data : []);
 
-      return rows.map((row) => {
+      return rows.map((row: any) => {
         if (row?.registration && typeof row.registration === "object") {
           return {
             ...row.registration,
@@ -49,7 +53,7 @@ export function useApproveRegistration() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (registrationId) => {
+    mutationFn: async (registrationId: Id) => {
       const { data } = await apiClient.post(
         `/registration/${registrationId}/approve`,
       );
@@ -69,7 +73,10 @@ export function useRejectRegistration() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ registrationId, reason }) => {
+    mutationFn: async ({
+      registrationId,
+      reason,
+    }: RejectRegistrationPayload) => {
       const { data } = await apiClient.post(
         `/registration/${registrationId}/reject`,
         { reason },

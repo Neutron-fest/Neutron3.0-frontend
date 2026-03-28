@@ -2,7 +2,27 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import apiClient from "@/lib/axios";
 import { queryKeys } from "@/src/lib/queryKeys";
 
-export function usePublicCompetitionFormFields(competitionId) {
+type Id = string | number;
+type FormEntry = Record<string, unknown>;
+type UploadRegistrationImagePayload = {
+  competitionId: Id;
+  formId: Id;
+  fieldName: string;
+  file: File | Blob;
+};
+type SoloRegistrationPayload = { competitionId: Id; formData?: FormEntry[] };
+type TeamRegistrationPayload = {
+  competitionId: Id;
+  teamName: string;
+  formData?: FormEntry[];
+};
+type SendTeamInvitePayload = { teamId: Id; invitedEmail: string };
+type SubmitTeamMemberFormPayload = { teamId: Id; formData?: FormEntry[] };
+type TransferLeadershipPayload = { teamId: Id; newLeaderId: Id };
+type RemoveTeamMemberPayload = { teamId: Id; memberId: Id };
+type RemovePendingInvitePayload = { teamId: Id; inviteId: Id };
+
+export function usePublicCompetitionFormFields(competitionId: Id) {
   return useQuery({
     queryKey: ["public", "competition-form-fields", competitionId],
     queryFn: async () => {
@@ -26,7 +46,12 @@ export function usePublicCompetitionFormFields(competitionId) {
 
 export function useUploadRegistrationImage() {
   return useMutation({
-    mutationFn: async ({ competitionId, formId, fieldName, file }) => {
+    mutationFn: async ({
+      competitionId,
+      formId,
+      fieldName,
+      file,
+    }: UploadRegistrationImagePayload) => {
       const body = new FormData();
       body.append("image", file);
       body.append("fieldName", fieldName);
@@ -43,7 +68,10 @@ export function useUploadRegistrationImage() {
 
 export function useRegisterSoloCompetition() {
   return useMutation({
-    mutationFn: async ({ competitionId, formData = [] }) => {
+    mutationFn: async ({
+      competitionId,
+      formData = [],
+    }: SoloRegistrationPayload) => {
       const { data } = await apiClient.post("/registration/solo", {
         competitionId,
         formData,
@@ -56,7 +84,11 @@ export function useRegisterSoloCompetition() {
 
 export function useRegisterTeamCompetition() {
   return useMutation({
-    mutationFn: async ({ competitionId, teamName, formData = [] }) => {
+    mutationFn: async ({
+      competitionId,
+      teamName,
+      formData = [],
+    }: TeamRegistrationPayload) => {
       const { data } = await apiClient.post("/registration/team", {
         competitionId,
         teamName,
@@ -83,7 +115,7 @@ export function useSendTeamInvite() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ teamId, invitedEmail }) => {
+    mutationFn: async ({ teamId, invitedEmail }: SendTeamInvitePayload) => {
       const { data } = await apiClient.post("/registration/team/invite", {
         teamId,
         invitedEmail,
@@ -91,7 +123,7 @@ export function useSendTeamInvite() {
 
       return data?.data || data;
     },
-    onSuccess: (_, variables) => {
+    onSuccess: (_, variables: SendTeamInvitePayload) => {
       queryClient.invalidateQueries({
         queryKey: queryKeys.publicRegistrations.pendingInvites(),
       });
@@ -109,7 +141,7 @@ export function useAcceptTeamInvite() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (inviteToken) => {
+    mutationFn: async (inviteToken: string) => {
       const { data } = await apiClient.post(
         `/registration/team/invite/${inviteToken}/accept`,
       );
@@ -131,7 +163,7 @@ export function useDeclineTeamInvite() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (inviteToken) => {
+    mutationFn: async (inviteToken: string) => {
       const { data } = await apiClient.post(
         `/registration/team/invite/${inviteToken}/decline`,
       );
@@ -146,7 +178,7 @@ export function useDeclineTeamInvite() {
   });
 }
 
-export function useTeamInvitePreview(inviteToken, enabled = true) {
+export function useTeamInvitePreview(inviteToken: string, enabled = true) {
   return useQuery({
     queryKey: queryKeys.publicRegistrations.invitePreview(inviteToken),
     queryFn: async () => {
@@ -165,7 +197,10 @@ export function useSubmitTeamMemberForm() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ teamId, formData = [] }) => {
+    mutationFn: async ({
+      teamId,
+      formData = [],
+    }: SubmitTeamMemberFormPayload) => {
       const { data } = await apiClient.post(
         `/registration/team/${teamId}/member-form`,
         { formData },
@@ -173,7 +208,7 @@ export function useSubmitTeamMemberForm() {
 
       return data?.data || data;
     },
-    onSuccess: (_, variables) => {
+    onSuccess: (_, variables: SubmitTeamMemberFormPayload) => {
       queryClient.invalidateQueries({
         queryKey: queryKeys.publicRegistrations.my(),
       });
@@ -198,7 +233,7 @@ export function usePendingTeamInvites(enabled = true) {
   });
 }
 
-export function useTeamDetails(teamId, enabled = true) {
+export function useTeamDetails(teamId: Id, enabled = true) {
   return useQuery({
     queryKey: queryKeys.publicRegistrations.team(teamId),
     queryFn: async () => {
@@ -213,7 +248,7 @@ export function useTransferTeamLeadership() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ teamId, newLeaderId }) => {
+    mutationFn: async ({ teamId, newLeaderId }: TransferLeadershipPayload) => {
       const { data } = await apiClient.post(
         `/registration/team/transfer-leadership`,
         {
@@ -223,7 +258,7 @@ export function useTransferTeamLeadership() {
       );
       return data?.data || data;
     },
-    onSuccess: (_, variables) => {
+    onSuccess: (_, variables: TransferLeadershipPayload) => {
       queryClient.invalidateQueries({
         queryKey: queryKeys.publicRegistrations.my(),
       });
@@ -241,13 +276,13 @@ export function useRemoveTeamMember() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ teamId, memberId }) => {
+    mutationFn: async ({ teamId, memberId }: RemoveTeamMemberPayload) => {
       const { data } = await apiClient.delete(
         `/registration/team/${teamId}/member/${memberId}`,
       );
       return data?.data || data;
     },
-    onSuccess: (_, variables) => {
+    onSuccess: (_, variables: RemoveTeamMemberPayload) => {
       queryClient.invalidateQueries({
         queryKey: queryKeys.publicRegistrations.my(),
       });
@@ -268,13 +303,13 @@ export function useRemovePendingTeamInvite() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ teamId, inviteId }) => {
+    mutationFn: async ({ teamId, inviteId }: RemovePendingInvitePayload) => {
       const { data } = await apiClient.delete(
         `/registration/team/${teamId}/invite/${inviteId}`,
       );
       return data?.data || data;
     },
-    onSuccess: (_, variables) => {
+    onSuccess: (_, variables: RemovePendingInvitePayload) => {
       queryClient.invalidateQueries({
         queryKey: queryKeys.publicRegistrations.my(),
       });
@@ -295,13 +330,13 @@ export function useLeaveTeam() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (teamId) => {
+    mutationFn: async (teamId: Id) => {
       const { data } = await apiClient.delete(
         `/registration/team/${teamId}/leave`,
       );
       return data?.data || data;
     },
-    onSuccess: (_, teamId) => {
+    onSuccess: (_, teamId: Id) => {
       queryClient.invalidateQueries({
         queryKey: queryKeys.publicRegistrations.my(),
       });

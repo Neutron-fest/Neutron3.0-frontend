@@ -2,6 +2,35 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { queryKeys } from "@/src/lib/queryKeys";
 import apiClient from "@/lib/axios";
 
+type Id = string | number;
+type QualificationPayload = {
+  roundId: Id;
+  teamId: Id;
+  status: string;
+  notes?: string;
+};
+type CreateCriteriaPayload = {
+  roundId: Id;
+  name: string;
+  weight: number;
+  description?: string;
+  maxScore: number;
+};
+type CreateRoundPayload = { competitionId: Id; name: string; teamIds: Id[] };
+type SubmitCriteriaScorePayload = {
+  roundId: Id;
+  teamId: Id;
+  criteriaId: Id;
+  score: number;
+};
+type AddNotesPayload = { roundId: Id; teamId: Id; notes: string };
+type SubmitFinalScorePayload = { roundId: Id; teamId: Id };
+type ReviewLockRequestPayload = {
+  requestId: Id;
+  status: string;
+  reviewNotes?: string;
+};
+
 /**
  * Competitions assigned to DH as a judge
  * GET /api/v1/judging/my-competitions
@@ -25,7 +54,7 @@ export function useMyJudgingCompetitions() {
  * All rounds for a competition
  * GET /api/v1/judging/competitions/:competitionId/rounds
  */
-export function useCompetitionRounds(competitionId) {
+export function useCompetitionRounds(competitionId: Id) {
   return useQuery({
     queryKey: queryKeys.judging.rounds(competitionId),
     queryFn: async () => {
@@ -47,7 +76,7 @@ export function useCompetitionRounds(competitionId) {
  * Participants for a round
  * GET /api/v1/judging/rounds/:roundId/participants
  */
-export function useRoundParticipants(roundId) {
+export function useRoundParticipants(roundId: Id) {
   return useQuery({
     queryKey: queryKeys.judging.participants(roundId),
     queryFn: async () => {
@@ -69,7 +98,7 @@ export function useRoundParticipants(roundId) {
  * Judging criteria for a round
  * GET /api/v1/judging/rounds/:roundId/criteria
  */
-export function useJudgingCriteria(roundId) {
+export function useJudgingCriteria(roundId: Id) {
   return useQuery({
     queryKey: queryKeys.judging.criteria(roundId),
     queryFn: async () => {
@@ -91,7 +120,7 @@ export function useJudgingCriteria(roundId) {
  * Judges who haven't submitted scores yet (Head Judge / DH)
  * GET /api/v1/judging/rounds/:roundId/pending-judges
  */
-export function usePendingJudges(roundId) {
+export function usePendingJudges(roundId: Id) {
   return useQuery({
     queryKey: queryKeys.judging.pendingJudges(roundId),
     queryFn: async () => {
@@ -113,7 +142,7 @@ export function usePendingJudges(roundId) {
  * Leaderboard for a round
  * GET /api/v1/judging/rounds/:roundId/leaderboard
  */
-export function useRoundLeaderboard(roundId) {
+export function useRoundLeaderboard(roundId: Id) {
   return useQuery({
     queryKey: queryKeys.judging.leaderboard(roundId),
     queryFn: async () => {
@@ -135,7 +164,7 @@ export function useRoundLeaderboard(roundId) {
  * Whether all judges have submitted scores for a round
  * GET /api/v1/judging/rounds/:roundId/all-scored
  */
-export function useAllScored(roundId) {
+export function useAllScored(roundId: Id) {
   return useQuery({
     queryKey: queryKeys.judging.allScored(roundId),
     queryFn: async () => {
@@ -155,14 +184,19 @@ export function useAllScored(roundId) {
 export function useMarkTeamQualification() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async ({ roundId, teamId, status, notes }) => {
+    mutationFn: async ({
+      roundId,
+      teamId,
+      status,
+      notes,
+    }: QualificationPayload) => {
       const { data } = await apiClient.post(
         `/judging/rounds/${roundId}/teams/${teamId}/qualification`,
         { status, notes },
       );
       return data;
     },
-    onSuccess: (_, variables) => {
+    onSuccess: (_, variables: QualificationPayload) => {
       queryClient.invalidateQueries({
         queryKey: queryKeys.judging.participants(variables.roundId),
       });
@@ -179,7 +213,7 @@ export function useMarkTeamQualification() {
  */
 export function useSendLockRequest() {
   return useMutation({
-    mutationFn: async (roundId) => {
+    mutationFn: async (roundId: Id) => {
       const { data } = await apiClient.post(
         `/judging/rounds/${roundId}/lock-request`,
       );
@@ -195,14 +229,20 @@ export function useSendLockRequest() {
 export function useCreateJudgingCriteria() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async ({ roundId, name, weight, description, maxScore }) => {
+    mutationFn: async ({
+      roundId,
+      name,
+      weight,
+      description,
+      maxScore,
+    }: CreateCriteriaPayload) => {
       const { data } = await apiClient.post(
         `/judging/rounds/${roundId}/criteria`,
         { name, weight, description, maxScore },
       );
       return data;
     },
-    onSuccess: (_, variables) => {
+    onSuccess: (_, variables: CreateCriteriaPayload) => {
       queryClient.invalidateQueries({
         queryKey: queryKeys.judging.criteria(variables.roundId),
       });
@@ -214,7 +254,7 @@ export function useCreateJudgingCriteria() {
  * Admin: All rounds for a competition (no judge-assignment check)
  * GET /api/v1/judging/admin/competitions/:competitionId/rounds
  */
-export function useAdminCompetitionRounds(competitionId) {
+export function useAdminCompetitionRounds(competitionId: Id) {
   return useQuery({
     queryKey: queryKeys.judging.adminRounds(competitionId),
     queryFn: async () => {
@@ -234,7 +274,7 @@ export function useAdminCompetitionRounds(competitionId) {
  * Admin: Approved teams for a competition with prevRoundStatus
  * GET /api/v1/judging/admin/competitions/:competitionId/teams
  */
-export function useAdminCompetitionTeams(competitionId) {
+export function useAdminCompetitionTeams(competitionId: Id) {
   return useQuery({
     queryKey: queryKeys.judging.adminTeams(competitionId),
     queryFn: async () => {
@@ -254,7 +294,7 @@ export function useAdminCompetitionTeams(competitionId) {
  * Admin: All teams in a round with scores and qualification status
  * GET /api/v1/judging/admin/rounds/:roundId/teams
  */
-export function useAdminRoundTeams(roundId) {
+export function useAdminRoundTeams(roundId: Id) {
   return useQuery({
     queryKey: queryKeys.judging.adminRoundTeams(roundId),
     queryFn: async () => {
@@ -274,14 +314,18 @@ export function useAdminRoundTeams(roundId) {
 export function useCreateRound() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async ({ competitionId, name, teamIds }) => {
+    mutationFn: async ({
+      competitionId,
+      name,
+      teamIds,
+    }: CreateRoundPayload) => {
       const { data } = await apiClient.post(
         `/judging/admin/competitions/${competitionId}/rounds`,
         { name, teamIds },
       );
       return data;
     },
-    onSuccess: (_, variables) => {
+    onSuccess: (_, variables: CreateRoundPayload) => {
       queryClient.invalidateQueries({
         queryKey: queryKeys.judging.adminRounds(variables.competitionId),
       });
@@ -297,7 +341,7 @@ export function useCreateRound() {
  * Score details for a team by the current judge (pre-fills scoring form)
  * GET /api/v1/judging/rounds/:roundId/teams/:teamId/score-details
  */
-export function useTeamScoreDetails(roundId, teamId) {
+export function useTeamScoreDetails(roundId: Id, teamId: Id) {
   return useQuery({
     queryKey: queryKeys.judging.teamScoreDetails(roundId, teamId),
     queryFn: async () => {
@@ -317,14 +361,19 @@ export function useTeamScoreDetails(roundId, teamId) {
 export function useSubmitCriteriaScore() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async ({ roundId, teamId, criteriaId, score }) => {
+    mutationFn: async ({
+      roundId,
+      teamId,
+      criteriaId,
+      score,
+    }: SubmitCriteriaScorePayload) => {
       const { data } = await apiClient.post(
         `/judging/rounds/${roundId}/teams/${teamId}/criteria/${criteriaId}/score`,
         { score },
       );
       return data;
     },
-    onSuccess: (_, variables) => {
+    onSuccess: (_, variables: SubmitCriteriaScorePayload) => {
       queryClient.invalidateQueries({
         queryKey: queryKeys.judging.teamScoreDetails(
           variables.roundId,
@@ -341,7 +390,7 @@ export function useSubmitCriteriaScore() {
  */
 export function useAddEvaluationNotes() {
   return useMutation({
-    mutationFn: async ({ roundId, teamId, notes }) => {
+    mutationFn: async ({ roundId, teamId, notes }: AddNotesPayload) => {
       const { data } = await apiClient.post(
         `/judging/rounds/${roundId}/teams/${teamId}/notes`,
         { notes },
@@ -358,13 +407,13 @@ export function useAddEvaluationNotes() {
 export function useSubmitFinalScore() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async ({ roundId, teamId }) => {
+    mutationFn: async ({ roundId, teamId }: SubmitFinalScorePayload) => {
       const { data } = await apiClient.post(
         `/judging/rounds/${roundId}/teams/${teamId}/submit`,
       );
       return data;
     },
-    onSuccess: (_, variables) => {
+    onSuccess: (_, variables: SubmitFinalScorePayload) => {
       queryClient.invalidateQueries({
         queryKey: queryKeys.judging.participants(variables.roundId),
       });
@@ -414,7 +463,11 @@ export function usePendingLockRequests() {
 export function useReviewLockRequest() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async ({ requestId, status, reviewNotes }) => {
+    mutationFn: async ({
+      requestId,
+      status,
+      reviewNotes,
+    }: ReviewLockRequestPayload) => {
       const { data } = await apiClient.post(
         `/judging/lock-requests/${requestId}/review`,
         { status, reviewNotes },

@@ -2,6 +2,14 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { queryKeys } from "@/src/lib/queryKeys";
 import apiClient from "@/lib/axios";
 
+type Id = string | number;
+type LoginPayload = Record<string, unknown>;
+type GoogleLoginToken = string;
+type ChangePasswordPayload = {
+  currentPassword: string;
+  newPassword: string;
+};
+
 /**
  * Check current authenticated user
  */
@@ -24,7 +32,7 @@ export function useLogin() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (credentials) => {
+    mutationFn: async (credentials: LoginPayload) => {
       const { data } = await apiClient.post("/auth/login", credentials);
       return data;
     },
@@ -60,7 +68,7 @@ export function useGoogleLogin() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (token) => {
+    mutationFn: async (token: GoogleLoginToken) => {
       const { data } = await apiClient.post("/auth/google", { token });
       return data;
     },
@@ -91,7 +99,7 @@ export function useSessions() {
 export function useRevokeSession() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (sessionId) => {
+    mutationFn: async (sessionId: Id) => {
       const { data } = await apiClient.delete(`/auth/sessions/${sessionId}`);
       return data;
     },
@@ -126,7 +134,10 @@ export function useRevokeAllSessions() {
  */
 export function useChangePassword() {
   return useMutation({
-    mutationFn: async ({ currentPassword, newPassword }) => {
+    mutationFn: async ({
+      currentPassword,
+      newPassword,
+    }: ChangePasswordPayload) => {
       const { data } = await apiClient.post("/auth/change-password", {
         currentPassword,
         newPassword,

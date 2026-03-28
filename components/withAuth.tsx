@@ -1,11 +1,18 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, type ComponentType } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 
-export default function withAuth(Component, allowedRoles = []) {
-  return function ProtectedRoute(props) {
+// ---- Types ----
+type Role = "SA" | "DH" | "VH" | "JUDGE" | string;
+
+// ---- HOC ----
+export default function withAuth<P extends object>(
+  Component: ComponentType<P>,
+  allowedRoles: Role[] = [],
+) {
+  return function ProtectedRoute(props: P) {
     const { user, loading } = useAuth();
     const router = useRouter();
 
@@ -15,7 +22,7 @@ export default function withAuth(Component, allowedRoles = []) {
           router.replace("/admin/auth");
         } else if (
           allowedRoles.length > 0 &&
-          !allowedRoles.includes(user.role)
+          !allowedRoles.includes(user.role as Role)
         ) {
           router.replace("/admin/unauthorized");
         }
@@ -32,7 +39,7 @@ export default function withAuth(Component, allowedRoles = []) {
 
     if (
       !user ||
-      (allowedRoles.length > 0 && !allowedRoles.includes(user.role))
+      (allowedRoles.length > 0 && !allowedRoles.includes(user.role as Role))
     ) {
       return null;
     }

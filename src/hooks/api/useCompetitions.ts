@@ -2,19 +2,54 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { queryKeys } from "@/src/lib/queryKeys";
 import apiClient from "@/lib/axios";
 
-const normalizeList = (data) =>
+type Id = string | number;
+type Filters = Record<string, unknown>;
+type GenericPayload = Record<string, unknown>;
+type UpdateCompetitionPayload = {
+  competitionId: Id;
+  formData?: FormData;
+  [key: string]: unknown;
+};
+type ToggleRegistrationsPayload = {
+  competitionId: Id;
+  registrationsOpen: boolean;
+};
+type FreezePayload = { competitionId: Id; frozen: boolean };
+type ReadOnlyPayload = { competitionId: Id; readOnly: boolean };
+type CancelOrPostponePayload = {
+  competitionId: Id;
+  status: string;
+  autoNotify?: boolean;
+  newDate?: string | null;
+  notes?: string;
+};
+type AssignJudgePayload = {
+  competitionId: Id;
+  judgeUserId: Id;
+  isHeadJudge?: boolean;
+};
+type RemoveJudgePayload = { judgeAssignmentId: Id; competitionId: Id };
+type AssignVolunteerPayload = {
+  competitionId: Id;
+  volunteerUserId?: Id;
+  userId?: Id;
+  role?: string;
+};
+type RemoveVolunteerPayload = { volunteerAssignmentId: Id; competitionId: Id };
+
+const normalizeList = (data: any) =>
   data?.data?.competitions ||
   data?.competitions ||
   (Array.isArray(data?.data) ? data.data : null) ||
   (Array.isArray(data) ? data : []);
 
-const normalizeOne = (data) =>
+const normalizeOne = (data: any) =>
   data?.data?.competition || data?.competition || data?.data || data || null;
 
 /**
  * All competitions (public, no auth required but auth cookie sent)
  */
-export function useCompetitions(filters = {}) {
+export function useCompetitions(filters: Filters = {}) {
   return useQuery({
     queryKey: queryKeys.competitions.list(filters),
     queryFn: async () => {
@@ -29,7 +64,7 @@ export function useCompetitions(filters = {}) {
 /**
  * Single competition
  */
-export function useCompetition(competitionId) {
+export function useCompetition(competitionId: Id) {
   return useQuery({
     queryKey: queryKeys.competitions.detail(competitionId),
     queryFn: async () => {
@@ -46,7 +81,7 @@ export function useCompetition(competitionId) {
 export function useCreateCompetition() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (payload) => {
+    mutationFn: async (payload: GenericPayload) => {
       const { data } = await apiClient.post("/competitions", payload);
       return data;
     },
@@ -62,7 +97,11 @@ export function useCreateCompetition() {
 export function useUpdateCompetition() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async ({ competitionId, formData, ...rest }) => {
+    mutationFn: async ({
+      competitionId,
+      formData,
+      ...rest
+    }: UpdateCompetitionPayload) => {
       // Accept either a FormData instance (for file uploads) or a plain object
       const body = formData instanceof FormData ? formData : rest;
       const { data } = await apiClient.put(
@@ -71,7 +110,7 @@ export function useUpdateCompetition() {
       );
       return data;
     },
-    onSuccess: (_, variables) => {
+    onSuccess: (_, variables: UpdateCompetitionPayload) => {
       queryClient.invalidateQueries({ queryKey: queryKeys.competitions.all });
       queryClient.invalidateQueries({
         queryKey: queryKeys.competitions.detail(variables.competitionId),
@@ -86,7 +125,7 @@ export function useUpdateCompetition() {
 export function useDeleteCompetition() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (competitionId) => {
+    mutationFn: async (competitionId: Id) => {
       const { data } = await apiClient.delete(`/competitions/${competitionId}`);
       return data;
     },
@@ -102,14 +141,17 @@ export function useDeleteCompetition() {
 export function useToggleRegistrations() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async ({ competitionId, registrationsOpen }) => {
+    mutationFn: async ({
+      competitionId,
+      registrationsOpen,
+    }: ToggleRegistrationsPayload) => {
       const { data } = await apiClient.patch(
         `/competitions/${competitionId}/toggle-registrations`,
         { registrationsOpen },
       );
       return data;
     },
-    onSuccess: (_, variables) => {
+    onSuccess: (_, variables: ToggleRegistrationsPayload) => {
       queryClient.invalidateQueries({ queryKey: queryKeys.competitions.all });
       queryClient.invalidateQueries({
         queryKey: queryKeys.competitions.detail(variables.competitionId),
@@ -124,14 +166,14 @@ export function useToggleRegistrations() {
 export function useFreezeChanges() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async ({ competitionId, frozen }) => {
+    mutationFn: async ({ competitionId, frozen }: FreezePayload) => {
       const { data } = await apiClient.patch(
         `/competitions/${competitionId}/freeze-changes`,
         { frozen },
       );
       return data;
     },
-    onSuccess: (_, variables) => {
+    onSuccess: (_, variables: FreezePayload) => {
       queryClient.invalidateQueries({ queryKey: queryKeys.competitions.all });
       queryClient.invalidateQueries({
         queryKey: queryKeys.competitions.detail(variables.competitionId),
@@ -146,14 +188,14 @@ export function useFreezeChanges() {
 export function useToggleReadOnlyMode() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async ({ competitionId, readOnly }) => {
+    mutationFn: async ({ competitionId, readOnly }: ReadOnlyPayload) => {
       const { data } = await apiClient.patch(
         `/competitions/${competitionId}/read-only-mode`,
         { readOnly },
       );
       return data;
     },
-    onSuccess: (_, variables) => {
+    onSuccess: (_, variables: ReadOnlyPayload) => {
       queryClient.invalidateQueries({ queryKey: queryKeys.competitions.all });
       queryClient.invalidateQueries({
         queryKey: queryKeys.competitions.detail(variables.competitionId),
@@ -174,14 +216,14 @@ export function useCancelOrPostpone() {
       autoNotify = false,
       newDate,
       notes,
-    }) => {
+    }: CancelOrPostponePayload) => {
       const { data } = await apiClient.patch(
         `/competitions/${competitionId}/cancel-postpone`,
         { status, autoNotify, newDate, notes },
       );
       return data;
     },
-    onSuccess: (_, variables) => {
+    onSuccess: (_, variables: CancelOrPostponePayload) => {
       queryClient.invalidateQueries({ queryKey: queryKeys.competitions.all });
       queryClient.invalidateQueries({
         queryKey: queryKeys.competitions.detail(variables.competitionId),
@@ -193,7 +235,7 @@ export function useCancelOrPostpone() {
 /**
  * Get judges for a competition
  */
-export function useCompetitionJudges(competitionId) {
+export function useCompetitionJudges(competitionId: Id) {
   return useQuery({
     queryKey: queryKeys.competitions.judges(competitionId),
     queryFn: async () => {
@@ -217,14 +259,18 @@ export function useCompetitionJudges(competitionId) {
 export function useAssignJudge() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async ({ competitionId, judgeUserId, isHeadJudge = false }) => {
+    mutationFn: async ({
+      competitionId,
+      judgeUserId,
+      isHeadJudge = false,
+    }: AssignJudgePayload) => {
       const { data } = await apiClient.post(
         `/competitions/${competitionId}/judges`,
         { judgeUserId, isHeadJudge },
       );
       return data;
     },
-    onSuccess: (_, variables) => {
+    onSuccess: (_, variables: AssignJudgePayload) => {
       queryClient.invalidateQueries({
         queryKey: queryKeys.competitions.judges(variables.competitionId),
       });
@@ -238,13 +284,16 @@ export function useAssignJudge() {
 export function useRemoveJudge() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async ({ judgeAssignmentId, competitionId }) => {
+    mutationFn: async ({
+      judgeAssignmentId,
+      competitionId,
+    }: RemoveJudgePayload) => {
       const { data } = await apiClient.delete(
         `/competitions/judges/${judgeAssignmentId}`,
       );
       return data;
     },
-    onSuccess: (_, variables) => {
+    onSuccess: (_, variables: RemoveJudgePayload) => {
       queryClient.invalidateQueries({
         queryKey: queryKeys.competitions.judges(variables.competitionId),
       });
@@ -255,7 +304,7 @@ export function useRemoveJudge() {
 /**
  * Get volunteers for a competition
  */
-export function useCompetitionVolunteers(competitionId) {
+export function useCompetitionVolunteers(competitionId: Id) {
   return useQuery({
     queryKey: queryKeys.competitions.volunteers(competitionId),
     queryFn: async () => {
@@ -279,7 +328,12 @@ export function useCompetitionVolunteers(competitionId) {
 export function useAssignVolunteer() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async ({ competitionId, volunteerUserId, userId, role }) => {
+    mutationFn: async ({
+      competitionId,
+      volunteerUserId,
+      userId,
+      role,
+    }: AssignVolunteerPayload) => {
       const resolvedVolunteerUserId = volunteerUserId ?? userId;
       const { data } = await apiClient.post(
         `/competitions/${competitionId}/volunteers`,
@@ -287,7 +341,7 @@ export function useAssignVolunteer() {
       );
       return data;
     },
-    onSuccess: (_, variables) => {
+    onSuccess: (_, variables: AssignVolunteerPayload) => {
       queryClient.invalidateQueries({
         queryKey: queryKeys.competitions.volunteers(variables.competitionId),
       });
@@ -301,13 +355,16 @@ export function useAssignVolunteer() {
 export function useRemoveVolunteer() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async ({ volunteerAssignmentId, competitionId }) => {
+    mutationFn: async ({
+      volunteerAssignmentId,
+      competitionId,
+    }: RemoveVolunteerPayload) => {
       const { data } = await apiClient.delete(
         `/competitions/volunteers/${volunteerAssignmentId}`,
       );
       return data;
     },
-    onSuccess: (_, variables) => {
+    onSuccess: (_, variables: RemoveVolunteerPayload) => {
       queryClient.invalidateQueries({
         queryKey: queryKeys.competitions.volunteers(variables.competitionId),
       });

@@ -1,4 +1,9 @@
-import axios from "axios";
+import axios, {
+  type AxiosError,
+  type InternalAxiosRequestConfig,
+  type AxiosResponse,
+} from "axios";
+
 import {
   connectSocket,
   disconnectSocket,
@@ -6,7 +11,20 @@ import {
   waitForSocketConnection,
 } from "@/lib/socket";
 
-const AUTH_REJECTION_ERRORS = new Set([
+// ---- Types ----
+type ApiErrorResponse = {
+  error?: string;
+  message?: string;
+};
+
+type ExtendedAxiosError = AxiosError<ApiErrorResponse> & {
+  config: InternalAxiosRequestConfig & {
+    _retry?: boolean;
+  };
+};
+
+// ---- Constants ----
+const AUTH_REJECTION_ERRORS = new Set<string>([
   "UNAUTHORIZED",
   "INVALID_ACCESS_TOKEN",
   "ACCESS_TOKEN_EXPIRED",
@@ -20,21 +38,23 @@ const AUTH_REJECTION_ERRORS = new Set([
   "ACCOUNT_REVOKED",
 ]);
 
-const isExplicitAuthRejection = (error) => {
-  const status = error?.response?.status;
-  const code = error?.response?.data?.error;
+const API_BASE_URL =
+  process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3001";
+
+// ---- Helpers ----
+const isExplicitAuthRejection = (error: unknown): boolean => {
+  const err = error as AxiosError<ApiErrorResponse>;
+  const status = err?.response?.status;
+  const code = err?.response?.data?.error;
 
   if (status !== 401 && status !== 403) return false;
-  return AUTH_REJECTION_ERRORS.has(code);
+  return !!code && AUTH_REJECTION_ERRORS.has(code);
 };
 
-const emitServerRejectedAuth = () => {
+const emitServerRejectedAuth = (): void => {
   if (typeof window === "undefined") return;
   window.dispatchEvent(new Event("auth:server-rejected"));
 };
-
-const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3001";
 
 const PUBLIC_PATHS = [
   "/auth/login",
@@ -51,24 +71,31 @@ const PUBLIC_PATHS = [
   "/auth/invite/accept",
 ];
 
-const isPublicPath = (url = "") => {
+const isPublicPath = (url: string = ""): boolean => {
   return PUBLIC_PATHS.some((path) => url.includes(path));
 };
 
-const buildSocketRequiredError = () => {
-  const socketError = new Error("Active socket connection required.");
-  socketError.response = {
+const buildSocketRequiredError = (): AxiosError<ApiErrorResponse> => {
+  const error = new Error(
+    "Active socket connection required.",
+  ) as AxiosError<ApiErrorResponse>;
+
+  error.response = {
     status: 401,
+    statusText: "Unauthorized",
+    headers: {},
+    config: {} as any,
     data: {
       error: "SOCKET_NOT_CONNECTED",
       message: "Active socket connection required.",
     },
   };
 
-  return socketError;
+  return error;
 };
 
-const recoverSocketWithRefresh = async () => {
+// ---- Socket recovery ----
+const recoverSocketWithRefresh = async (): Promise<boolean> => {
   try {
     await apiClient.post("/auth/refresh");
     connectSocket();
@@ -79,51 +106,47 @@ const recoverSocketWithRefresh = async () => {
       disconnectSocket();
       emitServerRejectedAuth();
     }
-
     return false;
   }
 };
 
-const ensureSocketAccessForProtectedRequest = async () => {
-  if (isSocketConnectionAllowed()) {
-    return true;
-  }
+const ensureSocketAccessForProtectedRequest = async (): Promise<boolean> => {
+  if (isSocketConnectionAllowed()) return true;
 
   connectSocket();
   const reconnected = await waitForSocketConnection(2000);
-  if (reconnected || isSocketConnectionAllowed()) {
-    return true;
-  }
+
+  if (reconnected || isSocketConnectionAllowed()) return true;
 
   return recoverSocketWithRefresh();
 };
 
-// Queue for managing concurrent refresh requests
-let refreshPromise = null;
-const pendingRequests = [];
+// ---- Refresh queue ----
+let refreshPromise: Promise<AxiosResponse> | null = null;
+const pendingRequests: Array<() => void> = [];
 
-const onRefreshed = () => {
-  pendingRequests.forEach((callback) => callback());
+const onRefreshed = (): void => {
+  pendingRequests.forEach((cb) => cb());
   pendingRequests.length = 0;
 };
 
-const addPendingRequest = (callback) => {
+const addPendingRequest = (callback: () => void): void => {
   pendingRequests.push(callback);
 };
 
-// Create axios instance with default config
+// ---- Axios instance ----
 const apiClient = axios.create({
   baseURL: `${API_BASE_URL}/api/v1`,
-  withCredentials: true, // Send cookies with requests
+  withCredentials: true,
   headers: {
     "Content-Type": "application/json",
   },
   timeout: 30000,
 });
 
-// Request interceptor
+// ---- Request interceptor ----
 apiClient.interceptors.request.use(
-  async (config) => {
+  async (config: InternalAxiosRequestConfig) => {
     if (typeof FormData !== "undefined" && config.data instanceof FormData) {
       if (config.headers) {
         delete config.headers["Content-Type"];
@@ -137,52 +160,41 @@ apiClient.interceptors.request.use(
       }
     }
 
-    // You can add additional headers here if needed
     return config;
   },
-  (error) => {
-    return Promise.reject(error);
-  },
+  (error) => Promise.reject(error),
 );
 
-// Response interceptor
+// ---- Response interceptor ----
 apiClient.interceptors.response.use(
-  (response) => {
-    return response;
-  },
-  async (error) => {
+  (response: AxiosResponse) => response,
+  async (error: ExtendedAxiosError) => {
     const originalRequest = error.config;
 
     if (!error.response) {
       return Promise.reject(error);
     }
 
-    // Don't retry these requests to prevent infinite loops
     const skipRefreshPaths = ["/auth/refresh", "/auth/login", "/auth/logout"];
     const shouldSkipRefresh = skipRefreshPaths.some((path) =>
       originalRequest.url?.includes(path),
     );
 
-    // Handle 401 Unauthorized - attempt token refresh
     if (
-      error.response?.status === 401 &&
+      error.response.status === 401 &&
       !originalRequest._retry &&
       !shouldSkipRefresh
     ) {
       originalRequest._retry = true;
 
-      // If already refreshing, wait for the refresh to complete
       if (refreshPromise) {
-        return new Promise((resolve, reject) => {
+        return new Promise((resolve) => {
           addPendingRequest(() => {
             resolve(apiClient(originalRequest));
           });
-        }).catch(() => {
-          return Promise.reject(error);
         });
       }
 
-      // Start refresh and store the promise
       refreshPromise = apiClient
         .post("/auth/refresh")
         .then(() => {
@@ -192,10 +204,12 @@ apiClient.interceptors.response.use(
         })
         .catch((refreshError) => {
           refreshPromise = null;
+
           if (isExplicitAuthRejection(refreshError)) {
             disconnectSocket();
             emitServerRejectedAuth();
           }
+
           return Promise.reject(refreshError);
         });
 

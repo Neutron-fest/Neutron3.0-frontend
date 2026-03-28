@@ -6,6 +6,7 @@ import {
   useState,
   useEffect,
   useCallback,
+  type ReactNode,
 } from "react";
 import apiClient from "@/lib/axios";
 import { useRouter } from "next/navigation";
@@ -16,10 +17,48 @@ import {
   isSocketConnectionAllowed,
   waitForSocketConnection,
 } from "@/lib/socket";
+import type { AxiosError } from "axios";
 
-const AuthContext = createContext(null);
+// ---- Types ----
+type User = {
+  id: string | number;
+  name?: string;
+  email?: string;
+  role?: string;
+};
+
+type AuthContextType = {
+  user: User | null;
+  loading: boolean;
+  login: (
+    credentials: Record<string, unknown>,
+  ) => Promise<{
+    success: boolean;
+    user?: User;
+    error?: string;
+    errorCode?: string;
+  }>;
+  logout: () => Promise<void>;
+  checkAuth: () => Promise<void>;
+  isAuthenticated: boolean;
+  isSocketReady: boolean;
+  isSA: boolean;
+  isDH: boolean;
+  isVH: boolean;
+  isJudge: boolean;
+};
+
+type ApiError = {
+  error?: string;
+  message?: string;
+};
+
+// ---- Context ----
+const AuthContext = createContext<AuthContextType | null>(null);
+
 const AUTH_USER_CACHE_KEY = "neutron.auth.user";
-const AUTH_REJECTION_ERRORS = new Set([
+
+const AUTH_REJECTION_ERRORS = new Set<string>([
   "UNAUTHORIZED",
   "INVALID_ACCESS_TOKEN",
   "ACCESS_TOKEN_EXPIRED",
@@ -33,26 +72,28 @@ const AUTH_REJECTION_ERRORS = new Set([
   "ACCOUNT_REVOKED",
 ]);
 
-const isExplicitAuthRejection = (error) => {
-  const status = error?.response?.status;
-  const code = error?.response?.data?.error;
+// ---- Helpers ----
+const isExplicitAuthRejection = (error: unknown): boolean => {
+  const err = error as AxiosError<ApiError>;
+  const status = err?.response?.status;
+  const code = err?.response?.data?.error;
 
   if (status !== 401 && status !== 403) return false;
-  return AUTH_REJECTION_ERRORS.has(code);
+  return !!code && AUTH_REJECTION_ERRORS.has(code);
 };
 
-const getCachedUser = () => {
+const getCachedUser = (): User | null => {
   if (typeof window === "undefined") return null;
 
   try {
     const raw = window.localStorage.getItem(AUTH_USER_CACHE_KEY);
-    return raw ? JSON.parse(raw) : null;
+    return raw ? (JSON.parse(raw) as User) : null;
   } catch {
     return null;
   }
 };
 
-const cacheUser = (user) => {
+const cacheUser = (user: User | null): void => {
   if (typeof window === "undefined") return;
 
   if (!user) {
@@ -63,7 +104,8 @@ const cacheUser = (user) => {
   window.localStorage.setItem(AUTH_USER_CACHE_KEY, JSON.stringify(user));
 };
 
-const buildFallbackDeviceName = (userAgent = "") => {
+// ---- Device detection (kept mostly loose intentionally) ----
+const buildFallbackDeviceName = (userAgent: string = ""): string | null => {
   const ua = userAgent.toLowerCase();
 
   let platform = "";
@@ -85,28 +127,23 @@ const buildFallbackDeviceName = (userAgent = "") => {
     !ua.includes("opr/")
   )
     browser = "Chrome";
-  else if (
-    ua.includes("safari/") &&
-    !ua.includes("chrome/") &&
-    !ua.includes("chromium")
-  )
+  else if (ua.includes("safari/") && !ua.includes("chrome/"))
     browser = "Safari";
 
   if (platform && browser) return `${platform} ${browser}`;
   return platform || browser || null;
 };
 
-const getClientDeviceName = async () => {
+const getClientDeviceName = async (): Promise<string | null> => {
   if (typeof window === "undefined" || typeof navigator === "undefined") {
     return null;
   }
 
   try {
-    if (navigator.userAgentData?.getHighEntropyValues) {
-      const values = await navigator.userAgentData.getHighEntropyValues([
-        "model",
-        "platform",
-      ]);
+    if ((navigator as any).userAgentData?.getHighEntropyValues) {
+      const values = await (
+        navigator as any
+      ).userAgentData.getHighEntropyValues(["model", "platform"]);
 
       const model = values?.model?.trim();
       const platform = values?.platform?.trim();
@@ -116,28 +153,24 @@ const getClientDeviceName = async () => {
           ? `Samsung ${model.toUpperCase()}`
           : model;
 
-        if (platform) {
-          return `${normalizedModel} ${platform}`;
-        }
-
-        return normalizedModel;
+        return platform ? `${normalizedModel} ${platform}` : normalizedModel;
       }
 
       if (platform) {
         return buildFallbackDeviceName(navigator.userAgent) || platform;
       }
     }
-  } catch {
-    // Fall back to user-agent-derived naming below.
-  }
+  } catch {}
 
   return buildFallbackDeviceName(navigator.userAgent);
 };
 
-export function AuthProvider({ children }) {
-  const [user, setUser] = useState(() => getCachedUser());
-  const [loading, setLoading] = useState(true);
-  const [isSocketReady, setIsSocketReady] = useState(false);
+// ---- Provider ----
+export function AuthProvider({ children }: { children: ReactNode }) {
+  const [user, setUser] = useState<User | null>(() => getCachedUser());
+  const [loading, setLoading] = useState<boolean>(true);
+  const [isSocketReady, setIsSocketReady] = useState<boolean>(false);
+
   const router = useRouter();
 
   const clearUserAndRedirect = useCallback(() => {
@@ -149,59 +182,47 @@ export function AuthProvider({ children }) {
 
   useEffect(() => {
     initSocket({
-      onConnect: () => {
-        setIsSocketReady(true);
-      },
+      onConnect: () => setIsSocketReady(true),
       onDisconnect: (reason) => {
         setIsSocketReady(false);
-
         if (reason === "io server disconnect") {
           clearUserAndRedirect();
         }
       },
-      onForceLogout: () => {
-        clearUserAndRedirect();
-      },
-      onConnectError: () => {
-        setIsSocketReady(false);
-      },
+      onForceLogout: clearUserAndRedirect,
+      onConnectError: () => setIsSocketReady(false),
     });
 
     connectSocket();
 
-    const bootstrapAuth = async () => {
+    const bootstrap = async () => {
       await waitForSocketConnection(1500);
       await checkAuth();
     };
 
-    bootstrapAuth();
+    bootstrap();
 
-    return () => {
-      disconnectSocket();
-    };
+    return () => disconnectSocket();
   }, [clearUserAndRedirect]);
 
   useEffect(() => {
-    const onServerRejectedAuth = () => {
+    const handler = () => {
       disconnectSocket();
       clearUserAndRedirect();
     };
 
     if (typeof window !== "undefined") {
-      window.addEventListener("auth:server-rejected", onServerRejectedAuth);
+      window.addEventListener("auth:server-rejected", handler);
     }
 
     return () => {
       if (typeof window !== "undefined") {
-        window.removeEventListener(
-          "auth:server-rejected",
-          onServerRejectedAuth,
-        );
+        window.removeEventListener("auth:server-rejected", handler);
       }
     };
   }, [clearUserAndRedirect]);
 
-  const checkAuth = async () => {
+  const checkAuth = async (): Promise<void> => {
     try {
       if (!isSocketConnectionAllowed()) {
         connectSocket();
@@ -209,58 +230,78 @@ export function AuthProvider({ children }) {
       }
 
       const response = await apiClient.get("/auth/me");
+
       if (response.data.success) {
         setUser(response.data.data.user);
         cacheUser(response.data.data.user);
       }
     } catch (error) {
-      if (error?.response?.data?.error === "SOCKET_NOT_CONNECTED") {
+      const err = error as AxiosError<ApiError>;
+
+      if (err?.response?.data?.error === "SOCKET_NOT_CONNECTED") {
         console.warn("Auth check paused until socket reconnects.");
       }
 
-      if (isExplicitAuthRejection(error)) {
+      if (isExplicitAuthRejection(err)) {
         setUser(null);
         cacheUser(null);
-      } else if (error.response?.status >= 500 || !error.response) {
-        console.warn("Auth check skipped due to backend/network issue.");
-      } else if (error.response?.status !== 401) {
-        console.error("Auth check failed:", error);
+      } else if (err.response?.status && err.response.status >= 500) {
+        console.warn("Auth check skipped due to backend issue.");
+      } else if (!err.response) {
+        console.warn("Network issue during auth check.");
+      } else if (err.response.status !== 401) {
+        console.error("Auth check failed:", err);
       }
     } finally {
       setLoading(false);
     }
   };
 
-  const login = async (credentials) => {
+  const login = async (
+    credentials: Record<string, unknown>,
+  ): Promise<{
+    success: boolean;
+    user?: User;
+    error?: string;
+    errorCode?: string;
+  }> => {
     try {
       const deviceName = await getClientDeviceName();
+
       const response = await apiClient.post("/auth/login", {
         ...credentials,
         ...(deviceName ? { deviceName } : {}),
       });
+
       if (response.data.success) {
         setUser(response.data.data.user);
         cacheUser(response.data.data.user);
+
         connectSocket();
         await waitForSocketConnection(2000);
+
         return { success: true, user: response.data.data.user };
       }
+
+      return { success: false };
     } catch (error) {
+      const err = error as AxiosError<ApiError>;
+
       return {
         success: false,
-        errorCode: error.response?.data?.error,
-        error: error.response?.data?.message || "Login failed",
+        errorCode: err.response?.data?.error,
+        error: err.response?.data?.message || "Login failed",
       };
     }
   };
 
-  const logout = async () => {
+  const logout = async (): Promise<void> => {
     try {
       await apiClient.post("/auth/logout");
     } catch (error) {
-      // Logout errors are usually not critical, only log non-401 errors
-      if (error.response?.status !== 401) {
-        console.error("Logout error:", error);
+      const err = error as AxiosError;
+      if (err.response?.status !== 401) {
+        console.error("Logout error:", err);
       }
     } finally {
       disconnectSocket();
@@ -270,7 +311,7 @@ export function AuthProvider({ children }) {
     }
   };
 
-  const value = {
+  const value: AuthContextType = {
     user,
     loading,
     login,
@@ -287,10 +328,13 @@ export function AuthProvider({ children }) {
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
-export function useAuth() {
+// ---- Hook ----
+export function useAuth(): AuthContextType {
   const context = useContext(AuthContext);
+
   if (!context) {
     throw new Error("useAuth must be used within an AuthProvider");
   }
+
   return context;
 }

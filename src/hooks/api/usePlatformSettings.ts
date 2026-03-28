@@ -2,6 +2,13 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import apiClient from "@/lib/axios";
 import { queryKeys } from "@/src/lib/queryKeys";
 
+type Id = string | number;
+type UpdateEmailTemplatePayload = {
+  templateKey: string;
+  subject: string;
+  html: string;
+};
+
 export function usePlatformSettingsSummary() {
   return useQuery({
     queryKey: queryKeys.settings.system(),
@@ -24,7 +31,7 @@ export function useEmailTemplates() {
   });
 }
 
-export function useEmailTemplate(templateKey) {
+export function useEmailTemplate(templateKey: string) {
   return useQuery({
     queryKey: [...queryKeys.settings.all, "email-templates", templateKey],
     queryFn: async () => {
@@ -41,7 +48,7 @@ export function useFreezeAllChanges() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (frozen) => {
+    mutationFn: async (frozen: boolean) => {
       const { data } = await apiClient.patch("/sa/platform-settings/freeze", {
         frozen,
       });
@@ -58,7 +65,7 @@ export function usePauseAllRegistrations() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (paused) => {
+    mutationFn: async (paused: boolean) => {
       const { data } = await apiClient.patch(
         "/sa/platform-settings/registrations",
         {
@@ -88,7 +95,11 @@ export function useUpdateEmailTemplate() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ templateKey, subject, html }) => {
+    mutationFn: async ({
+      templateKey,
+      subject,
+      html,
+    }: UpdateEmailTemplatePayload) => {
       const { data } = await apiClient.put(
         `/sa/platform-settings/email-templates/${templateKey}`,
         {
@@ -98,7 +109,7 @@ export function useUpdateEmailTemplate() {
       );
       return data?.data?.template;
     },
-    onSuccess: (_, variables) => {
+    onSuccess: (_, variables: UpdateEmailTemplatePayload) => {
       queryClient.invalidateQueries({ queryKey: queryKeys.settings.all });
       queryClient.invalidateQueries({
         queryKey: [
@@ -115,13 +126,13 @@ export function useResetEmailTemplate() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (templateKey) => {
+    mutationFn: async (templateKey: Id) => {
       const { data } = await apiClient.delete(
         `/sa/platform-settings/email-templates/${templateKey}`,
       );
       return data?.data?.template;
     },
-    onSuccess: (_, templateKey) => {
+    onSuccess: (_, templateKey: Id) => {
       queryClient.invalidateQueries({ queryKey: queryKeys.settings.all });
       queryClient.invalidateQueries({
         queryKey: [...queryKeys.settings.all, "email-templates", templateKey],

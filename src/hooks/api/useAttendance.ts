@@ -2,6 +2,14 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { queryKeys } from "@/src/lib/queryKeys";
 import apiClient from "@/lib/axios";
 
+type Id = string | number;
+type SearchQuery = string;
+type MarkCompetitionAttendancePayload = { competitionId: Id; userId: Id };
+type MarkFestAttendancePayload = { userId?: Id; qrData?: string };
+type VerifyQrPayload = { qrData: string };
+type AssignDeskVolunteerPayload = { userId: Id };
+type RemoveDeskVolunteerPayload = { volunteerId: Id };
+
 /**
  * Overall fest attendance statistics
  * GET /api/v1/volunteer/attendance/fest/stats
@@ -20,7 +28,7 @@ export function useFestAttendanceStats() {
  * Per-competition attendance statistics
  * GET /api/v1/volunteer/attendance/competition/:competitionId/stats
  */
-export function useCompetitionAttendanceStats(competitionId) {
+export function useCompetitionAttendanceStats(competitionId: Id) {
   return useQuery({
     queryKey: queryKeys.attendance.competitionStats(competitionId),
     queryFn: async () => {
@@ -40,14 +48,17 @@ export function useCompetitionAttendanceStats(competitionId) {
 export function useMarkCompetitionAttendance() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async ({ competitionId, userId }) => {
+    mutationFn: async ({
+      competitionId,
+      userId,
+    }: MarkCompetitionAttendancePayload) => {
       const { data } = await apiClient.post(
         `/volunteer/attendance/competition/${competitionId}`,
         { userId },
       );
       return data;
     },
-    onSuccess: (_, variables) => {
+    onSuccess: (_, variables: MarkCompetitionAttendancePayload) => {
       queryClient.invalidateQueries({
         queryKey: queryKeys.attendance.competitionStats(
           variables.competitionId,
@@ -68,7 +79,7 @@ export function useMarkFestAttendance() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ userId, qrData }) => {
+    mutationFn: async ({ userId, qrData }: MarkFestAttendancePayload) => {
       const { data } = await apiClient.post("/volunteer/attendance/fest", {
         ...(userId ? { userId } : {}),
         ...(qrData ? { qrData } : {}),
@@ -80,7 +91,7 @@ export function useMarkFestAttendance() {
         queryKey: queryKeys.attendance.festStats(),
       });
       queryClient.invalidateQueries({
-        queryKey: queryKeys.attendance.participants(""),
+        queryKey: queryKeys.attendance.participants({}),
         exact: false,
       });
     },
@@ -91,9 +102,9 @@ export function useMarkFestAttendance() {
  * Search participants by name or email
  * GET /api/v1/volunteer/participants/search?query=...
  */
-export function useSearchParticipants(query) {
+export function useSearchParticipants(query: SearchQuery) {
   return useQuery({
-    queryKey: queryKeys.attendance.participants(query),
+    queryKey: queryKeys.attendance.participants({ query }),
     queryFn: async () => {
       const { data } = await apiClient.get("/volunteer/participants/search", {
         params: { query },
@@ -113,7 +124,7 @@ export function useSearchParticipants(query) {
  * Detailed info for one participant (registrations, attendance history)
  * GET /api/v1/volunteer/participants/:userId
  */
-export function useParticipantDetails(userId) {
+export function useParticipantDetails(userId: Id) {
   return useQuery({
     queryKey: queryKeys.attendance.participant(userId),
     queryFn: async () => {
@@ -136,7 +147,7 @@ export function useParticipantDetails(userId) {
  */
 export function useVerifyQRCode() {
   return useMutation({
-    mutationFn: async ({ qrData }) => {
+    mutationFn: async ({ qrData }: VerifyQrPayload) => {
       const { data } = await apiClient.post("/qr/verify", { qrData });
       return data?.data || data;
     },
@@ -161,9 +172,12 @@ export function useVolunteerAttendanceProfile() {
  * Search participants filtered by competition
  * GET /api/v1/volunteer/participants/search?query=...&competitionId=...
  */
-export function useSearchParticipantsWithComp(query, competitionId = null) {
+export function useSearchParticipantsWithComp(
+  query: SearchQuery,
+  competitionId: Id | null = null,
+) {
   return useQuery({
-    queryKey: [...queryKeys.attendance.participants(query), competitionId],
+    queryKey: [...queryKeys.attendance.participants({ query }), competitionId],
     queryFn: async () => {
       const { data } = await apiClient.get("/volunteer/participants/search", {
         params: { query, ...(competitionId ? { competitionId } : {}) },
@@ -206,7 +220,7 @@ export function useAssignRegistrationDeskVolunteer() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ userId }) => {
+    mutationFn: async ({ userId }: AssignDeskVolunteerPayload) => {
       const { data } = await apiClient.post(
         "/volunteer/registration-desk/assign",
         {
@@ -234,7 +248,7 @@ export function useRemoveRegistrationDeskVolunteer() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ volunteerId }) => {
+    mutationFn: async ({ volunteerId }: RemoveDeskVolunteerPayload) => {
       const { data } = await apiClient.delete(
         `/volunteer/registration-desk/${volunteerId}`,
       );

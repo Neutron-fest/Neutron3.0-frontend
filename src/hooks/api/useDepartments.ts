@@ -2,7 +2,13 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { queryKeys } from "@/src/lib/queryKeys";
 import apiClient from "@/lib/axios";
 
-const normalizeDepartment = (dept) => ({
+type Id = string | number;
+type Filters = Record<string, unknown>;
+type GenericPayload = Record<string, unknown>;
+type UpdateDepartmentPayload = { deptId: Id } & GenericPayload;
+type DepartmentMemberPayload = { departmentId: Id; userId: Id };
+
+const normalizeDepartment = (dept: any) => ({
   ...dept,
   membersCount:
     dept?.membersCount ??
@@ -14,7 +20,7 @@ const normalizeDepartment = (dept) => ({
 /**
  * Fetch all departments
  */
-export function useDepartments(filters = {}) {
+export function useDepartments(filters: Filters = {}) {
   return useQuery({
     queryKey: queryKeys.departments.list(filters),
     queryFn: async () => {
@@ -31,7 +37,7 @@ export function useDepartments(filters = {}) {
 /**
  * Fetch single department by ID
  */
-export function useDepartment(deptId) {
+export function useDepartment(deptId: Id) {
   return useQuery({
     queryKey: queryKeys.departments.detail(deptId),
     queryFn: async () => {
@@ -50,7 +56,7 @@ export function useCreateDepartment() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (departmentData) => {
+    mutationFn: async (departmentData: GenericPayload) => {
       const { data } = await apiClient.post("/sa/departments", departmentData);
       return data;
     },
@@ -67,14 +73,14 @@ export function useUpdateDepartment() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ deptId, ...updateData }) => {
+    mutationFn: async ({ deptId, ...updateData }: UpdateDepartmentPayload) => {
       const { data } = await apiClient.put(
         `/sa/departments/${deptId}`,
         updateData,
       );
       return data;
     },
-    onSuccess: (_, variables) => {
+    onSuccess: (_, variables: UpdateDepartmentPayload) => {
       queryClient.invalidateQueries({ queryKey: queryKeys.departments.all });
       queryClient.invalidateQueries({
         queryKey: queryKeys.departments.detail(variables.deptId),
@@ -90,7 +96,7 @@ export function useDeleteDepartment() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (deptId) => {
+    mutationFn: async (deptId: Id) => {
       const { data } = await apiClient.delete(`/sa/departments/${deptId}`);
       return data;
     },
@@ -104,7 +110,7 @@ export function useAssignUserToDepartment() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ departmentId, userId }) => {
+    mutationFn: async ({ departmentId, userId }: DepartmentMemberPayload) => {
       const { data } = await apiClient.post(
         `/sa/departments/${departmentId}/members`,
         { userId },
@@ -112,7 +118,7 @@ export function useAssignUserToDepartment() {
       return data;
     },
 
-    onSuccess: (_, variables) => {
+    onSuccess: (_, variables: DepartmentMemberPayload) => {
       queryClient.invalidateQueries({
         queryKey: queryKeys.departments.detail(variables.departmentId),
       });
@@ -128,13 +134,13 @@ export function useRemoveUserFromDepartment() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ departmentId, userId }) => {
+    mutationFn: async ({ departmentId, userId }: DepartmentMemberPayload) => {
       await apiClient.delete(
         `/sa/departments/${departmentId}/members/${userId}`,
       );
     },
 
-    onSuccess: (_, variables) => {
+    onSuccess: (_, variables: DepartmentMemberPayload) => {
       queryClient.invalidateQueries({
         queryKey: queryKeys.departments.detail(variables.departmentId),
       });

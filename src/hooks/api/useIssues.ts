@@ -2,7 +2,11 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { queryKeys } from "@/src/lib/queryKeys";
 import apiClient from "@/lib/axios";
 
-export function useIssues(filters = {}) {
+type Filters = Record<string, unknown>;
+type CreateIssuePayload = { message: string };
+type ResolveIssuePayload = { issueId: string | number };
+
+export function useIssues(filters: Filters = {}) {
   return useQuery({
     queryKey: queryKeys.issues.list(filters),
     queryFn: async () => {
@@ -16,7 +20,7 @@ export function useCreateIssue() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ message }) => {
+    mutationFn: async ({ message }: CreateIssuePayload) => {
       const { data } = await apiClient.post("/issues", { message });
       return data;
     },
@@ -30,7 +34,7 @@ export function useResolveIssue() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ issueId }) => {
+    mutationFn: async ({ issueId }: ResolveIssuePayload) => {
       const { data } = await apiClient.patch(`/issues/${issueId}/resolve`);
       return data;
     },

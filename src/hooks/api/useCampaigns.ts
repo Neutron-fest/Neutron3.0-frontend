@@ -2,7 +2,39 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import apiClient from "@/lib/axios";
 import { queryKeys } from "@/src/lib/queryKeys";
 
-const buildCampaignPayload = (payload = {}) => {
+type CampaignId = string | number;
+type CampaignFilters = Record<string, unknown>;
+type CampaignQueryOptions = Record<string, unknown>;
+type CampaignPayload = {
+  csvFile?: File | Blob;
+  audienceQuery?: Record<string, unknown>;
+  name?: string;
+  subject?: string;
+  templateHtml?: string;
+  audienceType?: string;
+  scheduledAt?: string | null;
+  [key: string]: unknown;
+};
+type CampaignTemplatePreviewPayload = {
+  templateHtml?: string;
+  sampleData?: Record<string, unknown>;
+};
+type UpdateCampaignTemplatePayload = {
+  campaignId: CampaignId;
+  [key: string]: unknown;
+};
+type UpdateCampaignAudiencePayload = {
+  campaignId: CampaignId;
+  audienceType?: string;
+  audienceQuery?: Record<string, unknown>;
+  csvFile?: File | Blob;
+};
+type ScheduleCampaignPayload = {
+  campaignId: CampaignId;
+  scheduledAt: string | null;
+};
+
+const buildCampaignPayload = (payload: CampaignPayload = {}) => {
   const {
     csvFile,
     audienceQuery,
@@ -50,7 +82,10 @@ export function useCampaignMetadata() {
   });
 }
 
-export function useCampaigns(filters = {}, queryOptions = {}) {
+export function useCampaigns(
+  filters: CampaignFilters = {},
+  queryOptions: CampaignQueryOptions = {},
+) {
   return useQuery({
     queryKey: queryKeys.campaigns.list(filters),
     queryFn: async () => {
@@ -63,7 +98,10 @@ export function useCampaigns(filters = {}, queryOptions = {}) {
   });
 }
 
-export function useCampaignDetail(campaignId, queryOptions = {}) {
+export function useCampaignDetail(
+  campaignId: CampaignId,
+  queryOptions: CampaignQueryOptions = {},
+) {
   return useQuery({
     queryKey: queryKeys.campaigns.detail(campaignId),
     queryFn: async () => {
@@ -76,9 +114,9 @@ export function useCampaignDetail(campaignId, queryOptions = {}) {
 }
 
 export function useCampaignRecipients(
-  campaignId,
-  filters = {},
-  queryOptions = {},
+  campaignId: CampaignId,
+  filters: CampaignFilters = {},
+  queryOptions: CampaignQueryOptions = {},
 ) {
   return useQuery({
     queryKey: queryKeys.campaigns.recipients(campaignId, filters),
@@ -98,7 +136,10 @@ export function useCampaignRecipients(
 
 export function usePreviewCampaignTemplate() {
   return useMutation({
-    mutationFn: async ({ templateHtml, sampleData }) => {
+    mutationFn: async ({
+      templateHtml,
+      sampleData,
+    }: CampaignTemplatePreviewPayload) => {
       const { data } = await apiClient.post("/sa/campaigns/preview", {
         templateHtml,
         sampleData,
@@ -112,7 +153,7 @@ export function useCreateCampaign() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (payload) => {
+    mutationFn: async (payload: CampaignPayload) => {
       const body = buildCampaignPayload(payload);
       const { data } = await apiClient.post("/sa/campaigns", body);
       return data?.data?.campaign;
@@ -127,13 +168,16 @@ export function useUpdateCampaignTemplate() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ campaignId, ...payload }) => {
+    mutationFn: async ({
+      campaignId,
+      ...payload
+    }: UpdateCampaignTemplatePayload) => {
       const { data } = await apiClient.patch(`/sa/campaigns/${campaignId}`, {
         ...payload,
       });
       return data?.data?.campaign;
     },
-    onSuccess: (_, variables) => {
+    onSuccess: (_, variables: UpdateCampaignTemplatePayload) => {
       queryClient.invalidateQueries({ queryKey: queryKeys.campaigns.all });
       queryClient.invalidateQueries({
         queryKey: queryKeys.campaigns.detail(variables.campaignId),
@@ -151,7 +195,7 @@ export function useUpdateCampaignAudience() {
       audienceType,
       audienceQuery,
       csvFile,
-    }) => {
+    }: UpdateCampaignAudiencePayload) => {
       const body =
         audienceType === "CSV" && csvFile
           ? (() => {
@@ -176,7 +220,7 @@ export function useUpdateCampaignAudience() {
 
       return data?.data;
     },
-    onSuccess: (_, variables) => {
+    onSuccess: (_, variables: UpdateCampaignAudiencePayload) => {
       queryClient.invalidateQueries({ queryKey: queryKeys.campaigns.all });
       queryClient.invalidateQueries({
         queryKey: queryKeys.campaigns.detail(variables.campaignId),
@@ -192,7 +236,10 @@ export function useScheduleCampaign() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ campaignId, scheduledAt }) => {
+    mutationFn: async ({
+      campaignId,
+      scheduledAt,
+    }: ScheduleCampaignPayload) => {
       const { data } = await apiClient.post(
         `/sa/campaigns/${campaignId}/schedule`,
         {
@@ -201,7 +248,7 @@ export function useScheduleCampaign() {
       );
       return data?.data;
     },
-    onSuccess: (_, variables) => {
+    onSuccess: (_, variables: ScheduleCampaignPayload) => {
       queryClient.invalidateQueries({ queryKey: queryKeys.campaigns.all });
       queryClient.invalidateQueries({
         queryKey: queryKeys.campaigns.detail(variables.campaignId),
@@ -214,11 +261,11 @@ export function useSendCampaignNow() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (campaignId) => {
+    mutationFn: async (campaignId: CampaignId) => {
       const { data } = await apiClient.post(`/sa/campaigns/${campaignId}/send`);
       return data?.data;
     },
-    onSuccess: (_, campaignId) => {
+    onSuccess: (_, campaignId: CampaignId) => {
       queryClient.invalidateQueries({ queryKey: queryKeys.campaigns.all });
       queryClient.invalidateQueries({
         queryKey: queryKeys.campaigns.detail(campaignId),
@@ -234,13 +281,13 @@ export function useRetryFailedCampaign() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (campaignId) => {
+    mutationFn: async (campaignId: CampaignId) => {
       const { data } = await apiClient.post(
         `/sa/campaigns/${campaignId}/retry-failed`,
       );
       return data?.data;
     },
-    onSuccess: (_, campaignId) => {
+    onSuccess: (_, campaignId: CampaignId) => {
       queryClient.invalidateQueries({ queryKey: queryKeys.campaigns.all });
       queryClient.invalidateQueries({
         queryKey: queryKeys.campaigns.detail(campaignId),
@@ -256,13 +303,13 @@ export function useRerunCampaign() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (campaignId) => {
+    mutationFn: async (campaignId: CampaignId) => {
       const { data } = await apiClient.post(
         `/sa/campaigns/${campaignId}/rerun`,
       );
       return data?.data;
     },
-    onSuccess: (_, campaignId) => {
+    onSuccess: (_, campaignId: CampaignId) => {
       queryClient.invalidateQueries({ queryKey: queryKeys.campaigns.all });
       queryClient.invalidateQueries({
         queryKey: queryKeys.campaigns.detail(campaignId),
@@ -278,13 +325,13 @@ export function useCancelCampaign() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (campaignId) => {
+    mutationFn: async (campaignId: CampaignId) => {
       const { data } = await apiClient.post(
         `/sa/campaigns/${campaignId}/cancel`,
       );
       return data?.data;
     },
-    onSuccess: (_, campaignId) => {
+    onSuccess: (_, campaignId: CampaignId) => {
       queryClient.invalidateQueries({ queryKey: queryKeys.campaigns.all });
       queryClient.invalidateQueries({
         queryKey: queryKeys.campaigns.detail(campaignId),

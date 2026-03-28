@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { type ReactNode } from "react";
 import { ThemeProvider } from "@mui/material/styles";
 import CssBaseline from "@mui/material/CssBaseline";
 import {
@@ -14,6 +14,10 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { QueryProvider } from "./QueryProvider";
 import { theme } from "@/src/theme";
 import EmotionRegistry from "./EmotionRegistry";
+
+type AppProvidersProps = {
+  children: ReactNode;
+};
 
 const base = {
   fontFamily: "'Syne', sans-serif",
@@ -69,7 +73,7 @@ const StyledContent = styled(MaterialDesignContent)(() => ({
 
 const iconProps = { size: 15, strokeWidth: 2 };
 
-export function AppProviders({ children }) {
+export function AppProviders({ children }: AppProvidersProps) {
   return (
     <QueryProvider>
       <EmotionRegistry>
@@ -91,7 +95,7 @@ export function AppProviders({ children }) {
               warning: <AlertTriangle {...iconProps} />,
               info: <Info {...iconProps} />,
             }}
-            action={(id) => (
+            action={(id: string | number) => (
               <button
                 onClick={() => closeSnackbar(id)}
                 style={{
@@ -107,10 +111,10 @@ export function AppProviders({ children }) {
                   lineHeight: 0,
                   transition: "color 0.15s",
                 }}
-                onMouseEnter={(e) =>
+                onMouseEnter={(e: React.MouseEvent<HTMLButtonElement>) =>
                   (e.currentTarget.style.color = "rgba(255,255,255,0.6)")
                 }
-                onMouseLeave={(e) =>
+                onMouseLeave={(e: React.MouseEvent<HTMLButtonElement>) =>
                   (e.currentTarget.style.color = "rgba(255,255,255,0.22)")
                 }
               >
