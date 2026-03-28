@@ -1,11 +1,12 @@
 "use client";
 
-import React, { useRef, useEffect, useState } from "react";
+import React, { useRef, useEffect, useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
+
 import { motion, useScroll, useTransform } from "framer-motion";
-import Lenis from "lenis";
 import Link from "next/link";
 import BlurHeading from "./blur-heading";
+import gsap from "gsap";
 
 
 type CardProps = {
@@ -174,13 +175,22 @@ export default function CompetitionsPage() {
       />
       <div className="pointer-events-none fixed inset-0 z-0 bg-linear-to-b from-transparent via-[#030303]/40 to-[#030303]/95" />
 
-      <div className="fixed top-6 left-6 z-50 pointer-events-auto">
+      <div className="fixed top-6 left-6 z-50 pointer-events-auto flex flex-row items-center gap-4">
         <Link href="/">
           <img 
             src="/neutron.png" 
             alt="Logo" 
             className="h-12 w-12 opacity-90 transition-transform duration-300 hover:scale-110"
           />
+        </Link>
+        <Link 
+          href="/?phase=planets"
+          className="group flex items-center gap-2 px-3 py-2 bg-white/5 border border-white/10 rounded-full backdrop-blur-md transition-all hover:bg-white/10 hover:border-white/20"
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+          </svg>
+          <span className="text-xs font-mono uppercase tracking-widest text-white/70 group-hover:text-white transition-colors">Planets</span>
         </Link>
       </div>
 
@@ -190,6 +200,76 @@ export default function CompetitionsPage() {
             text={"Enter the\ncosmic arena\nat neutron"}
             className="text-6xl md:text-[5.5rem] lg:text-[7rem] font-bold uppercase tracking-[-0.03em] leading-[0.92]"
           />
+        </div>
+
+        <div className="relative z-20 mb-16 flex flex-col gap-6">
+          <div className="flex flex-col md:flex-row gap-4 items-center">
+            <div className="relative w-full md:w-[400px]">
+              <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-white/30">
+                  <circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" />
+                </svg>
+              </div>
+              <input 
+                type="text" 
+                placeholder="Search competitions, categories..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full h-14 bg-white/5 border border-white/10 rounded-sm pl-12 pr-4 text-white placeholder:text-white/20 focus:outline-hidden focus:border-white/30 transition-all font-mono text-sm"
+              />
+            </div>
+
+            <div className="flex flex-wrap gap-4 w-full md:w-auto">
+              <select 
+                value={selectedCategory}
+                onChange={(e) => setSelectedCategory(e.target.value)}
+                className="h-14 bg-white/5 border border-white/10 rounded-sm px-6 text-white font-mono text-xs uppercase tracking-widest focus:outline-hidden hover:bg-white/10 transition-all cursor-pointer appearance-none min-w-[160px]"
+              >
+                {categories.map(cat => (
+                  <option key={cat} value={cat} className="bg-[#0a0a0a]">{cat}</option>
+                ))}
+              </select>
+
+              <select 
+                value={selectedStatus}
+                onChange={(e) => setSelectedStatus(e.target.value)}
+                className="h-14 bg-white/5 border border-white/10 rounded-sm px-6 text-white font-mono text-xs uppercase tracking-widest focus:outline-hidden hover:bg-white/10 transition-all cursor-pointer appearance-none min-w-[140px]"
+              >
+                {statuses.map(status => (
+                  <option key={status} value={status} className="bg-[#0a0a0a]">{status}</option>
+                ))}
+              </select>
+
+              <select 
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value)}
+                className="h-14 bg-white/5 border border-white/10 rounded-sm px-6 text-white font-mono text-xs uppercase tracking-widest focus:outline-hidden hover:bg-white/10 transition-all cursor-pointer appearance-none min-w-[140px]"
+              >
+                <option value="Default" className="bg-[#0a0a0a]">Sort By</option>
+                <option value="Title (A-Z)" className="bg-[#0a0a0a]">Title (A-Z)</option>
+                <option value="Title (Z-A)" className="bg-[#0a0a0a]">Title (Z-A)</option>
+                <option value="Date (Newest)" className="bg-[#0a0a0a]">Date (Newest)</option>
+                <option value="Date (Oldest)" className="bg-[#0a0a0a]">Date (Oldest)</option>
+              </select>
+            </div>
+          </div>
+          
+          {filteredCompetitions.length === 0 && (
+            <div className="mt-20 text-center py-20 border border-dashed border-white/10 rounded-sm">
+              <p className="text-white/40 font-mono uppercase tracking-[0.2em] text-sm">No cosmic signals detected matching your criteria.</p>
+              <button 
+                onClick={() => {
+                  setSearchQuery("");
+                  setSelectedCategory("All Categories");
+                  setSelectedStatus("All Status");
+                  setSortBy("Default");
+                }}
+                className="mt-6 px-6 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-full transition-all text-[10px] font-mono uppercase tracking-widest text-white/60"
+              >
+                Reset Sensors
+              </button>
+            </div>
+          )}
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-12 relative z-10 items-start">

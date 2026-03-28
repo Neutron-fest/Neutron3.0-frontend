@@ -40,7 +40,6 @@ export default function CompetitionSlugPage({ params }: { params: { id: string }
   }
 
   return (
-    <SmoothScroll>
       <div className="min-h-screen bg-[#b70000] text-white selection:bg-white/20 relative font-sans text-pretty">
         
         <div 
@@ -114,6 +113,5 @@ export default function CompetitionSlugPage({ params }: { params: { id: string }
           }
         `}</style>
       </div>
-    </SmoothScroll>
   );
 }
