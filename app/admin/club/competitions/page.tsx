@@ -23,7 +23,10 @@ const EVENT_TYPE_CONFIG = {
   EVENT: { bg: "rgba(34,197,94,0.1)", text: "#4ade80", border: "rgba(34,197,94,0.2)" },
 };
 
-function Pill({ bg, text, border, children }) {
+
+interface PillProps { bg: string; text: string; border: string; children: React.ReactNode; }
+
+function Pill({ bg, text, border, children }: PillProps) {
   return (
     <Box
       component="span"
@@ -182,8 +185,8 @@ export default function ClubCompetitionsPage() {
           </Box>
         ) : (
           competitions.map((comp, idx) => {
-            const sc = STATUS_CONFIG[comp.status] || STATUS_CONFIG.DRAFT;
-            const ec = EVENT_TYPE_CONFIG[comp.eventType] || EVENT_TYPE_CONFIG.COMPETITION;
+            const sc = STATUS_CONFIG[comp.status as keyof typeof STATUS_CONFIG] || STATUS_CONFIG.DRAFT;
+            const ec = EVENT_TYPE_CONFIG[comp.eventType as keyof typeof EVENT_TYPE_CONFIG] || EVENT_TYPE_CONFIG.COMPETITION;
             return (
               <Box key={comp.id}>
                 <Box

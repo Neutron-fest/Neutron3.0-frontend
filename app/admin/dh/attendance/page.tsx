@@ -81,15 +81,15 @@ const inputSx = {
   "& .MuiSelect-icon": { color: "rgba(255,255,255,0.45)" },
 };
 
-function pct(attended, total) {
+function pct(attended: any, total: any) {
   if (!total) return 0;
   return Math.round((attended / total) * 100);
 }
 
-function SAGateVolunteerDialog({ open, onClose }) {
+function SAGateVolunteerDialog({ open, onClose }: any) {
   const { enqueueSnackbar } = useSnackbar();
   const [search, setSearch] = useState("");
-  const [selectedVolunteerIds, setSelectedVolunteerIds] = useState([]);
+  const [selectedVolunteerIds, setSelectedVolunteerIds] = useState<string[]>([]);
 
   const { data: volunteerUsers = [], isLoading: usersLoading } = useUsers({
     role: "VOLUNTEER",
@@ -117,27 +117,27 @@ function SAGateVolunteerDialog({ open, onClose }) {
   const normalizedSearch = search.trim().toLowerCase();
   const filteredAvailable = normalizedSearch
     ? availableVolunteers.filter((volunteer) => {
-        const haystack = `${volunteer.name || ""} ${volunteer.email || ""}`
-          .trim()
-          .toLowerCase();
-        return haystack.includes(normalizedSearch);
-      })
+      const haystack = `${volunteer.name || ""} ${volunteer.email || ""}`
+        .trim()
+        .toLowerCase();
+      return haystack.includes(normalizedSearch);
+    })
     : availableVolunteers;
 
   const filteredAssigned = normalizedSearch
     ? assignedVolunteers.filter((volunteer) => {
-        const haystack =
-          `${volunteer.user?.name || ""} ${volunteer.user?.email || ""}`
-            .trim()
-            .toLowerCase();
-        return haystack.includes(normalizedSearch);
-      })
+      const haystack =
+        `${volunteer.user?.name || ""} ${volunteer.user?.email || ""}`
+          .trim()
+          .toLowerCase();
+      return haystack.includes(normalizedSearch);
+    })
     : assignedVolunteers;
 
-  const toggleSelection = (userId) => {
-    setSelectedVolunteerIds((current) =>
+  const toggleSelection = (userId: any) => {
+    setSelectedVolunteerIds((current: any) =>
       current.includes(userId)
-        ? current.filter((id) => id !== userId)
+        ? current.filter((id: any) => id !== userId)
         : [...current, userId],
     );
   };
@@ -176,15 +176,15 @@ function SAGateVolunteerDialog({ open, onClose }) {
     setSelectedVolunteerIds([]);
   };
 
-  const handleRemove = async (volunteerId) => {
+  const handleRemove = async (volunteerId: any) => {
     try {
       await removeVolunteer({ volunteerId });
       enqueueSnackbar("Gate access removed", { variant: "success" });
-    } catch (error) {
+    } catch (error: any) {
       enqueueSnackbar(
         error?.response?.data?.message ||
-          error?.message ||
-          "Failed to remove volunteer",
+        error?.message ||
+        "Failed to remove volunteer",
         { variant: "error" },
       );
     }
@@ -219,7 +219,7 @@ function SAGateVolunteerDialog({ open, onClose }) {
         />
 
         <Grid container spacing={2}>
-          <Grid item xs={12} md={6}>
+          <Grid size={{ xs: 12, md: 6 }}>
             <Paper
               variant="outlined"
               sx={{
@@ -233,14 +233,14 @@ function SAGateVolunteerDialog({ open, onClose }) {
                 Available Volunteers
               </Typography>
               {usersLoading ? (
-                <LoadingState message="Loading volunteers…" size="small" />
+                <LoadingState message="Loading volunteers…" />
               ) : filteredAvailable.length === 0 ? (
                 <Typography variant="body2" sx={{ color: "#71717a" }}>
                   No available volunteers found
                 </Typography>
               ) : (
                 <Stack spacing={0.6}>
-                  {filteredAvailable.map((volunteer) => (
+                  {filteredAvailable.map((volunteer: any) => (
                     <FormControlLabel
                       key={volunteer.id}
                       control={
@@ -270,7 +270,7 @@ function SAGateVolunteerDialog({ open, onClose }) {
             </Paper>
           </Grid>
 
-          <Grid item xs={12} md={6}>
+          <Grid size={{ xs: 12, md: 6 }}>
             <Paper
               variant="outlined"
               sx={{
@@ -284,7 +284,7 @@ function SAGateVolunteerDialog({ open, onClose }) {
                 Gate Access Active
               </Typography>
               {assignedLoading ? (
-                <LoadingState message="Loading assignments…" size="small" />
+                <LoadingState message="Loading assignments…" />
               ) : filteredAssigned.length === 0 ? (
                 <Typography variant="body2" sx={{ color: "#71717a" }}>
                   No gate volunteers assigned
@@ -353,7 +353,7 @@ function SAGateVolunteerDialog({ open, onClose }) {
 
 // ─────────────────────────────────── stat card ──
 
-function StatCard({ icon: Icon, label, value, sub, accent = "#a855f7" }) {
+function StatCard({ icon: Icon, label, value, sub, accent = "#a855f7" }: any) {
   return (
     <Paper
       sx={{
@@ -436,8 +436,8 @@ export default function AttendancePage() {
   const [markedIds, setMarkedIds] = useState(new Set());
 
   // Debounce search input
-  const [debounceTimer, setDebounceTimer] = useState(null);
-  function handleQueryChange(value) {
+  const [debounceTimer, setDebounceTimer] = useState<NodeJS.Timeout | null>(null);
+  function handleQueryChange(value: any) {
     setQuery(value);
     if (debounceTimer) clearTimeout(debounceTimer);
     const t = setTimeout(() => setDebouncedQuery(value), 400);
@@ -449,7 +449,7 @@ export default function AttendancePage() {
     useCompetitions();
   const { data: festStats, isLoading: festLoading } = useFestAttendanceStats();
   const { data: compStats, isLoading: compStatsLoading } =
-    useCompetitionAttendanceStats(statsCompId || null);
+    useCompetitionAttendanceStats(statsCompId || "");
   const {
     data: participants = [],
     isLoading: searchLoading,
@@ -457,7 +457,7 @@ export default function AttendancePage() {
   } = useSearchParticipants(debouncedQuery);
   const { mutateAsync: markAttendance } = useMarkCompetitionAttendance();
 
-  async function handleMarkAttendance(userId) {
+  async function handleMarkAttendance(userId: any) {
     if (!markCompId) {
       enqueueSnackbar("Please select a competition first", {
         variant: "warning",
@@ -469,11 +469,11 @@ export default function AttendancePage() {
       await markAttendance({ competitionId: markCompId, userId });
       setMarkedIds((prev) => new Set(prev).add(userId));
       enqueueSnackbar("Attendance marked", { variant: "success" });
-    } catch (err) {
+    } catch (err: any) {
       enqueueSnackbar(
         err?.response?.data?.message ||
-          err?.message ||
-          "Failed to mark attendance",
+        err?.message ||
+        "Failed to mark attendance",
         { variant: "error" },
       );
     } finally {
@@ -580,7 +580,7 @@ export default function AttendancePage() {
       {/* ── Stats row ── */}
       <Grid container spacing={2} sx={{ mb: 4 }}>
         {/* Fest overall */}
-        <Grid item xs={12} sm={6} md={4}>
+        <Grid size={{ xs: 12, md: 4, sm: 6 }}>
           {festLoading ? (
             <Paper
               sx={{
@@ -608,7 +608,7 @@ export default function AttendancePage() {
         </Grid>
 
         {/* Competition stats */}
-        <Grid item xs={12} sm={6} md={8}>
+        <Grid size={{ xs: 12, sm: 6, md: 8 }}>
           <Paper
             sx={{
               p: 3,
@@ -713,7 +713,7 @@ export default function AttendancePage() {
         </Box>
 
         <Grid container spacing={2} sx={{ mb: 3 }}>
-          <Grid item xs={12} md={5}>
+          <Grid size={{ xs: 12, md: 5 }}>
             <TextField
               select
               label="Competition"
@@ -732,7 +732,7 @@ export default function AttendancePage() {
               ))}
             </TextField>
           </Grid>
-          <Grid item xs={12} md={7}>
+          <Grid size={{ xs: 12, md: 7 }}>
             <TextField
               placeholder="Search participant by name or email…"
               value={query}
@@ -776,7 +776,7 @@ export default function AttendancePage() {
         {debouncedQuery.length >= 2 && (
           <>
             {searchLoading ? (
-              <LoadingState message="Searching participants…" size="small" />
+              <LoadingState message="Searching participants…" />
             ) : participants.length === 0 ? (
               <Typography
                 variant="body2"

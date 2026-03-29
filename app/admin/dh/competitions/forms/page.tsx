@@ -123,13 +123,22 @@ const btnBase = {
   gap: 6,
 };
 
+interface BtnProps {
+  onClick?: any;
+  children?: React.ReactNode;
+  disabled?: boolean;
+  loading?: boolean;
+  small?: boolean;
+  type?: "button" | "submit" | "reset";
+}
+
 function GhostBtn({
   onClick,
   children,
   disabled,
   loading = false,
   small = false,
-}) {
+}: BtnProps) {
   const isDisabled = disabled || loading;
 
   return (
@@ -162,7 +171,7 @@ function PurpleBtn({
   loading = false,
   small = false,
   type = "button",
-}) {
+}: BtnProps) {
   const isDisabled = disabled || loading;
 
   return (
@@ -195,7 +204,7 @@ function DangerBtn({
   disabled,
   loading = false,
   small = false,
-}) {
+}: BtnProps) {
   const isDisabled = disabled || loading;
 
   return (
@@ -221,12 +230,12 @@ function DangerBtn({
   );
 }
 
-const toDateTimeLocal = (value) => {
+const toDateTimeLocal = (value: any) => {
   if (!value) return "";
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return "";
 
-  const pad = (num) => String(num).padStart(2, "0");
+  const pad = (num: any) => String(num).padStart(2, "0");
   const year = date.getFullYear();
   const month = pad(date.getMonth() + 1);
   const day = pad(date.getDate());
@@ -236,12 +245,12 @@ const toDateTimeLocal = (value) => {
   return `${year}-${month}-${day}T${hours}:${minutes}`;
 };
 
-const toIsoOrNull = (value) => {
+const toIsoOrNull = (value: any) => {
   if (!value) return null;
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return null;
 
-  const pad = (num) => String(num).padStart(2, "0");
+  const pad = (num: any) => String(num).padStart(2, "0");
   const year = date.getFullYear();
   const month = pad(date.getMonth() + 1);
   const day = pad(date.getDate());
@@ -252,7 +261,7 @@ const toIsoOrNull = (value) => {
   return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`;
 };
 
-const createEmptyField = (index = 0) => ({
+const createEmptyField = (index = 0): any => ({
   tempId: `new-${Date.now()}-${index}`,
   id: null,
   label: "",
@@ -269,7 +278,7 @@ const createEmptyField = (index = 0) => ({
   optionsText: "",
 });
 
-const fieldFromApi = (field) => ({
+const fieldFromApi = (field: any) => ({
   tempId: field.id,
   id: field.id,
   label: field.label || "",
@@ -285,18 +294,18 @@ const fieldFromApi = (field) => ({
   pattern: field.pattern || "",
   optionsText: Array.isArray(field.options)
     ? field.options
-        .map((option) => option?.label || option?.value)
-        .filter(Boolean)
-        .join("\n")
+      .map((option: any) => option?.label || option?.value)
+      .filter(Boolean)
+      .join("\n")
     : "",
 });
 
-const fieldToApi = (field) => {
+const fieldToApi = (field: any) => {
   const options = field.optionsText
     .split("\n")
-    .map((line) => line.trim())
+    .map((line: any) => line.trim())
     .filter(Boolean)
-    .map((value) => ({ value, label: value }));
+    .map((value: any) => ({ value, label: value }));
 
   return {
     label: field.label.trim(),
@@ -433,7 +442,7 @@ function ImageFieldPreview() {
   );
 }
 
-function PreviewDialog({ open, onClose, formTitle, fields }) {
+function PreviewDialog({ open, onClose, formTitle, fields }: any) {
   return (
     <Dialog
       open={open}
@@ -467,7 +476,7 @@ function PreviewDialog({ open, onClose, formTitle, fields }) {
           </Typography>
         ) : (
           <Box sx={{ display: "grid", gap: 2 }}>
-            {fields.map((field) => (
+            {fields.map((field: any) => (
               <Box key={field.id || field.tempId} sx={boxPanelSx}>
                 <Typography sx={{ fontWeight: 600, mb: 0.75, fontSize: 14 }}>
                   {field.label || "Untitled field"}
@@ -497,14 +506,14 @@ function PreviewDialog({ open, onClose, formTitle, fields }) {
                   >
                     {OPTIONS_FIELD_TYPES.has(field.fieldType)
                       ? field.optionsText
-                          .split("\n")
-                          .map((line) => line.trim())
-                          .filter(Boolean)
-                          .map((optionValue) => (
-                            <MenuItem key={optionValue} value={optionValue}>
-                              {optionValue}
-                            </MenuItem>
-                          ))
+                        .split("\n")
+                        .map((line: any) => line.trim())
+                        .filter(Boolean)
+                        .map((optionValue: any) => (
+                          <MenuItem key={optionValue} value={optionValue}>
+                            {optionValue}
+                          </MenuItem>
+                        ))
                       : null}
                   </TextField>
                 )}
@@ -557,7 +566,7 @@ function FormBuilderDialog({
   preselectedCompetitionId,
   currentUserRole,
   enqueueSnackbar,
-}) {
+}: any) {
   const isEdit = Boolean(formId);
   const { data: formDetails, isLoading: loadingForm } = useCompetitionForm(
     formId,
@@ -576,14 +585,14 @@ function FormBuilderDialog({
   const [opensAt, setOpensAt] = useState("");
   const [closesAt, setClosesAt] = useState("");
   const [fields, setFields] = useState([createEmptyField(0)]);
-  const [deletedFieldIds, setDeletedFieldIds] = useState([]);
+  const [deletedFieldIds, setDeletedFieldIds] = useState<string[]>([]);
   const [errorText, setErrorText] = useState("");
   const [previewOpen, setPreviewOpen] = useState(false);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [confirmCloseOpen, setConfirmCloseOpen] = useState(false);
 
   const selectedCompetition = useMemo(
-    () => competitions.find((competition) => competition.id === competitionId),
+    () => competitions.find((competition: any) => competition.id === competitionId),
     [competitions, competitionId],
   );
 
@@ -721,7 +730,7 @@ function FormBuilderDialog({
     deleteFieldMutation.isPending ||
     reorderFieldsMutation.isPending;
 
-  const handleFieldChange = (index, key, value) => {
+  const handleFieldChange = (index: number, key: string, value: any) => {
     setFields((previous) => {
       const next = [...previous];
       next[index] = {
@@ -738,7 +747,7 @@ function FormBuilderDialog({
     setHasUnsavedChanges(true);
   };
 
-  const moveField = (index, direction) => {
+  const moveField = (index: number, direction: number) => {
     const targetIndex = index + direction;
     if (targetIndex < 0 || targetIndex >= fields.length) return;
 
@@ -751,7 +760,7 @@ function FormBuilderDialog({
     setHasUnsavedChanges(true);
   };
 
-  const removeField = (index) => {
+  const removeField = (index: number) => {
     const targetField = fields[index];
     setFields((previous) => previous.filter((_, i) => i !== index));
     if (targetField?.id) {
@@ -802,18 +811,18 @@ function FormBuilderDialog({
 
         const response = isEdit
           ? await updateFormMutation.mutateAsync({
-              formId,
-              ...dhPayload,
-            })
+            formId,
+            ...dhPayload,
+          } as any)
           : await createFormMutation.mutateAsync({
-              competitionId,
-              ...dhPayload,
-            });
+            competitionId,
+            ...dhPayload,
+          } as any);
 
         if (response?.pendingApproval) {
           enqueueSnackbar(
             response?.message ||
-              "Form changes submitted for SA approval successfully.",
+            "Form changes submitted for SA approval successfully.",
             { variant: "info" },
           );
         }
@@ -828,15 +837,15 @@ function FormBuilderDialog({
           opensAt: toIsoOrNull(opensAt),
           closesAt: toIsoOrNull(closesAt),
           status: "PUBLISHED",
-        });
+        } as any);
       } else {
         const created = await createFormMutation.mutateAsync({
           competitionId,
           opensAt: toIsoOrNull(opensAt),
           closesAt: toIsoOrNull(closesAt),
           status: "PUBLISHED",
-        });
-        currentFormId = created?.id;
+        } as any);
+        currentFormId = (created as any)?.id;
       }
 
       for (const deletedFieldId of deletedFieldIds) {
@@ -877,7 +886,7 @@ function FormBuilderDialog({
       }
 
       onClose();
-    } catch (error) {
+    } catch (error: any) {
       setErrorText(error?.response?.data?.message || "Failed to save form");
     }
   };
@@ -1020,7 +1029,7 @@ function FormBuilderDialog({
                     }}
                     sx={inputSx}
                   >
-                    {competitions.map((competition) => (
+                    {competitions.map((competition: any) => (
                       <MenuItem key={competition.id} value={competition.id}>
                         {competition.title}
                       </MenuItem>
@@ -1460,9 +1469,9 @@ export default function CompetitionFormsPage() {
   const deleteFormMutation = useDeleteCompetitionForm();
 
   const [builderOpen, setBuilderOpen] = useState(false);
-  const [activeFormId, setActiveFormId] = useState(null);
-  const [deleteTarget, setDeleteTarget] = useState(null);
-  const [previewFormId, setPreviewFormId] = useState(null);
+  const [activeFormId, setActiveFormId] = useState<string | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<any>(null);
+  const [previewFormId, setPreviewFormId] = useState<string | null>(null);
 
   const preselectedCompetitionId = searchParams.get("competitionId") || "";
   const preselectedFormId = searchParams.get("formId") || "";
@@ -1497,13 +1506,13 @@ export default function CompetitionFormsPage() {
   };
 
   const { data: previewForm } = useCompetitionForm(
-    previewFormId,
+    previewFormId || "",
     !!previewFormId,
   );
 
   const competitionNameById = useMemo(() => {
-    const map = {};
-    competitions.forEach((competition) => {
+    const map: Record<string, string> = {};
+    competitions.forEach((competition: any) => {
       map[competition.id] = competition.title;
     });
     return map;
@@ -1683,7 +1692,7 @@ export default function CompetitionFormsPage() {
           if (response?.pendingApproval) {
             enqueueSnackbar(
               response?.message ||
-                "Form deletion submitted for SA approval successfully.",
+              "Form deletion submitted for SA approval successfully.",
               { variant: "info" },
             );
           }

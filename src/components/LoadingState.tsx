@@ -2,7 +2,10 @@
 
 import { Box, CircularProgress, Skeleton, Typography } from "@mui/material";
 
-export function LoadingState({ variant = "spinner", lines = 3, message }) {
+/**
+ * @param {{ variant?: string; lines?: number; message?: string }} props
+ */
+export function LoadingState({ variant = "spinner", lines = 3, message = undefined }: any) {
   if (variant === "skeleton") {
     return (
       <Box sx={{ width: "100%" }}>

@@ -51,7 +51,7 @@ const inputSx = {
   },
 };
 
-const renderAnswer = (field) => {
+const renderAnswer = (field: any) => {
   if (field?.fieldType === "IMAGE" && field?.fileUrl) {
     return (
       <Box sx={{ mt: 0.6 }}>
@@ -111,22 +111,22 @@ export default function AttendanceQRScannerPage() {
 
   const [qrPayload, setQrPayload] = useState("");
   const [scannedUserId, setScannedUserId] = useState("");
-  const [verifiedUserPreview, setVerifiedUserPreview] = useState(null);
+  const [verifiedUserPreview, setVerifiedUserPreview] = useState<any>(null);
 
   const [cameraActive, setCameraActive] = useState(false);
   const [cameraError, setCameraError] = useState("");
   const [markingFest, setMarkingFest] = useState(false);
 
-  const videoRef = useRef(null);
-  const streamRef = useRef(null);
-  const scanTimerRef = useRef(null);
+  const videoRef = useRef<any>(null);
+  const streamRef = useRef<any>(null);
+  const scanTimerRef = useRef<any>(null);
 
   const { mutateAsync: verifyQRCode, isPending: verifying } = useVerifyQRCode();
   const { mutateAsync: markFestAttendance } = useMarkFestAttendance();
   const { data: volunteerProfile, isSuccess: profileLoaded } =
     useVolunteerAttendanceProfile();
   const { data: participantDetails, isLoading: detailsLoading } =
-    useParticipantDetails(scannedUserId || null);
+    useParticipantDetails(scannedUserId || "");
 
   const isDH = user?.role === "DH";
   const canMarkFestAttendance =
@@ -136,7 +136,7 @@ export default function AttendanceQRScannerPage() {
     user?.role === "DH" ||
     !!volunteerProfile?.isRegistrationDeskVolunteer ||
     !!volunteerProfile?.assignedCompetitions?.some(
-      (ac) => ac.competition?.attendanceRequired,
+      (ac: any) => ac.competition?.attendanceRequired,
     );
 
   const bindStreamToVideo = async () => {
@@ -168,7 +168,7 @@ export default function AttendanceQRScannerPage() {
     }
 
     if (streamRef.current) {
-      streamRef.current.getTracks().forEach((track) => track.stop());
+      streamRef.current.getTracks().forEach((track: any) => track.stop());
       streamRef.current = null;
     }
 
@@ -194,7 +194,7 @@ export default function AttendanceQRScannerPage() {
       setVerifiedUserPreview(verified);
       setScannedUserId(verified?.id || "");
       enqueueSnackbar("QR verified", { variant: "success" });
-    } catch (error) {
+    } catch (error: any) {
       setVerifiedUserPreview(null);
       setScannedUserId("");
       enqueueSnackbar(
@@ -214,11 +214,11 @@ export default function AttendanceQRScannerPage() {
     try {
       await markFestAttendance({ userId: participantDetails.user.id });
       enqueueSnackbar("Fest attendance marked", { variant: "success" });
-    } catch (error) {
+    } catch (error: any) {
       enqueueSnackbar(
         error?.response?.data?.message ||
-          error?.message ||
-          "Failed to mark fest attendance",
+        error?.message ||
+        "Failed to mark fest attendance",
         { variant: "error" },
       );
     } finally {
@@ -231,9 +231,9 @@ export default function AttendanceQRScannerPage() {
 
     try {
       const hasBarcodeDetector =
-        typeof window !== "undefined" && !!window.BarcodeDetector;
+        typeof window !== "undefined" && !!(window as any).BarcodeDetector;
       const detector = hasBarcodeDetector
-        ? new window.BarcodeDetector({ formats: ["qr_code"] })
+        ? new (window as any).BarcodeDetector({ formats: ["qr_code"] })
         : null;
 
       const stream = await navigator.mediaDevices.getUserMedia({
@@ -281,11 +281,11 @@ export default function AttendanceQRScannerPage() {
         stopCamera();
         enqueueSnackbar("QR captured from camera", { variant: "success" });
       }, 650);
-    } catch (error) {
+    } catch (error: any) {
       stopCamera();
       setCameraError(
         error?.message ||
-          "Unable to start camera. Check permissions and retry.",
+        "Unable to start camera. Check permissions and retry.",
       );
     }
   };
@@ -301,8 +301,8 @@ export default function AttendanceQRScannerPage() {
     void bindStreamToVideo();
   }, [cameraActive]);
 
-  const registrations = participantDetails?.registrations || [];
-  const formSubmissions = participantDetails?.formSubmissions || [];
+  const registrations: any[] = participantDetails?.registrations || [];
+  const formSubmissions: any[] = participantDetails?.formSubmissions || [];
   const hasFestAttendance = !!participantDetails?.festAttendance;
 
   const formSummary = useMemo(
@@ -358,7 +358,7 @@ export default function AttendanceQRScannerPage() {
       )}
 
       <Grid container spacing={2.5}>
-        <Grid item xs={12} md={5}>
+        <Grid size={{ xs: 12, md: 5 }}>
           <Paper
             sx={{
               p: 2.5,
@@ -450,7 +450,7 @@ export default function AttendanceQRScannerPage() {
           </Paper>
         </Grid>
 
-        <Grid item xs={12} md={7}>
+        <Grid size={{ xs: 12, md: 7 }}>
           <Paper
             sx={{
               p: 2.5,
@@ -555,7 +555,7 @@ export default function AttendanceQRScannerPage() {
                     </Typography>
                   ) : (
                     <Stack spacing={1}>
-                      {registrations.map((registration) => (
+                      {registrations.map((registration: any) => (
                         <Paper
                           key={registration.registrationId}
                           variant="outlined"
@@ -593,7 +593,7 @@ export default function AttendanceQRScannerPage() {
                     </Typography>
                   ) : (
                     <Stack spacing={1.2}>
-                      {formSubmissions.map((submission) => (
+                      {formSubmissions.map((submission: any) => (
                         <Paper
                           key={submission.competitionId}
                           variant="outlined"
@@ -610,7 +610,7 @@ export default function AttendanceQRScannerPage() {
                           </Typography>
 
                           <Stack spacing={0.8}>
-                            {submission.fields?.map((field) => {
+                            {submission.fields?.map((field: any) => {
                               const answer = renderAnswer(field);
                               const isTextAnswer = typeof answer === "string";
 

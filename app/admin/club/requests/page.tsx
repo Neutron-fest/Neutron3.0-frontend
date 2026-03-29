@@ -15,6 +15,20 @@ import { useSnackbar } from "notistack";
 import { useMyApprovalRequests } from "@/src/hooks/api/useApprovals";
 import { LoadingState } from "@/src/components/LoadingState";
 
+/* ── Local types ── */
+
+interface ApprovalRequest {
+  id: string;
+  title?: string;
+  description?: string;
+  status: string;
+  type: string;
+  createdAt?: string;
+  reviewedAt?: string;
+  rejectionReason?: string;
+  requestData?: Record<string, any>;
+}
+
 /* ── Constants ── */
 
 const TYPE_LABELS = {
@@ -71,7 +85,7 @@ const STATUS_COLORS = {
   },
 };
 
-const fmtDate = (d) =>
+const fmtDate = (d: string | null | undefined) =>
   d
     ? new Date(d).toLocaleDateString("en-US", {
         year: "numeric",
@@ -80,7 +94,7 @@ const fmtDate = (d) =>
       })
     : "—";
 
-const fmtDateTime = (d) =>
+const fmtDateTime = (d: string | null | undefined) =>
   d
     ? new Date(d).toLocaleString("en-US", {
         year: "numeric",
@@ -91,18 +105,18 @@ const fmtDateTime = (d) =>
       })
     : "—";
 
-const toAbsoluteUrl = (base, path) => {
+const toAbsoluteUrl = (base: string, path: string) => {
   if (!base || !path) return null;
   const normalizedBase = base.endsWith("/") ? base.slice(0, -1) : base;
   const normalizedPath = path.startsWith("/") ? path : `/${path}`;
   return `${normalizedBase}${normalizedPath}`;
 };
 
-const buildImageCandidates = (mediaPath) => {
+const buildImageCandidates = (mediaPath: string | null | undefined) => {
   if (!mediaPath || typeof mediaPath !== "string") return [];
 
-  const candidates = [];
-  const add = (value) => {
+  const candidates: string[] = [];
+  const add = (value: string | null | undefined) => {
     if (!value) return;
     if (!candidates.includes(value)) {
       candidates.push(value);
@@ -137,19 +151,19 @@ const buildImageCandidates = (mediaPath) => {
   return candidates;
 };
 
-const extractMediaPath = (value) => {
+const extractMediaPath = (value: unknown) => {
   if (!value) return null;
   if (typeof value === "string") return value;
-  if (typeof value === "object") {
-    if (typeof value.path === "string") return value.path;
-    if (typeof value.url === "string") return value.url;
+  if (typeof value === "object" && value !== null) {
+    if (typeof (value as Record<string, unknown>).path === "string") return (value as Record<string, unknown>).path as string;
+    if (typeof (value as Record<string, unknown>).url === "string") return (value as Record<string, unknown>).url as string;
   }
   return null;
 };
 
 /* ── Sub-components ── */
 
-function Pill({ bg, text, border, children }) {
+function Pill({ bg, text, border, children }: { bg: string; text: string; border: string; children: React.ReactNode }) {
   return (
     <Box
       component="span"
@@ -175,17 +189,17 @@ function Pill({ bg, text, border, children }) {
   );
 }
 
-function TypePill({ type }) {
-  const c = TYPE_COLORS[type] || {
+function TypePill({ type }: { type: string }) {
+  const c = TYPE_COLORS[type as keyof typeof TYPE_COLORS] || {
     bg: "rgba(255,255,255,0.06)",
     text: "rgba(255,255,255,0.4)",
     border: "rgba(255,255,255,0.1)",
   };
-  return <Pill {...c}>{TYPE_LABELS[type] || type}</Pill>;
+  return <Pill {...c}>{TYPE_LABELS[type as keyof typeof TYPE_LABELS] || type}</Pill>;
 }
 
-function StatusBadge({ status }) {
-  const c = STATUS_COLORS[status] || STATUS_COLORS.PENDING;
+function StatusBadge({ status }: { status: string }) {
+  const c = STATUS_COLORS[status as keyof typeof STATUS_COLORS] || STATUS_COLORS.PENDING;
   const Icon =
     status === "APPROVED"
       ? CheckCircle2
@@ -208,7 +222,7 @@ const RowDivider = () => (
   <Box sx={{ height: "1px", background: "rgba(255,255,255,0.06)" }} />
 );
 
-function EmptyRow({ message }) {
+function EmptyRow({ message }: { message: string }) {
   return (
     <Box sx={{ py: 8, textAlign: "center" }}>
       <AlertCircle size={16} color="rgba(255,255,255,0.15)" />
@@ -226,7 +240,7 @@ function EmptyRow({ message }) {
   );
 }
 
-function RequestMediaPreview({ label, path }) {
+function RequestMediaPreview({ label, path }: { label: string; path: string | null | undefined }) {
   const candidates = useMemo(() => buildImageCandidates(path), [path]);
   const [candidateIndex, setCandidateIndex] = useState(0);
 
@@ -286,18 +300,18 @@ export default function MyRequestsPage() {
   const [typeFilter, setTypeFilter] = useState("all");
   const [search, setSearch] = useState("");
   const [detailDialogOpen, setDetailDialogOpen] = useState(false);
-  const [detailRequest, setDetailRequest] = useState(null);
+  const [detailRequest, setDetailRequest] = useState<ApprovalRequest | null>(null);
 
-  const filters = {};
+  const filters: { status?: string; type?: string } = {};
   if (statusFilter !== "all") filters.status = statusFilter;
   if (typeFilter !== "all") filters.type = typeFilter;
 
-  const { data: requestsData, isLoading } = useMyApprovalRequests(filters);
+  const { data: requestsRaw, isLoading } = useMyApprovalRequests(filters);
   const { enqueueSnackbar } = useSnackbar();
 
   const allRequests = useMemo(
-    () => requestsData?.approvals || [],
-    [requestsData],
+    () => (requestsRaw as ApprovalRequest[] | undefined) ?? [],
+    [requestsRaw],
   );
 
   const filteredRequests = useMemo(() => {
@@ -319,7 +333,7 @@ export default function MyRequestsPage() {
     [allRequests],
   );
 
-  const openDetail = (request) => {
+  const openDetail = (request: ApprovalRequest) => {
     setDetailRequest(request);
     setDetailDialogOpen(true);
   };

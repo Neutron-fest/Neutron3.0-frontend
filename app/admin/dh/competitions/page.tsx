@@ -119,7 +119,7 @@ const EVENT_TYPE_CONFIG = {
 
 // ── Shared primitive components ───────────────────────────────────────────────
 
-function Pill({ bg, text, border, children }) {
+function Pill({ bg, text, border, children }: any) {
   return (
     <Box
       component="span"
@@ -145,8 +145,8 @@ function Pill({ bg, text, border, children }) {
   );
 }
 
-function StatusPill({ status }) {
-  const c = STATUS_CONFIG[status] || STATUS_CONFIG.DRAFT;
+function StatusPill({ status }: any) {
+  const c = STATUS_CONFIG[status as keyof typeof STATUS_CONFIG] || STATUS_CONFIG.DRAFT;
   return (
     <Pill bg={c.bg} text={c.text} border={c.border}>
       {c.label}
@@ -154,8 +154,8 @@ function StatusPill({ status }) {
   );
 }
 
-function EventTypePill({ type }) {
-  const c = EVENT_TYPE_CONFIG[type] || EVENT_TYPE_CONFIG.COMPETITION;
+function EventTypePill({ type }: any) {
+  const c = EVENT_TYPE_CONFIG[type as keyof typeof EVENT_TYPE_CONFIG] || EVENT_TYPE_CONFIG.COMPETITION;
   return (
     <Pill bg={c.bg} text={c.text} border={c.border}>
       {type || "—"}
@@ -182,7 +182,7 @@ const btnBase = {
   gap: 5,
 };
 
-function GhostBtn({ onClick, children, disabled }) {
+function GhostBtn({ onClick, children, disabled }: any) {
   return (
     <button
       type="button"
@@ -212,7 +212,7 @@ function GhostBtn({ onClick, children, disabled }) {
   );
 }
 
-function PurpleBtn({ onClick, children, disabled }) {
+function PurpleBtn({ onClick, children, disabled }: any) {
   return (
     <button
       type="button"
@@ -240,7 +240,7 @@ function PurpleBtn({ onClick, children, disabled }) {
   );
 }
 
-function DangerBtn({ onClick, children, disabled }) {
+function DangerBtn({ onClick, children, disabled }: any) {
   return (
     <button
       type="button"
@@ -267,7 +267,7 @@ function DangerBtn({ onClick, children, disabled }) {
   );
 }
 
-function SmallActionBtn({ onClick, children, color, hoverBg, disabled }) {
+function SmallActionBtn({ onClick, children, color, hoverBg, disabled }: any) {
   return (
     <button
       type="button"
@@ -295,7 +295,7 @@ function SmallActionBtn({ onClick, children, color, hoverBg, disabled }) {
   );
 }
 
-function NativeSelect({ value, onChange, children }) {
+function NativeSelect({ value, onChange, children }: any) {
   return (
     <select
       value={value}
@@ -317,7 +317,7 @@ function NativeSelect({ value, onChange, children }) {
   );
 }
 
-function Label({ children }) {
+function Label({ children }: any) {
   return (
     <Typography
       sx={{
@@ -336,7 +336,7 @@ function Label({ children }) {
 
 // ── InlineToggle ──────────────────────────────────────────────────────────────
 
-function InlineToggle({ label, checked, onChange, disabled }) {
+function InlineToggle({ label, checked, onChange, disabled }: any) {
   return (
     <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
       <button
@@ -386,7 +386,7 @@ function InlineToggle({ label, checked, onChange, disabled }) {
 
 // ── CompetitionToggles (inline row controls) ──────────────────────────────────
 
-function CompetitionToggles({ competition }) {
+function CompetitionToggles({ competition }: any) {
   const { enqueueSnackbar } = useSnackbar();
   const { mutate: toggleReg, isPending: togglingReg } =
     useToggleRegistrations();
@@ -394,7 +394,7 @@ function CompetitionToggles({ competition }) {
   const { mutate: toggleReadonly, isPending: togglingRO } =
     useToggleReadOnlyMode();
 
-  function handleToggleRegistrations(nextValue) {
+  function handleToggleRegistrations(nextValue: any) {
     if (competition.status !== "OPEN") {
       enqueueSnackbar(
         "Registrations can only be opened for OPEN competitions",
@@ -410,7 +410,7 @@ function CompetitionToggles({ competition }) {
       {
         onSuccess: () =>
           enqueueSnackbar("Registrations updated", { variant: "success" }),
-        onError: (err) =>
+        onError: (err: any) =>
           enqueueSnackbar(
             err?.response?.data?.message || "Failed to update registrations",
             { variant: "error" },
@@ -419,13 +419,13 @@ function CompetitionToggles({ competition }) {
     );
   }
 
-  function handleToggleFrozen(nextValue) {
+  function handleToggleFrozen(nextValue: any) {
     freeze(
       { competitionId: competition.id, frozen: nextValue },
       {
         onSuccess: () =>
           enqueueSnackbar("Changes freeze updated", { variant: "success" }),
-        onError: (err) =>
+        onError: (err: any) =>
           enqueueSnackbar(
             err?.response?.data?.message || "Failed to update freeze state",
             { variant: "error" },
@@ -434,13 +434,13 @@ function CompetitionToggles({ competition }) {
     );
   }
 
-  function handleToggleReadOnly(nextValue) {
+  function handleToggleReadOnly(nextValue: any) {
     toggleReadonly(
       { competitionId: competition.id, readOnly: nextValue },
       {
         onSuccess: () =>
           enqueueSnackbar("Read-only mode updated", { variant: "success" }),
-        onError: (err) =>
+        onError: (err: any) =>
           enqueueSnackbar(
             err?.response?.data?.message || "Failed to update read-only mode",
             { variant: "error" },
@@ -477,7 +477,7 @@ function CompetitionToggles({ competition }) {
 
 // ── ManageDialog ──────────────────────────────────────────────────────────────
 
-function ManageDialog({ competition, open, onClose }) {
+function ManageDialog({ competition, open, onClose }: any) {
   const { enqueueSnackbar } = useSnackbar();
   const { user } = useAuth();
   const [tab, setTab] = useState("judges");
@@ -489,7 +489,7 @@ function ManageDialog({ competition, open, onClose }) {
   const { data: judgeUsers = [] } = useUsers({ role: "JUDGE", limit: 200 });
   const { mutate: assignJudge, isPending: assigningJudge } = useAssignJudge();
   const { mutate: removeJudge } = useRemoveJudge();
-  const [judgeActionId, setJudgeActionId] = useState(null);
+  const [judgeActionId, setJudgeActionId] = useState<any>(null);
 
   const [volunteerSearch, setVolunteerSearch] = useState("");
   const { data: volunteers = [], isLoading: volunteersLoading } =
@@ -501,7 +501,7 @@ function ManageDialog({ competition, open, onClose }) {
   const { mutate: assignVolunteer, isPending: assigningVol } =
     useAssignVolunteer();
   const { mutate: removeVolunteer } = useRemoveVolunteer();
-  const [volunteerActionId, setVolunteerActionId] = useState(null);
+  const [volunteerActionId, setVolunteerActionId] = useState<any>(null);
 
   const [dangerAction, setDangerAction] = useState("");
   const [dangerDate, setDangerDate] = useState("");
@@ -515,7 +515,7 @@ function ManageDialog({ competition, open, onClose }) {
   const { mutate: assignClub, isPending: assigningClub } =
     useAssignClubToCompetition();
   const { mutate: removeClub } = useRemoveClubFromCompetition();
-  const [clubActionId, setClubActionId] = useState(null);
+  const [clubActionId, setClubActionId] = useState<any>(null);
 
   const [departmentSearch, setDepartmentSearch] = useState("");
   const {
@@ -530,21 +530,21 @@ function ManageDialog({ competition, open, onClose }) {
   const { mutate: assignDepartment, isPending: assigningDepartment } =
     useAssignDepartmentToCompetition();
   const { mutate: removeDepartment } = useRemoveDepartmentFromCompetition();
-  const [departmentActionId, setDepartmentActionId] = useState(null);
+  const [departmentActionId, setDepartmentActionId] = useState<any>(null);
 
   if (!competition) return null;
 
-  const assignedJudgeIds = new Set(judges.map((j) => j.userId || j.user?.id));
-  const assignedVolIds = new Set(volunteers.map((v) => v.userId || v.user?.id));
+  const assignedJudgeIds = new Set(judges.map((j: any) => j.userId || j.user?.id));
+  const assignedVolIds = new Set(volunteers.map((v: any) => v.userId || v.user?.id));
   const assignedClubIds = new Set(
-    competitionClubs.map((c) => c.clubId || c.id),
+    competitionClubs.map((c: any) => c.clubId || c.id),
   );
 
   const assignedDepartmentIds = new Set(
-    competitionDepartments.map((d) => d.departmentId || d.id),
+    competitionDepartments.map((d: any) => d.departmentId || d.id),
   );
 
-  const queryMatch = (value, query) =>
+  const queryMatch = (value: any, query: any) =>
     (value || "").toLowerCase().includes((query || "").toLowerCase());
 
   const filteredAllJudges = judgeUsers.filter(
@@ -697,7 +697,7 @@ function ManageDialog({ competition, open, onClose }) {
               />
             </Box>
             {judgesLoading ? (
-              <LoadingState message="Loading…" size="small" />
+              <LoadingState message="Loading…"  />
             ) : (
               <Box
                 sx={{
@@ -725,8 +725,7 @@ function ManageDialog({ competition, open, onClose }) {
                     const email = u.email || "";
                     const judgeUserId = u.id;
                     const checked = assignedJudgeIds.has(judgeUserId);
-                    const assignedEntry = judges.find(
-                      (a) => (a.userId || a.user?.id) === judgeUserId,
+                    const assignedEntry = judges.find((a: any) => (a.userId || a.user?.id) === judgeUserId,
                     );
                     const assignmentId = assignedEntry?.id;
                     const isHeadJudge = !!assignedEntry?.isHeadJudge;
@@ -759,7 +758,7 @@ function ManageDialog({ competition, open, onClose }) {
                                     enqueueSnackbar("Judge removed", {
                                       variant: "success",
                                     }),
-                                  onError: (e) =>
+                                  onError: (e: any) =>
                                     enqueueSnackbar(
                                       e?.response?.data?.message || "Failed",
                                       { variant: "error" },
@@ -777,7 +776,7 @@ function ManageDialog({ competition, open, onClose }) {
                                   enqueueSnackbar("Judge assigned", {
                                     variant: "success",
                                   }),
-                                onError: (err) =>
+                                onError: (err: any) =>
                                   enqueueSnackbar(
                                     err?.response?.data?.message || "Failed",
                                     { variant: "error" },
@@ -940,7 +939,7 @@ function ManageDialog({ competition, open, onClose }) {
               />
             </Box>
             {volunteersLoading ? (
-              <LoadingState message="Loading…" size="small" />
+              <LoadingState message="Loading…"  />
             ) : (
               <Box
                 sx={{
@@ -968,8 +967,7 @@ function ManageDialog({ competition, open, onClose }) {
                     const email = v.email || "";
                     const volunteerId = v.id;
                     const checked = assignedVolIds.has(volunteerId);
-                    const assignedEntry = volunteers.find(
-                      (a) => (a.userId || a.user?.id) === volunteerId,
+                    const assignedEntry = volunteers.find((a: any) => (a.userId || a.user?.id) === volunteerId,
                     );
                     const assignmentId = assignedEntry?.id;
                     const rowBusy = volunteerActionId === volunteerId;
@@ -1001,7 +999,7 @@ function ManageDialog({ competition, open, onClose }) {
                                     enqueueSnackbar("Volunteer removed", {
                                       variant: "success",
                                     }),
-                                  onError: (e) =>
+                                  onError: (e: any) =>
                                     enqueueSnackbar(
                                       e?.response?.data?.message || "Failed",
                                       { variant: "error" },
@@ -1022,7 +1020,7 @@ function ManageDialog({ competition, open, onClose }) {
                                   enqueueSnackbar("Volunteer assigned", {
                                     variant: "success",
                                   }),
-                                onError: (err) =>
+                                onError: (err: any) =>
                                   enqueueSnackbar(
                                     err?.response?.data?.message || "Failed",
                                     { variant: "error" },
@@ -1246,7 +1244,7 @@ function ManageDialog({ competition, open, onClose }) {
                         );
                         onClose();
                       },
-                      onError: (err) =>
+                      onError: (err: any) =>
                         enqueueSnackbar(
                           err?.response?.data?.message || "Action failed",
                           { variant: "error" },
@@ -1309,7 +1307,7 @@ function ManageDialog({ competition, open, onClose }) {
               />
             </Box>
             {compClubsLoading ? (
-              <LoadingState message="Loading…" size="small" />
+              <LoadingState message="Loading…"  />
             ) : (
               <Box
                 sx={{
@@ -1353,7 +1351,7 @@ function ManageDialog({ competition, open, onClose }) {
                                     enqueueSnackbar("Club removed", {
                                       variant: "success",
                                     }),
-                                  onError: (e) =>
+                                  onError: (e: any) =>
                                     enqueueSnackbar(
                                       e?.response?.data?.message || "Failed",
                                       { variant: "error" },
@@ -1371,7 +1369,7 @@ function ManageDialog({ competition, open, onClose }) {
                                   enqueueSnackbar("Club assigned", {
                                     variant: "success",
                                   }),
-                                onError: (err) =>
+                                onError: (err: any) =>
                                   enqueueSnackbar(
                                     err?.response?.data?.message || "Failed",
                                     { variant: "error" },
@@ -1515,7 +1513,7 @@ function ManageDialog({ competition, open, onClose }) {
               />
             </Box>
             {compDepartmentsLoading ? (
-              <LoadingState message="Loading…" size="small" />
+              <LoadingState message="Loading…"  />
             ) : (
               <Box
                 sx={{
@@ -1559,7 +1557,7 @@ function ManageDialog({ competition, open, onClose }) {
                                     enqueueSnackbar("Department removed", {
                                       variant: "success",
                                     }),
-                                  onError: (e) =>
+                                  onError: (e: any) =>
                                     enqueueSnackbar(
                                       e?.response?.data?.message || "Failed",
                                       { variant: "error" },
@@ -1577,7 +1575,7 @@ function ManageDialog({ competition, open, onClose }) {
                                   enqueueSnackbar("Department assigned", {
                                     variant: "success",
                                   }),
-                                onError: (err) =>
+                                onError: (err: any) =>
                                   enqueueSnackbar(
                                     err?.response?.data?.message || "Failed",
                                     { variant: "error" },
@@ -1705,21 +1703,21 @@ export default function CompetitionsPage() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [eventTypeFilter, setEventTypeFilter] = useState("all");
-  const [manageTarget, setManageTarget] = useState(null);
-  const [formTarget, setFormTarget] = useState(null);
+  const [manageTarget, setManageTarget] = useState<any>(null);
+  const [formTarget, setFormTarget] = useState<any>(null);
   const [formOpen, setFormOpen] = useState(false);
-  const [deleteTarget, setDeleteTarget] = useState(null);
+  const [deleteTarget, setDeleteTarget] = useState<any>(null);
   const [deleteConfirmText, setDeleteConfirmText] = useState("");
-  const [promoCodeTarget, setPromoCodeTarget] = useState(null);
-  const [menuAnchor, setMenuAnchor] = useState(null);
-  const [menuComp, setMenuComp] = useState(null);
+  const [promoCodeTarget, setPromoCodeTarget] = useState<any>(null);
+  const [menuAnchor, setMenuAnchor] = useState<any>(null);
+  const [menuComp, setMenuComp] = useState<any>(null);
 
   const { mutate: updateCompetition, isPending: publishingCompetition } =
     useUpdateCompetition();
   const { mutate: deleteCompetition, isPending: deletingCompetition } =
     useDeleteCompetition();
-  const [publishingId, setPublishingId] = useState(null);
-  const [deletingId, setDeletingId] = useState(null);
+  const [publishingId, setPublishingId] = useState<any>(null);
+  const [deletingId, setDeletingId] = useState<any>(null);
 
   const { data: competitions = [], isLoading } = useCompetitions();
   const { data: competitionForms = [] } = useCompetitionForms();
@@ -1744,7 +1742,7 @@ export default function CompetitionsPage() {
     return map;
   }, [competitionForms]);
 
-  function handleTogglePublishCompetition(comp) {
+  function handleTogglePublishCompetition(comp: any) {
     const isCurrentlyOpen = comp.status === "OPEN";
     const isDH = user?.role === "DH";
     setPublishingId(comp.id);
@@ -1779,7 +1777,7 @@ export default function CompetitionsPage() {
           },
         );
       },
-      onError: (err) =>
+      onError: (err: any) =>
         enqueueSnackbar(
           err?.response?.data?.message ||
             (isCurrentlyOpen
@@ -1791,7 +1789,7 @@ export default function CompetitionsPage() {
     });
   }
 
-  function handleDeleteCompetition(comp) {
+  function handleDeleteCompetition(comp: any) {
     setDeleteTarget(comp);
     setDeleteConfirmText("");
   }
@@ -1824,7 +1822,7 @@ export default function CompetitionsPage() {
         setDeleteTarget(null);
         setDeleteConfirmText("");
       },
-      onError: (err) =>
+      onError: (err: any) =>
         enqueueSnackbar(
           err?.response?.data?.message || "Failed to delete competition",
           { variant: "error" },
@@ -2219,7 +2217,7 @@ export default function CompetitionsPage() {
                     {/* Actions */}
                     <Box sx={{ display: "flex", justifyContent: "center" }}>
                       <IconButton
-                        size="small"
+                        
                         onClick={(e) => {
                           setMenuAnchor(e.currentTarget);
                           setMenuComp(comp);

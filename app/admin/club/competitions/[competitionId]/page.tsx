@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, useEffect } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import { Box, Typography, Dialog, CircularProgress } from "@mui/material";
 import { useParams } from "next/navigation";
 import Link from "next/link";
@@ -22,12 +22,14 @@ import {
   useClubCompetitionFormResponses,
   useClubCompetitionRegistrations,
   useSubmitCompetitionEditProposal,
+  type Competition,
 } from "@/src/hooks/api/useClub";
 import { LoadingState } from "@/src/components/LoadingState";
 
 // ── Config ────────────────────────────────────────────────────────────────────
 
-const STATUS_CONFIG = {
+type PillConfig = { label: string; bg: string; text: string; border: string };
+const STATUS_CONFIG: Record<string, PillConfig> = {
   DRAFT: { label: "Draft", bg: "rgba(161,161,170,0.1)", text: "#a1a1aa", border: "rgba(161,161,170,0.2)" },
   OPEN: { label: "Open", bg: "rgba(34,197,94,0.1)", text: "#4ade80", border: "rgba(34,197,94,0.2)" },
   CLOSED: { label: "Closed", bg: "rgba(234,179,8,0.1)", text: "#fbbf24", border: "rgba(234,179,8,0.2)" },
@@ -35,14 +37,15 @@ const STATUS_CONFIG = {
   POSTPONED: { label: "Postponed", bg: "rgba(249,115,22,0.1)", text: "#fb923c", border: "rgba(249,115,22,0.2)" },
 };
 
-const REG_STATUS = {
+const REG_STATUS: Record<string, { label: string; color: string }> = {
   PENDING: { label: "Pending", color: "#fbbf24" },
   APPROVED: { label: "Approved", color: "#4ade80" },
   REJECTED: { label: "Rejected", color: "#f87171" },
   WAITLISTED: { label: "Waitlisted", color: "#60a5fa" },
 };
 
-const EVENT_TYPE_CONFIG = {
+type EventPillConfig = { bg: string; text: string; border: string };
+const EVENT_TYPE_CONFIG: Record<string, EventPillConfig> = {
   COMPETITION: { bg: "rgba(168,85,247,0.1)", text: "#c084fc", border: "rgba(168,85,247,0.2)" },
   WORKSHOP: { bg: "rgba(59,130,246,0.1)", text: "#60a5fa", border: "rgba(59,130,246,0.2)" },
   EVENT: { bg: "rgba(34,197,94,0.1)", text: "#4ade80", border: "rgba(34,197,94,0.2)" },
@@ -50,7 +53,8 @@ const EVENT_TYPE_CONFIG = {
 
 // ── Shared primitives ─────────────────────────────────────────────────────────
 
-function Pill({ bg, text, border, children }) {
+interface PillProps { bg: string; text: string; border: string; children: React.ReactNode; }
+function Pill({ bg, text, border, children }: PillProps) {
   return (
     <Box
       component="span"
@@ -95,7 +99,8 @@ const btnBase = {
   gap: 5,
 };
 
-function GhostBtn({ onClick, children, disabled }) {
+interface GhostBtnProps { onClick?: () => void; children: React.ReactNode; disabled?: boolean; }
+function GhostBtn({ onClick, children, disabled }: GhostBtnProps) {
   return (
     <button
       type="button"
@@ -115,7 +120,8 @@ function GhostBtn({ onClick, children, disabled }) {
   );
 }
 
-function PurpleBtn({ onClick, children, disabled, type = "button" }) {
+interface PurpleBtnProps { onClick?: () => void; children: React.ReactNode; disabled?: boolean; type?: "button" | "submit" | "reset"; }
+function PurpleBtn({ onClick, children, disabled, type = "button" }: PurpleBtnProps) {
   return (
     <button
       type={type}
@@ -136,7 +142,8 @@ function PurpleBtn({ onClick, children, disabled, type = "button" }) {
   );
 }
 
-function DarkInput({ label, value, onChange, placeholder }) {
+interface DarkInputProps { label?: string; value: string | undefined; onChange: (val: string) => void; placeholder?: string; }
+function DarkInput({ label, value, onChange, placeholder }: DarkInputProps) {
   return (
     <Box sx={{ mb: 2 }}>
       {label && (
@@ -177,7 +184,8 @@ function DarkInput({ label, value, onChange, placeholder }) {
   );
 }
 
-function DarkTextarea({ label, value, onChange, placeholder, rows = 3 }) {
+interface DarkTextareaProps { label?: string; value: string | undefined; onChange: (val: string) => void; placeholder?: string; rows?: number; }
+function DarkTextarea({ label, value, onChange, placeholder, rows = 3 }: DarkTextareaProps) {
   return (
     <Box sx={{ mb: 2 }}>
       {label && (
@@ -222,7 +230,10 @@ function DarkTextarea({ label, value, onChange, placeholder, rows = 3 }) {
 
 // ── Response detail dialog ────────────────────────────────────────────────────
 
-function ResponseModal({ open, onClose, respondent }) {
+interface ResponseField { fieldLabel: string; value?: string; jsonValue?: unknown; fileUrl?: string; }
+interface Respondent { name: string; email: string; fields: ResponseField[]; }
+interface ResponseModalProps { open: boolean; onClose: () => void; respondent: Respondent | null; }
+function ResponseModal({ open, onClose, respondent }: ResponseModalProps) {
   if (!respondent) return null;
   return (
     <Dialog
@@ -359,7 +370,8 @@ function ResponseModal({ open, onClose, respondent }) {
 
 // ── Shared form primitives for ProposalModal ─────────────────────────────────
 
-function SectionLabel({ children }) {
+interface SectionLabelProps { children: React.ReactNode; }
+function SectionLabel({ children }: SectionLabelProps) {
   return (
     <Typography
       sx={{
@@ -378,7 +390,8 @@ function SectionLabel({ children }) {
   );
 }
 
-function InlineToggle({ label, checked, onChange, disabled }) {
+interface InlineToggleProps { label: string; checked: boolean | undefined; onChange: (val: boolean) => void; disabled?: boolean; }
+function InlineToggle({ label, checked, onChange, disabled }: InlineToggleProps) {
   return (
     <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 1.5 }}>
       <Typography sx={{ fontSize: 12, color: "rgba(255,255,255,0.5)", fontFamily: "'Syne', sans-serif" }}>
@@ -418,7 +431,8 @@ function InlineToggle({ label, checked, onChange, disabled }) {
   );
 }
 
-function DarkSelect({ label, value, onChange, children }) {
+interface DarkSelectProps { label?: string; value: string | undefined; onChange: (val: string) => void; children: React.ReactNode; }
+function DarkSelect({ label, value, onChange, children }: DarkSelectProps) {
   return (
     <Box sx={{ mb: 2 }}>
       {label && (
@@ -457,7 +471,8 @@ function DarkSelect({ label, value, onChange, children }) {
   );
 }
 
-function DarkNumberInput({ label, value, onChange, min, placeholder }) {
+interface DarkNumberInputProps { label?: string; value: number | null | undefined; onChange: (val: number | null) => void; min?: number; placeholder?: string; }
+function DarkNumberInput({ label, value, onChange, min, placeholder }: DarkNumberInputProps) {
   return (
     <Box sx={{ mb: 2 }}>
       {label && (
@@ -500,7 +515,8 @@ function DarkNumberInput({ label, value, onChange, min, placeholder }) {
   );
 }
 
-function DarkDateTimeInput({ label, value, onChange }) {
+interface DarkDateTimeInputProps { label?: string; value: string | null | undefined; onChange: (val: string | null) => void; }
+function DarkDateTimeInput({ label, value, onChange }: DarkDateTimeInputProps) {
   return (
     <Box sx={{ mb: 2 }}>
       {label && (
@@ -543,11 +559,11 @@ function DarkDateTimeInput({ label, value, onChange }) {
 }
 
 // ISO datetime → datetime-local string
-function toDateTimeLocal(val) {
+function toDateTimeLocal(val: string | null | undefined): string {
   if (!val) return "";
   try {
     const d = new Date(val);
-    if (isNaN(d)) return "";
+    if (isNaN(d.getTime())) return "";
     return d.toISOString().slice(0, 16);
   } catch {
     return "";
@@ -556,12 +572,39 @@ function toDateTimeLocal(val) {
 
 // ── Edit Proposal modal ───────────────────────────────────────────────────────
 
-function ProposalModal({ open, onClose, competition }) {
+interface FormState {
+  title: string;
+  shortDescription: string;
+  category: string;
+  eventType: string;
+  rulesRichText: string;
+  startTime: string | null;
+  endTime: string | null;
+  venueName: string;
+  venueRoom: string;
+  venueFloor: string;
+  type: string;
+  minTeamSize: number | null;
+  maxTeamSize: number | null;
+  maxTeamsPerCollege: number | null;
+  autoApproveTeams: boolean;
+  registrationDeadline: string | null;
+  registrationsOpen: boolean;
+  registrationFee: number | null;
+  maxRegistrations: number | null;
+  requiresApproval: boolean;
+  isPaid: boolean;
+  perPerson: boolean;
+  attendanceRequired: boolean;
+  summary: string;
+}
+interface ProposalModalProps { open: boolean; onClose: () => void; competition: Competition | null | undefined; }
+function ProposalModal({ open, onClose, competition }: ProposalModalProps) {
   const { enqueueSnackbar } = useSnackbar();
   const submitProposalMutation = useSubmitCompetitionEditProposal();
-  const [form, setForm] = useState({});
+  const [form, setForm] = useState<Partial<FormState>>({});
 
-  const set = (key) => (val) => setForm((p) => ({ ...p, [key]: val }));
+  const set = <K extends keyof FormState>(key: K) => (val: FormState[K]) => setForm((p) => ({ ...p, [key]: val }));
 
   // Initialize all fields when modal opens
   useEffect(() => {
@@ -612,16 +655,17 @@ function ProposalModal({ open, onClose, competition }) {
         Object.entries(fields).filter(([, v]) => v !== null && v !== "")
       );
       await submitProposalMutation.mutateAsync({
-        competitionId: competition.id,
+        competitionId: competition!._id,
         payload,
-        summary,
-        changeDescription: summary,
+        summary: summary ?? "",
+        changeDescription: summary ?? "",
       });
       enqueueSnackbar("Edit proposal submitted for review", { variant: "success" });
       onClose();
-    } catch (err) {
+    } catch (err: unknown) {
+      const e = err as { response?: { data?: { message?: string } }; message?: string };
       enqueueSnackbar(
-        err?.response?.data?.message || err?.message || "Failed to submit proposal",
+        e?.response?.data?.message || e?.message || "Failed to submit proposal",
         { variant: "error" },
       );
     }
@@ -798,7 +842,7 @@ function ProposalModal({ open, onClose, competition }) {
         }}
       >
         <GhostBtn onClick={onClose} disabled={pending}>Cancel</GhostBtn>
-        <PurpleBtn onClick={handleSubmit} disabled={pending || !form.summary?.trim()}>
+        <PurpleBtn onClick={handleSubmit} disabled={pending || !(form.summary as string | undefined)?.trim()}>
           {pending ? <CircularProgress size={12} sx={{ color: "#fff" }} /> : <Send size={13} />}
           Submit Proposal
         </PurpleBtn>
@@ -809,7 +853,9 @@ function ProposalModal({ open, onClose, competition }) {
 
 // ── Registration group card ───────────────────────────────────────────────────
 
-function RegistrationGroup({ groupLabel, members, defaultOpen = false }) {
+interface RegistrationMember { registrationId: string; name: string; email: string; status: string; registeredAt?: string; collegeName?: string; }
+interface RegistrationGroupProps { groupLabel: string; members: RegistrationMember[]; defaultOpen?: boolean; }
+function RegistrationGroup({ groupLabel, members, defaultOpen = false }: RegistrationGroupProps) {
   const [open, setOpen] = useState(defaultOpen);
 
   return (
@@ -957,7 +1003,9 @@ function RegistrationGroup({ groupLabel, members, defaultOpen = false }) {
 
 export default function ClubCompetitionDetailPage() {
   const params = useParams();
-  const competitionId = params?.competitionId;
+  const competitionId = Array.isArray(params?.competitionId)
+    ? params.competitionId[0]
+    : params?.competitionId;
 
   const { data: competition, isLoading: competitionLoading } =
     useClubCompetitionDetail(competitionId);
@@ -967,16 +1015,16 @@ export default function ClubCompetitionDetailPage() {
     useClubCompetitionFormResponses(competitionId);
 
   const [tab, setTab] = useState("registrations");
-  const [responseModal, setResponseModal] = useState(null); // { name, email, fields[] }
+  const [responseModal, setResponseModal] = useState<Respondent | null>(null);
   const [proposalOpen, setProposalOpen] = useState(false);
 
   // Group registrations by collegeName
   const registrationGroups = useMemo(() => {
-    const groups = {};
+    const groups: Record<string, { label: string; members: RegistrationMember[] }> = {};
     for (const reg of registrations) {
-      const key = reg.collegeName || "__none__";
-      if (!groups[key]) groups[key] = { label: reg.collegeName || "No College Listed", members: [] };
-      groups[key].members.push(reg);
+      const key = (reg.collegeName as string | undefined) || "__none__";
+      if (!groups[key]) groups[key] = { label: (reg.collegeName as string | undefined) || "No College Listed", members: [] };
+      groups[key].members.push(reg as unknown as RegistrationMember);
     }
     return Object.values(groups).sort((a, b) =>
       a.label === "No College Listed" ? 1 : b.label === "No College Listed" ? -1 : a.label.localeCompare(b.label)
@@ -985,13 +1033,13 @@ export default function ClubCompetitionDetailPage() {
 
   // Group form responses by userId
   const respondentGroups = useMemo(() => {
-    const groups = {};
+    const groups: Record<string, Respondent> = {};
     for (const r of responses) {
-      const key = r.userId;
+      const key = r.userId as string;
       if (!groups[key]) {
-        groups[key] = { name: r.respondentName || "Unknown", email: r.respondentEmail || "", fields: [] };
+        groups[key] = { name: (r.respondentName as string | undefined) || "Unknown", email: (r.respondentEmail as string | undefined) || "", fields: [] };
       }
-      groups[key].fields.push(r);
+      groups[key].fields.push(r as unknown as ResponseField);
     }
     return Object.values(groups);
   }, [responses]);
@@ -1237,7 +1285,7 @@ export default function ClubCompetitionDetailPage() {
       {tab === "registrations" && (
         <Box>
           {registrationsLoading ? (
-            <LoadingState message="Loading registrations…" size="small" />
+            <LoadingState message="Loading registrations…" />
           ) : registrations.length === 0 ? (
             <Box
               sx={{
@@ -1297,7 +1345,7 @@ export default function ClubCompetitionDetailPage() {
       {tab === "responses" && (
         <Box>
           {responsesLoading ? (
-            <LoadingState message="Loading responses…" size="small" />
+            <LoadingState message="Loading responses…" />
           ) : respondentGroups.length === 0 ? (
             <Box
               sx={{

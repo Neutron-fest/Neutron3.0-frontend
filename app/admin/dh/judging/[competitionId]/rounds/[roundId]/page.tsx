@@ -57,7 +57,7 @@ const headSx = {
   fontFamily: "'DM Mono', monospace",
 };
 
-function QualChip({ status }) {
+function QualChip({ status }: any) {
   if (status === "QUALIFIED")
     return (
       <Chip
@@ -115,7 +115,7 @@ function QualificationPopover({
   roundId,
   teamId,
   currentStatus,
-}) {
+}: any) {
   const { enqueueSnackbar } = useSnackbar();
   const { mutate: markQual, isPending } = useMarkTeamQualification();
 
@@ -140,7 +140,7 @@ function QualificationPopover({
     },
   ];
 
-  function handleMark(status) {
+  function handleMark(status: any) {
     if (status === currentStatus) {
       onClose();
       return;
@@ -152,7 +152,7 @@ function QualificationPopover({
           enqueueSnackbar("Qualification updated", { variant: "success" });
           onClose();
         },
-        onError: (err) =>
+        onError: (err: any) =>
           enqueueSnackbar(
             err?.response?.data?.message || "Failed to update qualification",
             { variant: "error" },
@@ -218,7 +218,9 @@ function QualificationPopover({
 // ── Main page ────────────────────────────────────────────────────────────────
 
 export default function RoundResultsPage() {
-  const { competitionId, roundId } = useParams();
+  const params = useParams();
+  const competitionId = params.competitionId as string;
+  const roundId = params.roundId as string;
   const router = useRouter();
   const [popover, setPopover] = useState({
     anchor: null,
@@ -230,14 +232,14 @@ export default function RoundResultsPage() {
   const { data: rounds = [] } = useAdminCompetitionRounds(competitionId);
   const { data: roundData, isLoading } = useAdminRoundTeams(roundId);
 
-  const round = roundData?.round || rounds.find((r) => r.id === roundId);
+  const round = roundData?.round || rounds.find((r: any) => r.id === roundId);
   const teams = roundData?.teams || [];
 
-  const qualifiedCount = teams.filter((t) => t.status === "QUALIFIED").length;
-  const eliminatedCount = teams.filter((t) => t.status === "ELIMINATED").length;
-  const pendingCount = teams.filter((t) => t.status === "PENDING").length;
+  const qualifiedCount = teams.filter((t: any) => t.status === "QUALIFIED").length;
+  const eliminatedCount = teams.filter((t: any) => t.status === "ELIMINATED").length;
+  const pendingCount = teams.filter((t: any) => t.status === "PENDING").length;
 
-  function openPopover(e, teamId, currentStatus) {
+  function openPopover({ e, teamId, currentStatus }: any) {
     setPopover({ anchor: e.currentTarget, teamId, currentStatus });
   }
 
@@ -467,7 +469,7 @@ export default function RoundResultsPage() {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {teams.map((team, idx) => (
+                {teams.map(({ team, idx }: any) => (
                   <TableRow
                     key={team.teamId}
                     sx={{
@@ -536,7 +538,7 @@ export default function RoundResultsPage() {
                         sx={{
                           color:
                             team.judgesScored === team.totalJudges &&
-                            team.totalJudges > 0
+                              team.totalJudges > 0
                               ? "#4ade80"
                               : "#71717a",
                           fontFamily: "'DM Mono', monospace",
@@ -552,7 +554,7 @@ export default function RoundResultsPage() {
                         component="span"
                         onClick={(e) =>
                           !round?.scoresLocked &&
-                          openPopover(e, team.teamId, team.status)
+                          openPopover({ e, teamId: team.teamId, currentStatus: team.status })
                         }
                         sx={{
                           cursor: round?.scoresLocked ? "default" : "pointer",

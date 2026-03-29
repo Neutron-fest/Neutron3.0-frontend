@@ -41,7 +41,7 @@ const CREATE_STEPS = [
   { key: 4, label: "Review" },
 ];
 
-const STATUS_COLORS = {
+const STATUS_COLORS: any = {
   DRAFT: "#fbbf24",
   SCHEDULED: "#60a5fa",
   QUEUED: "#a78bfa",
@@ -73,7 +73,7 @@ const parseCsvEmailsText = (value = "") =>
     .map((item) => item.trim())
     .filter(Boolean);
 
-const toDateTimeLocalValue = (dateValue) => {
+const toDateTimeLocalValue = (dateValue: any) => {
   if (!dateValue) return "";
   const date = new Date(dateValue);
   if (Number.isNaN(date.getTime())) return "";
@@ -87,14 +87,14 @@ const toDateTimeLocalValue = (dateValue) => {
   return `${year}-${month}-${day}T${hours}:${mins}`;
 };
 
-const formatDateTime = (value) => {
+const formatDateTime = (value: any) => {
   if (!value) return "—";
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return "—";
   return date.toLocaleString();
 };
 
-const toIsoOrNull = (dateTimeLocal) => {
+const toIsoOrNull = (dateTimeLocal: any) => {
   if (!dateTimeLocal) return null;
   const parsed = new Date(dateTimeLocal);
   return Number.isNaN(parsed.getTime()) ? null : parsed.toISOString();
@@ -108,7 +108,7 @@ const formatHtml = (source = "") => {
   const lines = [];
   let depth = 0;
 
-  const shouldIncreaseDepth = (token) => {
+  const shouldIncreaseDepth = (token: any) => {
     return (
       /^<[^/!][^>]*>$/.test(token) &&
       !token.endsWith("/>") &&
@@ -140,7 +140,7 @@ const formatHtml = (source = "") => {
   return lines.join("\n");
 };
 
-const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+const sleep = (ms: any) => new Promise((resolve) => setTimeout(resolve, ms));
 
 const inputSx = {
   width: "100%",
@@ -156,7 +156,7 @@ const inputSx = {
   boxSizing: "border-box",
 };
 
-function SectionCard({ title, description, children }) {
+function SectionCard({ title, description, children }: any) {
   return (
     <Box
       sx={{
@@ -186,7 +186,7 @@ function SectionCard({ title, description, children }) {
   );
 }
 
-function StatusPill({ status }) {
+function StatusPill({ status }: any) {
   const color = STATUS_COLORS[status] || "rgba(255,255,255,0.5)";
   return (
     <Box
@@ -213,21 +213,21 @@ export default function CampaignManagerPage() {
   const [mode, setMode] = useState("list");
   const [listTab, setListTab] = useState("past");
   const [step, setStep] = useState(1);
-  const [selectedCampaignId, setSelectedCampaignId] = useState(null);
+  const [selectedCampaignId, setSelectedCampaignId] = useState<any>(null);
   const [selectedCampaignScheduleAt, setSelectedCampaignScheduleAt] =
     useState("");
-  const [actionByCampaignId, setActionByCampaignId] = useState({});
+  const [actionByCampaignId, setActionByCampaignId] = useState<any>({});
   const [isReconciling, setIsReconciling] = useState(false);
 
   const [campaignName, setCampaignName] = useState("");
   const [campaignSubject, setCampaignSubject] = useState("");
   const [campaignAudienceType, setCampaignAudienceType] = useState("FILTER");
-  const [campaignRoles, setCampaignRoles] = useState([]);
-  const [campaignDepartmentIds, setCampaignDepartmentIds] = useState([]);
-  const [campaignUserIds, setCampaignUserIds] = useState([]);
+  const [campaignRoles, setCampaignRoles] = useState<string[]>([]);
+  const [campaignDepartmentIds, setCampaignDepartmentIds] = useState<string[]>([]);
+  const [campaignUserIds, setCampaignUserIds] = useState<string[]>([]);
   const [campaignCompetitionId, setCampaignCompetitionId] = useState("");
   const [campaignCsvEmailsText, setCampaignCsvEmailsText] = useState("");
-  const [campaignCsvFile, setCampaignCsvFile] = useState(null);
+  const [campaignCsvFile, setCampaignCsvFile] = useState<File | null>(null);
   const [campaignTemplateHtml, setCampaignTemplateHtml] = useState("");
   const [campaignScheduledAt, setCampaignScheduledAt] = useState("");
   const [campaignPreviewHtml, setCampaignPreviewHtml] = useState("");
@@ -241,9 +241,9 @@ export default function CampaignManagerPage() {
   } = useCampaigns(
     { page: 1, limit: 100 },
     {
-      refetchInterval: (query) => {
+      refetchInterval: (query: any) => {
         const list = query.state.data?.campaigns || [];
-        return list.some((campaign) =>
+        return list.some((campaign: any) =>
           TRANSIENT_CAMPAIGN_STATUSES.has(campaign.status),
         )
           ? 5000
@@ -260,7 +260,7 @@ export default function CampaignManagerPage() {
   } = useCampaignDetail(selectedCampaignId, {
     refetchInterval: selectedCampaignId ? 5000 : false,
     refetchIntervalInBackground: true,
-  });
+  }) as any;
 
   const {
     data: selectedCampaignRecipientsData,
@@ -273,7 +273,7 @@ export default function CampaignManagerPage() {
       refetchInterval: selectedCampaignId ? 5000 : false,
       refetchIntervalInBackground: true,
     },
-  );
+  ) as any;
 
   const { data: users = [] } = useUsers({ limit: 300 });
   const { data: departments = [] } = useDepartments();
@@ -357,13 +357,13 @@ export default function CampaignManagerPage() {
 
     const timer = setTimeout(async () => {
       try {
-        const preview = await previewCampaign({
+        const preview: any = await previewCampaign({
           templateHtml: campaignTemplateHtml,
           sampleData: {},
         });
         setCampaignPreviewHtml(preview?.html || "");
         setCampaignPreviewError("");
-      } catch (error) {
+      } catch (error: any) {
         setCampaignPreviewHtml("");
         setCampaignPreviewError(
           error?.response?.data?.message || "Preview generation failed.",
@@ -374,23 +374,23 @@ export default function CampaignManagerPage() {
     return () => clearTimeout(timer);
   }, [campaignTemplateHtml, previewCampaign]);
 
-  const lockCampaignAction = (campaignId, action) => {
-    setActionByCampaignId((prev) => ({ ...prev, [campaignId]: action }));
+  const lockCampaignAction = ({ campaignId, action }: any) => {
+    setActionByCampaignId((prev: any) => ({ ...prev, [campaignId]: action }));
   };
 
-  const unlockCampaignAction = (campaignId) => {
-    setActionByCampaignId((prev) => {
+  const unlockCampaignAction = (campaignId: any) => {
+    setActionByCampaignId((prev: any) => {
       const next = { ...prev };
       delete next[campaignId];
       return next;
     });
   };
 
-  const isCampaignActionLocked = (campaignId) => {
+  const isCampaignActionLocked = (campaignId: any) => {
     return Boolean(actionByCampaignId[campaignId]) || hasAnyMutationPending;
   };
 
-  const reconcileCampaignState = async (campaignId, rounds = 3) => {
+  const reconcileCampaignState = async (campaignId: any, rounds = 3) => {
     setIsReconciling(true);
     try {
       for (let attempt = 0; attempt < rounds; attempt += 1) {
@@ -402,7 +402,7 @@ export default function CampaignManagerPage() {
         }
 
         const results = await Promise.all(tasks);
-        const detailData = campaignId ? results[1]?.data : null;
+        const detailData: any = campaignId ? results[1]?.data : null;
         const status = detailData?.campaign?.status;
 
         if (!status || !TRANSIENT_CAMPAIGN_STATUSES.has(status)) {
@@ -424,15 +424,15 @@ export default function CampaignManagerPage() {
     actionFn,
     successMessage,
     rounds = 3,
-  }) => {
+  }: any) => {
     if (!campaignId) return;
 
-    lockCampaignAction(campaignId, action);
+    lockCampaignAction({ campaignId, action });
     try {
       await actionFn();
       await reconcileCampaignState(campaignId, rounds);
       enqueueSnackbar(successMessage, { variant: "success" });
-    } catch (error) {
+    } catch (error: any) {
       enqueueSnackbar(
         error?.response?.data?.message || "Campaign action failed.",
         { variant: "error" },
@@ -534,9 +534,9 @@ export default function CampaignManagerPage() {
         name: campaignName.trim(),
         subject: campaignSubject.trim(),
         templateHtml: campaignTemplateHtml,
-        audienceType: campaignAudienceType,
+        audienceType: campaignAudienceType as any,
         audienceQuery: createAudienceQuery(),
-        csvFile: campaignCsvFile,
+        csvFile: campaignCsvFile as any,
         scheduledAt: toIsoOrNull(campaignScheduledAt),
       });
 
@@ -546,7 +546,7 @@ export default function CampaignManagerPage() {
       setListTab("pending");
       setSelectedCampaignId(created?.id || null);
       await reconcileCampaignState(created?.id || null, 2);
-    } catch (error) {
+    } catch (error: any) {
       enqueueSnackbar(
         error?.response?.data?.message || "Failed to create campaign.",
         { variant: "error" },
@@ -961,7 +961,7 @@ export default function CampaignManagerPage() {
                       cursor: "pointer",
                       opacity:
                         Number(selectedCampaign.failedRecipients || 0) <= 0 ||
-                        isCampaignActionLocked(selectedCampaign.id)
+                          isCampaignActionLocked(selectedCampaign.id)
                           ? 0.5
                           : 1,
                     }}
@@ -1104,7 +1104,7 @@ export default function CampaignManagerPage() {
                     gap: 0.65,
                   }}
                 >
-                  {selectedCampaignRecipients.map((recipient) => (
+                  {selectedCampaignRecipients.map((recipient: any) => (
                     <Box
                       key={recipient.id}
                       sx={{
@@ -1360,7 +1360,7 @@ export default function CampaignManagerPage() {
                     setCampaignRoles(
                       Array.from(
                         event.target.selectedOptions,
-                        (option) => option.value,
+                        (option: any) => option.value,
                       ),
                     )
                   }
@@ -1501,7 +1501,7 @@ export default function CampaignManagerPage() {
                   component="input"
                   type="file"
                   accept=".csv,text/csv"
-                  onChange={(event) =>
+                  onChange={(event: any) =>
                     setCampaignCsvFile(event.target.files?.[0] || null)
                   }
                   sx={{ color: "rgba(255,255,255,0.85)", fontSize: 12 }}

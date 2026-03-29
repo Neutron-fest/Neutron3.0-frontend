@@ -1,12 +1,16 @@
 "use client";
 
-import { Suspense, useEffect, useState } from "react";
+import { Suspense, useEffect, useState, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import { Box, Typography, CircularProgress, Paper } from "@mui/material";
 import { LoginForm } from "@/src/components/forms/LoginForm";
 import { useSnackbar } from "notistack";
-import { useRef } from "react";
+
+interface LoginCredentials {
+  email: string;
+  password: string;
+}
 
 export default function AdminAuthPage() {
   return (
@@ -57,7 +61,7 @@ function AdminAuthPageContent() {
     }
   }, [checkAuth, enqueueSnackbar, searchParams]);
 
-  const handleLogin = async (credentials) => {
+  const handleLogin = async (credentials: LoginCredentials) => {
     setLoginError("");
     setIsLoggingIn(true);
     try {
@@ -330,12 +334,13 @@ function FullScreenLoader() {
 
 // Lightweight canvas starfield
 function StarField() {
-  const canvasRef = useRef(null);
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext("2d");
-    let raf;
+    if (!ctx) return;
+    let raf: number;
     const resize = () => {
       canvas.width = window.innerWidth;
       canvas.height = window.innerHeight;

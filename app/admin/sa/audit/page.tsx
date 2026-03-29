@@ -83,7 +83,7 @@ const ENTITY_OPTIONS = [
 ];
 
 /* ── Action colours ── */
-const ACTION_COLOR = (action) => {
+const ACTION_COLOR = (action: any) => {
   if (!action) return "rgba(255,255,255,0.35)";
   if (
     action.startsWith("USER_LOGIN") ||
@@ -167,7 +167,7 @@ const ROLE_COLORS = {
   },
 };
 
-function ActionPill({ action }) {
+function ActionPill({ action }: any) {
   const color = ACTION_COLOR(action);
   return (
     <Box
@@ -382,7 +382,7 @@ function LogsTab() {
   const [detailDialogOpen, setDetailDialogOpen] = useState(false);
 
   const filters = useMemo(() => {
-    const f = { page, limit: 50 };
+    const f: any = { page, limit: 50 };
     if (search) f.search = search;
     if (action) f.action = action;
     if (entityType) f.entityType = entityType;
@@ -399,7 +399,7 @@ function LogsTab() {
 
   const resetPage = () => setPage(1);
 
-  const fmtTs = (d) =>
+  const fmtTs = (d: any) =>
     new Date(d).toLocaleString("en-US", {
       month: "short",
       day: "numeric",
@@ -414,7 +414,7 @@ function LogsTab() {
   };
 
   const handleExport = () => {
-    const f = {};
+    const f: any = {};
     if (search) f.search = search;
     if (action) f.action = action;
     if (entityType) f.entityType = entityType;
@@ -1544,7 +1544,7 @@ function AnomaliesTab() {
 /*  Shared primitives                         */
 /* ══════════════════════════════════════════ */
 
-function StatCard({ label, value, color, small }) {
+function StatCard({ label, value, color, small }: any) {
   return (
     <Box
       sx={{

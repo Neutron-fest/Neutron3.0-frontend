@@ -19,7 +19,11 @@ import {
   getAdminNavigation,
 } from "@/src/components/navigation/Sidebar";
 
-export default function ClubLayout({ children }) {
+export default function ClubLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   const { user, loading, logout } = useAuth();
   const router = useRouter();
   const pathname = usePathname();

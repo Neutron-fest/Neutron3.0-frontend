@@ -13,8 +13,8 @@ const ROLE_BADGE = {
   MEMBER: { label: "Member", bg: "rgba(255,255,255,0.05)", color: "rgba(255,255,255,0.45)", border: "rgba(255,255,255,0.1)" },
 };
 
-function RoleBadge({ role }) {
-  const cfg = ROLE_BADGE[role?.toUpperCase()] || ROLE_BADGE.MEMBER;
+function RoleBadge({ role }: { role?: string }) {
+  const cfg = (role && ROLE_BADGE[role.toUpperCase() as keyof typeof ROLE_BADGE]) || ROLE_BADGE.MEMBER;
   return (
     <Box
       component="span"
@@ -40,7 +40,7 @@ function RoleBadge({ role }) {
   );
 }
 
-function StatCard({ label, value, color = "rgba(255,255,255,0.7)" }) {
+function StatCard({ label, value, color = "rgba(255,255,255,0.7)" }: { label: string; value?: number | string; color?: string }) {
   return (
     <Box
       sx={{

@@ -39,14 +39,14 @@ import { queryKeys } from "@/src/lib/queryKeys";
 
 /* ── Constants ── */
 
-const TYPE_LABELS = {
+const TYPE_LABELS: any = {
   SCORE_LOCK: "Score Lock",
   EVENT_UPDATE: "Event Update",
   COMPETITION_EDIT: "Competition Update",
   PROMO_CODE_ADD: "Promo Code",
 };
 
-const TYPE_COLORS = {
+const TYPE_COLORS: any = {
   SCORE_LOCK: {
     bg: "rgba(59,130,246,0.1)",
     text: "#60a5fa",
@@ -69,7 +69,7 @@ const TYPE_COLORS = {
   },
 };
 
-const STATUS_COLORS = {
+const STATUS_COLORS: any = {
   PENDING: {
     bg: "rgba(234,179,8,0.1)",
     text: "#fbbf24",
@@ -97,27 +97,27 @@ const STATUS_COLORS = {
   },
 };
 
-const fmtDate = (d) =>
+const fmtDate = (d: any) =>
   d
     ? new Date(d).toLocaleDateString("en-US", {
-        year: "numeric",
-        month: "short",
-        day: "numeric",
-      })
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    })
     : "—";
 
-const fmtDateTime = (d) =>
+const fmtDateTime = (d: any) =>
   d
     ? new Date(d).toLocaleString("en-US", {
-        year: "numeric",
-        month: "short",
-        day: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-      })
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    })
     : "—";
 
-const COMPETITION_FIELD_LABELS = {
+const COMPETITION_FIELD_LABELS: any = {
   title: "Title",
   shortDescription: "Short Description",
   category: "Category",
@@ -169,20 +169,20 @@ const COMPETITION_OVERVIEW_FIELDS = [
   "shortDescription",
 ];
 
-const toCompetitionRequestActionLabel = (action) => {
+const toCompetitionRequestActionLabel = (action: any) => {
   if (action === "CREATE_COMPETITION") return "Create Competition";
   if (action === "DELETE_COMPETITION") return "Delete Competition";
   if (action) {
     return action
       .toLowerCase()
       .split("_")
-      .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+      .map((part: any) => part.charAt(0).toUpperCase() + part.slice(1))
       .join(" ");
   }
   return "Update Competition";
 };
 
-const formatCompetitionFieldValue = (key, value) => {
+const formatCompetitionFieldValue = (key: any, value: any) => {
   if (value === null || value === undefined || value === "") return "—";
 
   if (typeof value === "boolean") {
@@ -225,7 +225,7 @@ const formatCompetitionFieldValue = (key, value) => {
   return String(value);
 };
 
-const getCompetitionRequestPreview = (approval) => {
+const getCompetitionRequestPreview = (approval: any) => {
   const requestData = approval?.requestData;
   if (!requestData) return null;
 
@@ -250,7 +250,7 @@ const getCompetitionRequestPreview = (approval) => {
   };
 };
 
-const getChangedCompetitionFieldRows = (before, proposed) => {
+const getChangedCompetitionFieldRows = (before: any, proposed: any) => {
   if (!before || !proposed) return [];
 
   const keys = Array.from(
@@ -263,10 +263,10 @@ const getChangedCompetitionFieldRows = (before, proposed) => {
 
   return keys
     .filter(
-      (key) =>
+      (key: any) =>
         JSON.stringify(before?.[key]) !== JSON.stringify(proposed?.[key]),
     )
-    .map((key) => ({
+    .map((key: any) => ({
       key,
       label: COMPETITION_FIELD_LABELS[key] || key,
       before: formatCompetitionFieldValue(key, before?.[key]),
@@ -274,7 +274,7 @@ const getChangedCompetitionFieldRows = (before, proposed) => {
     }));
 };
 
-const toFormRequestActionLabel = (action) => {
+const toFormRequestActionLabel = (action: any) => {
   if (action === "CREATE_FORM") return "Create Form";
   if (action === "UPDATE_FORM") return "Update Form";
   if (action === "DELETE_FORM") return "Delete Form";
@@ -282,11 +282,11 @@ const toFormRequestActionLabel = (action) => {
   return action
     .toLowerCase()
     .split("_")
-    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .map((part: any) => part.charAt(0).toUpperCase() + part.slice(1))
     .join(" ");
 };
 
-const getFormRequestPreview = (approval) => {
+const getFormRequestPreview = (approval: any) => {
   const requestData = approval?.requestData;
   if (!requestData) return null;
 
@@ -310,25 +310,25 @@ const getFormRequestPreview = (approval) => {
   };
 };
 
-const toAbsoluteUrl = (base, path) => {
+const toAbsoluteUrl = (base: any, path: any) => {
   if (!base || !path) return null;
   const normalizedBase = base.endsWith("/") ? base.slice(0, -1) : base;
   const normalizedPath = path.startsWith("/") ? path : `/${path}`;
   return `${normalizedBase}${normalizedPath}`;
 };
 
-const buildMediaCandidates = (mediaPath) => {
+const buildMediaCandidates = (mediaPath: any) => {
   if (!mediaPath || typeof mediaPath !== "string") return [];
 
-  const candidates = [];
-  const add = (value) => {
+  const candidates: any[] = [];
+  const add = (value: any) => {
     if (!value) return;
     if (!candidates.includes(value)) {
       candidates.push(value);
     }
   };
 
-  const normalizedPath = mediaPath.startsWith("/")
+  const normalizedPath: string = mediaPath.startsWith("/")
     ? mediaPath
     : `/${mediaPath}`;
 
@@ -357,7 +357,7 @@ const buildMediaCandidates = (mediaPath) => {
   return candidates;
 };
 
-const extractMediaPath = (value) => {
+const extractMediaPath = (value: any) => {
   if (!value) return null;
   if (typeof value === "string") return value;
   if (typeof value === "object") {
@@ -369,7 +369,7 @@ const extractMediaPath = (value) => {
 
 /* ── Sub-components ── */
 
-function Pill({ bg, text, border, children }) {
+function Pill({ bg, text, border, children }: any) {
   return (
     <Box
       component="span"
@@ -395,7 +395,7 @@ function Pill({ bg, text, border, children }) {
   );
 }
 
-function TypePill({ type }) {
+function TypePill({ type }: any) {
   const c = TYPE_COLORS[type] || {
     bg: "rgba(255,255,255,0.06)",
     text: "rgba(255,255,255,0.4)",
@@ -404,12 +404,12 @@ function TypePill({ type }) {
   return <Pill {...c}>{TYPE_LABELS[type] || type}</Pill>;
 }
 
-function StatusPill({ status }) {
+function StatusPill({ status }: any) {
   const c = STATUS_COLORS[status] || STATUS_COLORS.PENDING;
   return <Pill {...c}>{status}</Pill>;
 }
 
-function StatusBadge({ status }) {
+function StatusBadge({ status }: any) {
   const c = STATUS_COLORS[status] || STATUS_COLORS.PENDING;
   const Icon =
     status === "APPROVED" || status === "RESOLVED"
@@ -433,7 +433,7 @@ const RowDivider = () => (
   <Box sx={{ height: "1px", background: "rgba(255,255,255,0.06)" }} />
 );
 
-function TableHeader({ cols }) {
+function TableHeader({ cols }: any) {
   return (
     <Box
       sx={{
@@ -444,12 +444,12 @@ function TableHeader({ cols }) {
         background: "rgba(255,255,255,0.02)",
       }}
     >
-      {cols.split(" ").map((_, i, arr) => null)}
+      {cols.split(" ").map((_: any, { i, arr }: any) => null)}
     </Box>
   );
 }
 
-function EmptyRow({ message }) {
+function EmptyRow({ message }: any) {
   return (
     <Box sx={{ py: 8, textAlign: "center" }}>
       <AlertCircle size={16} color="rgba(255,255,255,0.15)" />
@@ -467,7 +467,7 @@ function EmptyRow({ message }) {
   );
 }
 
-function RequestMediaPreview({ label, path }) {
+function RequestMediaPreview({ label, path }: any) {
   const candidates = useMemo(() => buildMediaCandidates(path), [path]);
   const [candidateIndex, setCandidateIndex] = useState(0);
 
@@ -520,21 +520,21 @@ export default function RequestsPage() {
   const [typeFilter, setTypeFilter] = useState("all");
   const [approvalSearch, setApprovalSearch] = useState("");
 
-  const approvalFilters = {};
+  const approvalFilters: any = {};
   if (statusFilter !== "all") approvalFilters.status = statusFilter;
   if (typeFilter !== "all") approvalFilters.type = typeFilter;
 
   const { data: approvalsRes, isLoading: isApprovalsLoading } =
-    useApprovals(approvalFilters);
+    useApprovals(approvalFilters) as any;
   const { data: stats } = useApprovalStats();
   const approveMutation = useApproveRequest();
   const rejectMutation = useRejectRequest();
 
   const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
-  const [selectedApproval, setSelectedApproval] = useState(null);
+  const [selectedApproval, setSelectedApproval] = useState<any>(null);
   const [rejectReason, setRejectReason] = useState("");
   const [detailDialogOpen, setDetailDialogOpen] = useState(false);
-  const [detailApproval, setDetailApproval] = useState(null);
+  const [detailApproval, setDetailApproval] = useState<any>(null);
   const [processingApprovalId, setProcessingApprovalId] = useState(null);
   const [handledApprovalIds, setHandledApprovalIds] = useState(() => new Set());
 
@@ -547,12 +547,12 @@ export default function RequestsPage() {
   const competitionRequestPreview = useMemo(
     () => getCompetitionRequestPreview(detailApproval),
     [detailApproval],
-  );
+  ) as any;
 
   const formRequestPreview = useMemo(
     () => getFormRequestPreview(detailApproval),
     [detailApproval],
-  );
+  ) as any;
 
   const competitionRequestMedia = useMemo(() => {
     const requestData = detailApproval?.requestData || {};
@@ -585,10 +585,10 @@ export default function RequestsPage() {
   const publishPreviewCompetitionId =
     detailDialogOpen && detailApproval
       ? detailApproval?.relatedEntityId ||
-        detailApproval?.requestData?.competitionId ||
-        detailApproval?.requestData?.before?.id ||
-        detailApproval?.requestData?.proposed?.id ||
-        null
+      detailApproval?.requestData?.competitionId ||
+      detailApproval?.requestData?.before?.id ||
+      detailApproval?.requestData?.proposed?.id ||
+      null
       : null;
 
   const isCompetitionPublishRequest = useMemo(() => {
@@ -655,7 +655,7 @@ export default function RequestsPage() {
     if (!approvalSearch) return allApprovals;
     const q = approvalSearch.toLowerCase();
     return allApprovals.filter(
-      (a) =>
+      (a: any) =>
         (a.title || "").toLowerCase().includes(q) ||
         (a.description || "").toLowerCase().includes(q) ||
         (a.requestedBy?.name || "").toLowerCase().includes(q) ||
@@ -665,14 +665,14 @@ export default function RequestsPage() {
 
   const pendingCount =
     stats?.pendingCount ??
-    allApprovals.filter((a) => a.status === "PENDING").length;
+    allApprovals.filter((a: any) => a.status === "PENDING").length;
 
   /* score locks */
   const { data: lockRequests = [], isLoading: isLockLoading } =
     usePendingLockRequests();
   const reviewLockMutation = useReviewLockRequest();
   const [lockDialogOpen, setLockDialogOpen] = useState(false);
-  const [selectedLock, setSelectedLock] = useState(null);
+  const [selectedLock, setSelectedLock] = useState<any>(null);
   const [lockNotes, setLockNotes] = useState("");
 
   /* reviews */
@@ -703,7 +703,7 @@ export default function RequestsPage() {
 
   const { enqueueSnackbar } = useSnackbar();
 
-  const markApprovalHandled = (approvalId) => {
+  const markApprovalHandled = (approvalId: any) => {
     setHandledApprovalIds((previous) => {
       if (previous.has(approvalId)) return previous;
       const next = new Set(previous);
@@ -712,11 +712,11 @@ export default function RequestsPage() {
     });
   };
 
-  const isAlreadyProcessedError = (error) =>
+  const isAlreadyProcessedError = (error: any) =>
     error?.response?.data?.error === "APPROVAL_ALREADY_PROCESSED";
 
   /* handlers */
-  const handleApprove = async (approval) => {
+  const handleApprove = async (approval: any) => {
     if (!approval?.id || handledApprovalIds.has(approval.id)) {
       return;
     }
@@ -727,7 +727,7 @@ export default function RequestsPage() {
       markApprovalHandled(approval.id);
       enqueueSnackbar("Request approved", { variant: "success" });
       if (detailDialogOpen) setDetailDialogOpen(false);
-    } catch (err) {
+    } catch (err: any) {
       if (isAlreadyProcessedError(err)) {
         markApprovalHandled(approval.id);
         enqueueSnackbar(
@@ -752,7 +752,7 @@ export default function RequestsPage() {
     }
   };
 
-  const openReject = (approval) => {
+  const openReject = (approval: any) => {
     setSelectedApproval(approval);
     setRejectReason("");
     setRejectDialogOpen(true);
@@ -777,7 +777,7 @@ export default function RequestsPage() {
       setRejectDialogOpen(false);
       setSelectedApproval(null);
       setRejectReason("");
-    } catch (err) {
+    } catch (err: any) {
       if (isAlreadyProcessedError(err)) {
         markApprovalHandled(selectedApproval.id);
         enqueueSnackbar(
@@ -804,13 +804,13 @@ export default function RequestsPage() {
     }
   };
 
-  const openLock = (req) => {
+  const openLock = (req: any) => {
     setSelectedLock(req);
     setLockNotes("");
     setLockDialogOpen(true);
   };
 
-  const handleLockReview = async (status) => {
+  const handleLockReview = async (status: any) => {
     try {
       await reviewLockMutation.mutateAsync({
         requestId: selectedLock.id,
@@ -824,7 +824,7 @@ export default function RequestsPage() {
         },
       );
       setLockDialogOpen(false);
-    } catch (err) {
+    } catch (err: any) {
       enqueueSnackbar(
         err?.response?.data?.message || err?.message || "Failed",
         { variant: "error" },
@@ -832,11 +832,11 @@ export default function RequestsPage() {
     }
   };
 
-  const handleResolve = async (issueId) => {
+  const handleResolve = async (issueId: any) => {
     try {
       await resolveMutation.mutateAsync({ issueId });
       enqueueSnackbar("Issue resolved", { variant: "success" });
-    } catch (err) {
+    } catch (err: any) {
       enqueueSnackbar(
         err?.response?.data?.message || err?.message || "Failed",
         { variant: "error" },
@@ -996,14 +996,14 @@ export default function RequestsPage() {
                   },
                   {
                     label: "Approved",
-                    value: allApprovals.filter((a) => a.status === "APPROVED")
+                    value: allApprovals.filter((a: any) => a.status === "APPROVED")
                       .length,
                     color: "#4ade80",
                     id: "APPROVED",
                   },
                   {
                     label: "Rejected",
-                    value: allApprovals.filter((a) => a.status === "REJECTED")
+                    value: allApprovals.filter((a: any) => a.status === "REJECTED")
                       .length,
                     color: "#f87171",
                     id: "REJECTED",
@@ -1175,7 +1175,7 @@ export default function RequestsPage() {
                   {filteredApprovals.length === 0 ? (
                     <EmptyRow message="No approvals found" />
                   ) : (
-                    filteredApprovals.map((a, idx) => (
+                    filteredApprovals.map(({ a, idx }: any) => (
                       <Box key={a.id}>
                         {(() => {
                           const isLocallyHandled = handledApprovalIds.has(a.id);
@@ -1338,7 +1338,7 @@ export default function RequestsPage() {
                 {lockRequests.length === 0 ? (
                   <EmptyRow message="No pending score lock requests" />
                 ) : (
-                  lockRequests.map((req, idx) => (
+                  lockRequests.map(({ req, idx }: any) => (
                     <Box key={req.id}>
                       <Box
                         sx={{
@@ -1817,7 +1817,7 @@ export default function RequestsPage() {
         <DarkTextarea
           rows={3}
           value={rejectReason}
-          onChange={(e) => setRejectReason(e.target.value)}
+          onChange={(e: any) => setRejectReason(e.target.value)}
           placeholder="Reason for rejection…"
         />
         <BtnRow>
@@ -2096,26 +2096,26 @@ export default function RequestsPage() {
 
                     {(competitionRequestMedia.posterPath ||
                       competitionRequestMedia.bannerPath) && (
-                      <>
-                        <Label>Media Preview</Label>
-                        <Box
-                          sx={{
-                            display: "grid",
-                            gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" },
-                            gap: 1.5,
-                          }}
-                        >
-                          <RequestMediaPreview
-                            label="Poster"
-                            path={competitionRequestMedia.posterPath}
-                          />
-                          <RequestMediaPreview
-                            label="Banner"
-                            path={competitionRequestMedia.bannerPath}
-                          />
-                        </Box>
-                      </>
-                    )}
+                        <>
+                          <Label>Media Preview</Label>
+                          <Box
+                            sx={{
+                              display: "grid",
+                              gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" },
+                              gap: 1.5,
+                            }}
+                          >
+                            <RequestMediaPreview
+                              label="Poster"
+                              path={competitionRequestMedia.posterPath}
+                            />
+                            <RequestMediaPreview
+                              label="Banner"
+                              path={competitionRequestMedia.bannerPath}
+                            />
+                          </Box>
+                        </>
+                      )}
 
                     {changedCompetitionRows.length > 0 && (
                       <>
@@ -2260,7 +2260,7 @@ export default function RequestsPage() {
                           {formRequestPreview.proposed?.fields?.length || 0})
                         </Label>
                         {Array.isArray(formRequestPreview.proposed?.fields) &&
-                        formRequestPreview.proposed.fields.length > 0 ? (
+                          formRequestPreview.proposed.fields.length > 0 ? (
                           <Box
                             sx={{
                               maxHeight: 240,
@@ -2270,7 +2270,7 @@ export default function RequestsPage() {
                             }}
                           >
                             {formRequestPreview.proposed.fields.map(
-                              (field, index) => (
+                              ({ field, index }: any) => (
                                 <Box
                                   key={`${field?.label || "field"}-${index}`}
                                 >
@@ -2309,7 +2309,7 @@ export default function RequestsPage() {
                                   </Box>
                                   {index <
                                     formRequestPreview.proposed.fields.length -
-                                      1 && <RowDivider />}
+                                    1 && <RowDivider />}
                                 </Box>
                               ),
                             )}
@@ -2440,7 +2440,7 @@ export default function RequestsPage() {
         <DarkTextarea
           rows={3}
           value={lockNotes}
-          onChange={(e) => setLockNotes(e.target.value)}
+          onChange={(e: any) => setLockNotes(e.target.value)}
           placeholder="Optional review notes…"
         />
         <BtnRow>
@@ -2466,7 +2466,7 @@ export default function RequestsPage() {
 
 /* ── Primitives ── */
 
-function Label({ children }) {
+function Label({ children }: any) {
   return (
     <Typography
       sx={{
@@ -2483,7 +2483,7 @@ function Label({ children }) {
   );
 }
 
-function PreviewItem({ label, value }) {
+function PreviewItem({ label, value }: any) {
   return (
     <Box>
       <Label>{label}</Label>
@@ -2501,7 +2501,7 @@ function PreviewItem({ label, value }) {
   );
 }
 
-function DarkDialog({ open, onClose, title, children }) {
+function DarkDialog({ open, onClose, title, children }: any) {
   return (
     <Dialog
       open={open}
@@ -2541,7 +2541,7 @@ function DarkDialog({ open, onClose, title, children }) {
   );
 }
 
-function NativeSelect({ value, onChange, children }) {
+function NativeSelect({ value, onChange, children }: any) {
   return (
     <select
       value={value}
@@ -2563,7 +2563,7 @@ function NativeSelect({ value, onChange, children }) {
   );
 }
 
-function DarkTextarea({ rows = 3, value, onChange, placeholder }) {
+function DarkTextarea({ rows = 3, value, onChange, placeholder }: any) {
   return (
     <textarea
       rows={rows}
@@ -2587,7 +2587,7 @@ function DarkTextarea({ rows = 3, value, onChange, placeholder }) {
   );
 }
 
-function DangerNote({ children }) {
+function DangerNote({ children }: any) {
   return (
     <Box
       sx={{
@@ -2611,7 +2611,7 @@ function DangerNote({ children }) {
   );
 }
 
-function BtnRow({ children }) {
+function BtnRow({ children }: any) {
   return (
     <Box sx={{ display: "flex", gap: 1, justifyContent: "flex-end", mt: 3 }}>
       {children}
@@ -2647,7 +2647,7 @@ const btnBase = {
   gap: 5,
 };
 
-function GhostBtn({ onClick, children, loading, disabled, style }) {
+function GhostBtn({ onClick, children, loading, disabled, style }: any) {
   const isDisabled = disabled || loading;
   return (
     <button
@@ -2679,7 +2679,7 @@ function GhostBtn({ onClick, children, loading, disabled, style }) {
   );
 }
 
-function PrimaryBtn({ onClick, children, loading, disabled }) {
+function PrimaryBtn({ onClick, children, loading, disabled }: any) {
   const isDisabled = disabled || loading;
   return (
     <button
@@ -2707,7 +2707,7 @@ function PrimaryBtn({ onClick, children, loading, disabled }) {
   );
 }
 
-function GreenBtn({ onClick, children, loading, disabled }) {
+function GreenBtn({ onClick, children, loading, disabled }: any) {
   const isDisabled = disabled || loading;
   return (
     <button
@@ -2735,7 +2735,7 @@ function GreenBtn({ onClick, children, loading, disabled }) {
   );
 }
 
-function DangerBtn({ onClick, children, loading, disabled }) {
+function DangerBtn({ onClick, children, loading, disabled }: any) {
   const isDisabled = disabled || loading;
   return (
     <button

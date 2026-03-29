@@ -36,7 +36,7 @@ import { LoadingState } from "@/src/components/LoadingState";
 
 const CLUB_MEMBER_ROLES = ["MEMBER", "COORDINATOR", "HEAD"];
 
-const ROLE_LABEL = {
+const ROLE_LABEL: any = {
   SA: "Super Admin",
   BOARD: "Board",
   DH: "Dept Head",
@@ -67,7 +67,7 @@ export default function ClubsPage() {
 
   const [searchQuery, setSearchQuery] = useState("");
   const [anchorEl, setAnchorEl] = useState(null);
-  const [menuClub, setMenuClub] = useState(null);
+  const [menuClub, setMenuClub] = useState<any>(null);
 
   const [dialogType, setDialogType] = useState(null);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -77,8 +77,8 @@ export default function ClubsPage() {
   const [logoUrl, setLogoUrl] = useState("");
   const [isActive, setIsActive] = useState(true);
 
-  const [selectedClubId, setSelectedClubId] = useState(null);
-  const [selectedMemberIds, setSelectedMemberIds] = useState([]);
+  const [selectedClubId, setSelectedClubId] = useState<any>(null);
+  const [selectedMemberIds, setSelectedMemberIds] = useState<any>([]);
   const [memberRole, setMemberRole] = useState("MEMBER");
   const [memberSearch, setMemberSearch] = useState("");
   const [removingUserId, setRemovingUserId] = useState(null);
@@ -87,7 +87,7 @@ export default function ClubsPage() {
     data: selectedClub,
     isLoading: selectedClubLoading,
     refetch: refetchSelectedClub,
-  } = useClub(selectedClubId);
+  } = useClub(selectedClubId) as any;
 
   const filteredClubs = useMemo(() => {
     if (!searchQuery.trim()) return clubs;
@@ -101,7 +101,7 @@ export default function ClubsPage() {
 
   const existingMemberIds = useMemo(() => {
     const members = selectedClub?.members || [];
-    return new Set(members.map((m) => m?.userId).filter(Boolean));
+    return new Set(members.map((m: any) => m?.userId).filter(Boolean));
   }, [selectedClub?.members]);
 
   // Merge volunteers + club heads as assignable users
@@ -130,7 +130,7 @@ export default function ClubsPage() {
     );
   }, [availableMembers, memberSearch]);
 
-  const getErrorMessage = (error, fallback) =>
+  const getErrorMessage = (error: any, fallback: any) =>
     error?.response?.data?.message || error?.message || fallback;
 
   const closeDialog = () => {
@@ -148,7 +148,7 @@ export default function ClubsPage() {
     setRemovingUserId(null);
   };
 
-  const openDialog = (type, club = null) => {
+  const openDialog = (type: any, club: any = null) => {
     setDialogType(type);
     setMenuClub(club);
 
@@ -245,7 +245,7 @@ export default function ClubsPage() {
     }
 
     const results = await Promise.allSettled(
-      selectedMemberIds.map((userId) =>
+      selectedMemberIds.map((userId: any) =>
         assignMemberMutation.mutateAsync({
           clubId: menuClub.id,
           userId,
@@ -275,7 +275,7 @@ export default function ClubsPage() {
     closeDialog();
   };
 
-  const handleRemoveMember = async (member) => {
+  const handleRemoveMember = async (member: any) => {
     if (!selectedClubId || !member?.userId) return;
     try {
       setRemovingUserId(member.userId);
@@ -659,7 +659,7 @@ export default function ClubsPage() {
                   {/* Actions */}
                   <IconButton
                     size="small"
-                    onClick={(e) => {
+                    onClick={(e: any) => {
                       e.stopPropagation();
                       setAnchorEl(e.currentTarget);
                       setMenuClub(club);
@@ -731,14 +731,14 @@ export default function ClubsPage() {
       >
         <DarkInput
           value={name}
-          onChange={(e) => setName(e.target.value)}
+          onChange={(e: any) => setName(e.target.value)}
           placeholder="Club name"
           style={{ marginBottom: 12 }}
         />
         <DarkTextarea
           rows={3}
           value={description}
-          onChange={(e) => setDescription(e.target.value)}
+          onChange={(e: any) => setDescription(e.target.value)}
           placeholder="Description (optional)"
         />
         <Typography
@@ -756,7 +756,7 @@ export default function ClubsPage() {
         </Typography>
         <DarkInput
           value={logoUrl}
-          onChange={(e) => setLogoUrl(e.target.value)}
+          onChange={(e: any) => setLogoUrl(e.target.value)}
           placeholder="https://…"
           style={{ marginBottom: 12 }}
         />
@@ -967,9 +967,9 @@ export default function ClubsPage() {
                 <Box key={u.id}>
                   <Box
                     onClick={() =>
-                      setSelectedMemberIds((prev) =>
+                      setSelectedMemberIds((prev: any) =>
                         checked
-                          ? prev.filter((id) => id !== u.id)
+                          ? prev.filter((id: any) => id !== u.id)
                           : [...prev, u.id],
                       )
                     }
@@ -1147,7 +1147,7 @@ export default function ClubsPage() {
               borderRadius: "10px",
             }}
           >
-            {selectedClub.members.map((member, idx) => {
+            {selectedClub?.members?.map((member: any, idx: any) => {
               const isHead = member.role === "HEAD";
               const sysRole = member.user?.role;
               return (
@@ -1267,7 +1267,7 @@ export default function ClubsPage() {
                         }
                       >
                         {removeMemberMutation.isPending &&
-                        removingUserId === member.userId
+                          removingUserId === member.userId
                           ? "Removing…"
                           : "Remove"}
                       </DangerBtn>
@@ -1300,7 +1300,7 @@ const RowDivider = () => (
   <Box sx={{ height: "1px", background: "rgba(255,255,255,0.06)" }} />
 );
 
-function DarkDialog({ open, onClose, title, children }) {
+function DarkDialog({ open, onClose, title, children }: any) {
   return (
     <Dialog
       open={open}
@@ -1340,7 +1340,7 @@ function DarkDialog({ open, onClose, title, children }) {
   );
 }
 
-function DarkInput({ type = "text", value, onChange, placeholder, style = {}, ...rest }) {
+function DarkInput({ type = "text", value, onChange, placeholder, style = {}, ...rest }: any) {
   return (
     <input
       type={type}
@@ -1365,7 +1365,7 @@ function DarkInput({ type = "text", value, onChange, placeholder, style = {}, ..
   );
 }
 
-function DarkTextarea({ rows = 3, value, onChange, placeholder }) {
+function DarkTextarea({ rows = 3, value, onChange, placeholder }: any) {
   return (
     <textarea
       rows={rows}
@@ -1389,7 +1389,7 @@ function DarkTextarea({ rows = 3, value, onChange, placeholder }) {
   );
 }
 
-function DangerNote({ children }) {
+function DangerNote({ children }: any) {
   return (
     <Box
       sx={{
@@ -1413,7 +1413,7 @@ function DangerNote({ children }) {
   );
 }
 
-function BtnRow({ children }) {
+function BtnRow({ children }: any) {
   return (
     <Box sx={{ display: "flex", gap: 1, justifyContent: "flex-end", mt: 3 }}>
       {children}
@@ -1421,7 +1421,7 @@ function BtnRow({ children }) {
   );
 }
 
-function CtxItem({ onClick, icon, color = "rgba(255,255,255,0.65)", children }) {
+function CtxItem({ onClick, icon, color = "rgba(255,255,255,0.65)", children }: any) {
   return (
     <MenuItem
       onClick={onClick}
@@ -1440,7 +1440,7 @@ function CtxItem({ onClick, icon, color = "rgba(255,255,255,0.65)", children }) 
   );
 }
 
-function InlineBtn({ onClick, icon, children }) {
+function InlineBtn({ onClick, icon, children }: any) {
   return (
     <button
       onClick={onClick}
@@ -1503,7 +1503,7 @@ function BtnSpinner({ color = "currentColor" }) {
   );
 }
 
-function GhostBtn({ onClick, children, loading, disabled }) {
+function GhostBtn({ onClick, children, loading, disabled }: any) {
   const isDisabled = disabled || loading;
   return (
     <button
@@ -1534,7 +1534,7 @@ function GhostBtn({ onClick, children, loading, disabled }) {
   );
 }
 
-function PrimaryBtn({ onClick, children, disabled, loading }) {
+function PrimaryBtn({ onClick, children, disabled, loading }: any) {
   const isDisabled = disabled || loading;
   return (
     <button
@@ -1562,7 +1562,7 @@ function PrimaryBtn({ onClick, children, disabled, loading }) {
   );
 }
 
-function DangerBtn({ onClick, children, disabled, loading }) {
+function DangerBtn({ onClick, children, disabled, loading }: any) {
   const isDisabled = disabled || loading;
   return (
     <button
