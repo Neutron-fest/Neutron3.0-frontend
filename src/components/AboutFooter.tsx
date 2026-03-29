@@ -18,7 +18,7 @@ export default function AboutFooter() {
   return (
     <footer className="relative w-full bg-black text-white pt-32 overflow-hidden border-t border-white/5">
       <div className="max-w-7xl mx-auto px-4 md:px-12">
-        <div className="flex flex-col items-center justify-center mb-40">
+        <div className="flex flex-col items-center justify-center mb-24 md:mb-40">
           <motion.div 
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -44,7 +44,7 @@ export default function AboutFooter() {
             </p>
           </div>
 
-          <div className="flex flex-wrap gap-x-8 gap-y-4 md:justify-end items-start h-min">
+          <div className="grid grid-cols-2 md:flex md:flex-wrap gap-x-8 gap-y-6 md:justify-end items-start h-min">
             {SOCIAL_LINKS.map((link) => (
               <a 
                 key={link.label}
@@ -64,7 +64,7 @@ export default function AboutFooter() {
             <span>©2026</span>
           </div>
 
-          <div className="flex items-center gap-12 w-full md:w-auto justify-between md:justify-end group">
+          <div className="flex items-center gap-12 w-full md:w-auto justify-center md:justify-end group">
             <a 
               href="mailto:HELLO@NEUTRONFEST.COM" 
               className="flex items-center gap-2 group-hover:text-white cursor-pointer transition-colors duration-300"

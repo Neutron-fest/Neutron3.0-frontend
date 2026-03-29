@@ -42,7 +42,7 @@ export default function AboutTeam() {
     target: targetRef,
   });
 
-  const x = useTransform(scrollYProgress, [0, 1], ["5%", "-65%"]);
+  const x = useTransform(scrollYProgress, [0, 1], ["1%", "-82%"]);
 
   return (
     <section ref={targetRef} className="relative h-[400vh] bg-transparent">
