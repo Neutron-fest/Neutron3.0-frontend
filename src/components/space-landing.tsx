@@ -683,7 +683,7 @@ export default function SpaceLanding() {
               { label: "Terms",   href: "/terms",   drift: "star-link-a 9s ease-in-out infinite",  delay: "0s"   },
               { label: "Privacy", href: "/privacy", drift: "star-link-b 11s ease-in-out infinite", delay: "1.4s" },
               { label: "Contact", href: "/contact", drift: "star-link-c 13s ease-in-out infinite", delay: "0.6s" },
-              // { label: "About",   href: "/about",   drift: "star-link-d 10s ease-in-out infinite", delay: "2s"   },
+              { label: "About",   href: "/about",   drift: "star-link-d 10s ease-in-out infinite", delay: "2s"   },
               { label: "FAQ",     href: "/faq",     drift: "star-link-e 12s ease-in-out infinite", delay: "0.9s" },
             ].map(({ label, href, drift, delay }, index) => {
               const pos = planetPositions[index];
@@ -701,12 +701,10 @@ export default function SpaceLanding() {
           </div>
         )}
 
-        {/* ── Scroll container (planets phase only) ─────────────────── */}
         {scenePhase === "planets" && (
           <div className="relative z-20 pointer-events-none h-[50000svh]" aria-hidden="true" />
         )}
 
-        {/* ── Action Lines during Zoom ─────────────────────────── */}
         <AnimatePresence>
           {isEntering && (
             <motion.div
@@ -719,7 +717,7 @@ export default function SpaceLanding() {
                 backgroundImage: "url('https://www.pngmart.com/files/23/Anime-Lines-PNG-Pic.png')",
                 backgroundSize: "cover",
                 backgroundPosition: "center",
-                filter: "invert(1)", // Turn black manga lines into bright white warp beams
+                filter: "invert(1)",
               }}
             />
           )}
@@ -745,7 +743,7 @@ export default function SpaceLanding() {
               exit={{ opacity: 0, y: -20 }}
               transition={{ duration: 1, delay: 1 }}
             >
-              <p className="text-[0.7rem] uppercase tracking-[0.4em] text-black/50 font-primary font-bold">
+              <p className="text-[0.7rem] uppercase tracking-[0.4em] text-black/50 font-mono font-bold">
                 Scroll to Explore
               </p>
               <motion.div 
