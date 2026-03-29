@@ -14,7 +14,7 @@ interface MobileNavbarProps {
 
 const DISCOVER_LINKS = [
   { name: "Home", href: "/" },
-  { name: "About Us", href: "/news" },
+  { name: "About Us", href: "/about" },
   { name: "Competitions", href: "/planets/jupiter" },
   { name: "Events", href: "/planets/venus" },
   { name: "Campus Ambassador", href: "https://ca.neutronfest.org" },

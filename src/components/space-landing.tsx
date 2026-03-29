@@ -179,7 +179,13 @@ export default function SpaceLanding() {
     setNavigatingPlanet(slug);
     saveScrollY();
     routeTimeoutRef.current = window.setTimeout(() => {
-      startTransition(() => { router.push(`/planets/${slug}`); });
+      startTransition(() => { 
+        if (slug === "mars") {
+          router.push("/about"); 
+        } else {
+          router.push(`/planets/${slug}`);
+        }
+      });
     }, 420);
   });
 

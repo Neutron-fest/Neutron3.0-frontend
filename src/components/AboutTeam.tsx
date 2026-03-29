@@ -48,13 +48,6 @@ export default function AboutTeam() {
     <section ref={targetRef} className="relative h-[400vh] bg-transparent">
       <div className="sticky top-0 flex h-screen items-center overflow-hidden pt-30">
         <div className="absolute top-24 left-4 md:left-12 z-10">
-          <motion.span 
-            initial={{ opacity: 0, x: -20 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            className="text-[#ffb84d] font-mono text-xs uppercase tracking-[0.4em] mb-4 block"
-          >
-            The Force Behind Neutron
-          </motion.span>
           <motion.h2 
             initial={{ opacity: 0, x: -20 }}
             whileInView={{ opacity: 1, x: 0 }}
