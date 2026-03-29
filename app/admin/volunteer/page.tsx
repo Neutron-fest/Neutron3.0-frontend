@@ -24,7 +24,7 @@ import { useVolunteerAttendanceProfile } from "@/src/hooks/api/useAttendance";
 
 const sy = { fontFamily: "'Syne', sans-serif" };
 
-function SectionLabel({ children }) {
+function SectionLabel({ children }: any) {
   return (
     <Typography
       sx={{
@@ -48,7 +48,7 @@ export default function VolunteerDashboardPage() {
   const isGateVolunteer = !!profile?.isRegistrationDeskVolunteer;
   const assignedComps = profile?.assignedCompetitions || [];
   const attendanceComps = assignedComps.filter(
-    (ac) => ac.competition?.attendanceRequired,
+    (ac: any) => ac.competition?.attendanceRequired,
   );
   const canMarkAttendance = isGateVolunteer || attendanceComps.length > 0;
 
@@ -306,7 +306,7 @@ export default function VolunteerDashboardPage() {
         <Box>
           <SectionLabel>Assigned Competitions</SectionLabel>
           <Stack spacing={1}>
-            {assignedComps.map((ac) => {
+            {assignedComps.map((ac: any) => {
               const comp = ac.competition;
               return (
                 <Paper

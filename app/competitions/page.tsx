@@ -6,7 +6,7 @@ import { Box, CircularProgress, Typography } from "@mui/material";
 import { Search, Calendar, Users, ArrowRight } from "lucide-react";
 import { useCompetitions } from "@/src/hooks/api/useCompetitions";
 
-const inputStyle = {
+const inputStyle: any = {
   width: "100%",
   padding: "10px 12px 10px 34px",
   background: "rgba(255,255,255,0.04)",
@@ -19,7 +19,7 @@ const inputStyle = {
   boxSizing: "border-box",
 };
 
-function CompetitionCard({ competition }) {
+function CompetitionCard({ competition }: any) {
   const registrationOpen =
     competition?.registrationsOpen &&
     competition?.status === "OPEN" &&
@@ -124,7 +124,7 @@ function CompetitionCard({ competition }) {
   );
 }
 
-function Meta({ icon, label }) {
+function Meta({ icon, label }: any) {
   return (
     <Typography
       sx={{
@@ -149,13 +149,13 @@ export default function PublicCompetitionsPage() {
     isLoading,
     isError,
     error,
-  } = useCompetitions();
+  } = useCompetitions() as any;
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
     if (!q) return competitions;
 
-    return competitions.filter((competition) => {
+    return competitions.filter((competition: any) => {
       return (
         (competition.title || "").toLowerCase().includes(q) ||
         (competition.shortDescription || "").toLowerCase().includes(q) ||
@@ -254,7 +254,7 @@ export default function PublicCompetitionsPage() {
               gridTemplateColumns: { xs: "1fr", md: "1fr 1fr" },
             }}
           >
-            {filtered.map((competition) => (
+            {filtered.map((competition: any) => (
               <CompetitionCard key={competition.id} competition={competition} />
             ))}
           </Box>

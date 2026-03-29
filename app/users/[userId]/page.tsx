@@ -38,16 +38,16 @@ import {
 } from "@/src/hooks/api/usePublicRegistration";
 
 /* ─── helpers ─── */
-const fmt = (v) =>
+const fmt = (v: any) =>
   v
     ? new Date(v).toLocaleDateString("en-IN", {
-        day: "numeric",
-        month: "short",
-        year: "numeric",
-      })
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+    })
     : "—";
 
-const STATUS_MAP = {
+const STATUS_MAP: any = {
   APPROVED: {
     color: "#86efac",
     bg: "rgba(74,222,128,0.10)",
@@ -70,7 +70,7 @@ const STATUS_MAP = {
   },
 };
 
-const ADMIN_DASHBOARD_BY_ROLE = {
+const ADMIN_DASHBOARD_BY_ROLE: any = {
   SA: "/admin/sa",
   DH: "/admin/dh",
   JUDGE: "/admin/judge",
@@ -78,7 +78,7 @@ const ADMIN_DASHBOARD_BY_ROLE = {
   VH: "/admin/volunteer",
 };
 
-function StatusBadge({ value }) {
+function StatusBadge({ value }: any) {
   const key = (value || "").toUpperCase();
   const t = STATUS_MAP[key] || STATUS_MAP.PENDING;
   return (
@@ -102,7 +102,7 @@ function StatusBadge({ value }) {
 }
 
 /* ─── small ghost btn ─── */
-function GhostBtn({ onClick, disabled, color = "#c084fc", children, title }) {
+function GhostBtn({ onClick, disabled, color = "#c084fc", children, title }: any) {
   return (
     <button
       type="button"
@@ -132,7 +132,7 @@ function GhostBtn({ onClick, disabled, color = "#c084fc", children, title }) {
 }
 
 /* ─── invite card ─── */
-function InviteCard({ item, onAccept, onDecline, busyToken }) {
+function InviteCard({ item, onAccept, onDecline, busyToken }: any) {
   const token = item?.invite?.inviteToken;
   const busy = busyToken === token;
   return (
@@ -198,7 +198,7 @@ function InviteCard({ item, onAccept, onDecline, busyToken }) {
 }
 
 /* ─── team card ─── */
-function TeamCard({ item, viewer, showManagement }) {
+function TeamCard({ item, viewer, showManagement }: any) {
   const { enqueueSnackbar } = useSnackbar();
   const teamId = item?.team?.id;
   const [inviteEmail, setInviteEmail] = useState("");
@@ -222,18 +222,18 @@ function TeamCard({ item, viewer, showManagement }) {
   const pendingSent = useMemo(() => {
     const now = new Date();
     return (teamDetails?.invites || []).filter(
-      (i) =>
+      (i: any) =>
         i?.status === "PENDING" &&
         (!i?.expiresAt || new Date(i.expiresAt) > now),
     );
   }, [teamDetails?.invites]);
 
   const leaderTargets = useMemo(
-    () => members.filter((m) => m?.user?.id && m.user.id !== viewer?.id),
+    () => members.filter((m: any) => m?.user?.id && m.user.id !== viewer?.id),
     [members, viewer?.id],
   );
 
-  const toast = (msg, v) => enqueueSnackbar(msg, { variant: v });
+  const toast = (msg: any, v: any) => enqueueSnackbar(msg, { variant: v });
 
   const doInvite = async () => {
     const email = inviteEmail.trim().toLowerCase();
@@ -242,16 +242,16 @@ function TeamCard({ item, viewer, showManagement }) {
       await sendInvite.mutateAsync({ teamId, invitedEmail: email });
       toast("Invite sent.", "success");
       setInviteEmail("");
-    } catch (e) {
+    } catch (e: any) {
       toast(e?.response?.data?.message || "Failed.", "error");
     }
   };
 
-  const doRemoveMember = async (id) => {
+  const doRemoveMember = async (id: any) => {
     try {
       await removeMember.mutateAsync({ teamId, memberId: id });
       toast("Member removed.", "success");
-    } catch (e) {
+    } catch (e: any) {
       toast(e?.response?.data?.message || "Failed.", "error");
     }
   };
@@ -262,7 +262,7 @@ function TeamCard({ item, viewer, showManagement }) {
       await transferLeadership.mutateAsync({ teamId, newLeaderId });
       toast("Leadership transferred.", "success");
       setNewLeaderId("");
-    } catch (e) {
+    } catch (e: any) {
       toast(e?.response?.data?.message || "Failed.", "error");
     }
   };
@@ -271,16 +271,16 @@ function TeamCard({ item, viewer, showManagement }) {
     try {
       await leaveTeam.mutateAsync(teamId);
       toast("You left the team.", "success");
-    } catch (e) {
+    } catch (e: any) {
       toast(e?.response?.data?.message || "Failed.", "error");
     }
   };
 
-  const doRemovePending = async (id) => {
+  const doRemovePending = async (id: any) => {
     try {
       await removePendingInvite.mutateAsync({ teamId, inviteId: id });
       toast("Invite removed.", "success");
-    } catch (e) {
+    } catch (e: any) {
       toast(e?.response?.data?.message || "Failed.", "error");
     }
   };
@@ -388,7 +388,7 @@ function TeamCard({ item, viewer, showManagement }) {
             flexWrap: "wrap",
           }}
         >
-          {members.map((m) => {
+          {members.map((m: any) => {
             const isL = m?.teamMember?.isLeader;
             return (
               <div
@@ -461,7 +461,7 @@ function TeamCard({ item, viewer, showManagement }) {
                   <div
                     style={{ display: "flex", flexDirection: "column", gap: 6 }}
                   >
-                    {pendingSent.map((inv) => (
+                    {pendingSent.map((inv: any) => (
                       <div
                         key={inv.id}
                         style={{
@@ -505,15 +505,15 @@ function TeamCard({ item, viewer, showManagement }) {
               )}
 
               {/* remove members */}
-              {members.filter((m) => !m?.teamMember?.isLeader).length > 0 && (
+              {members.filter((m: any) => !m?.teamMember?.isLeader).length > 0 && (
                 <div>
                   <div className="section-micro-label">Remove Member</div>
                   <div
                     style={{ display: "flex", flexDirection: "column", gap: 6 }}
                   >
                     {members
-                      .filter((m) => !m?.teamMember?.isLeader)
-                      .map((m) => (
+                      .filter((m: any) => !m?.teamMember?.isLeader)
+                      .map((m: any) => (
                         <div
                           key={m?.user?.id}
                           style={{
@@ -561,7 +561,7 @@ function TeamCard({ item, viewer, showManagement }) {
                       style={{ flex: 1, minWidth: 180 }}
                     >
                       <option value="">Select new leader…</option>
-                      {leaderTargets.map((m) => (
+                      {leaderTargets.map((m: any) => (
                         <option key={m.user.id} value={m.user.id}>
                           {m.user.name || m.user.email}
                         </option>
@@ -601,7 +601,7 @@ function TeamCard({ item, viewer, showManagement }) {
 }
 
 /* ─── TAB NAV ─── */
-function TabBar({ tabs, active, onChange, counts }) {
+function TabBar({ tabs, active, onChange, counts }: any) {
   return (
     <div
       style={{
@@ -611,7 +611,7 @@ function TabBar({ tabs, active, onChange, counts }) {
         marginBottom: 24,
       }}
     >
-      {tabs.map((tab) => {
+      {tabs.map((tab: any) => {
         const isActive = active === tab.id;
         return (
           <button
@@ -671,15 +671,15 @@ export default function PublicUserProfilePage() {
   const params = useParams();
   const router = useRouter();
   const { enqueueSnackbar } = useSnackbar();
-  const { user: viewer, loading: authLoading, logout } = useAuth();
+  const { user: viewer, loading: authLoading, logout }: any = useAuth();
 
-  const userId = params?.userId;
+  const userId: any = params?.userId;
   const {
     data: profile,
     isLoading,
     isError,
     error,
-  } = usePublicUserProfile(userId);
+  }: any = usePublicUserProfile(userId);
 
   const isOwner = Boolean(viewer?.id && userId && viewer.id === userId);
 
@@ -747,7 +747,7 @@ export default function PublicUserProfilePage() {
     [viewer?.role],
   );
 
-  const onAccept = async (token) => {
+  const onAccept = async (token: any) => {
     if (!token) return;
     try {
       setInviteActionToken(token);
@@ -759,7 +759,7 @@ export default function PublicUserProfilePage() {
       const tId = result?.team?.id;
       if (cId && tId)
         router.push(`/competitions/${cId}/register?mode=member&teamId=${tId}`);
-    } catch (e) {
+    } catch (e: any) {
       enqueueSnackbar(e?.response?.data?.message || "Failed to accept.", {
         variant: "error",
       });
@@ -768,13 +768,13 @@ export default function PublicUserProfilePage() {
     }
   };
 
-  const onDecline = async (token) => {
+  const onDecline = async (token: any) => {
     if (!token) return;
     try {
       setInviteActionToken(token);
       await declineInvite.mutateAsync(token);
       enqueueSnackbar("Invite declined.", { variant: "success" });
-    } catch (e) {
+    } catch (e: any) {
       enqueueSnackbar(e?.response?.data?.message || "Failed to decline.", {
         variant: "error",
       });
@@ -1130,7 +1130,7 @@ export default function PublicUserProfilePage() {
               {profileRegs.length === 0 ? (
                 <div className="empty-state">No registrations yet.</div>
               ) : (
-                profileRegs.map((item) => (
+                profileRegs.map((item: any) => (
                   <div
                     key={item?.registration?.id}
                     className="card"
@@ -1229,7 +1229,7 @@ export default function PublicUserProfilePage() {
               ) : pendingInvites.length === 0 ? (
                 <div className="empty-state">No pending invites.</div>
               ) : (
-                pendingInvites.map((inv) => (
+                pendingInvites.map((inv: any) => (
                   <InviteCard
                     key={inv?.invite?.id || inv?.invite?.inviteToken}
                     item={inv}

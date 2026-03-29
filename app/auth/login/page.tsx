@@ -29,7 +29,7 @@ function PublicLoginPageContent() {
     }
   }, [loading, user, router, forceLogin]);
 
-  const handleSubmit = async (event) => {
+  const handleSubmit = async (event: any) => {
     event.preventDefault();
     setSubmitting(true);
     setError("");
@@ -82,12 +82,12 @@ function PublicLoginPageContent() {
 
       setResendMessage(
         data?.message ||
-          "If your account needs verification, we sent a verification email.",
+        "If your account needs verification, we sent a verification email.",
       );
-    } catch (resendVerificationError) {
+    } catch (resendVerificationError: any) {
       setResendError(
         resendVerificationError?.message ||
-          "Failed to resend verification email.",
+        "Failed to resend verification email.",
       );
     } finally {
       setResendSubmitting(false);
@@ -258,7 +258,7 @@ export default function PublicLoginPage() {
   );
 }
 
-const inputStyle = {
+const inputStyle: any = {
   width: "100%",
   padding: "10px 12px",
   borderRadius: 10,
@@ -271,7 +271,7 @@ const inputStyle = {
   outline: "none",
 };
 
-const buttonStyle = (disabled) => ({
+const buttonStyle = (disabled: any) => ({
   border: "1px solid rgba(168,85,247,0.35)",
   borderRadius: 10,
   padding: "10px 16px",
@@ -288,7 +288,7 @@ const buttonStyle = (disabled) => ({
   marginTop: 4,
 });
 
-const secondaryButtonStyle = (disabled) => ({
+const secondaryButtonStyle = (disabled: any) => ({
   border: "1px solid rgba(192,132,252,0.35)",
   borderRadius: 10,
   padding: "9px 14px",

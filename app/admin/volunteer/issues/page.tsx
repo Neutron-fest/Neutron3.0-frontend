@@ -55,7 +55,7 @@ export default function VolunteerIssuesPage() {
 
   const [message, setMessage] = useState("");
   // session-local history (backend list endpoint is DH/SA only)
-  const [submitted, setSubmitted] = useState([]);
+  const [submitted, setSubmitted] = useState<any>([]);
 
   const handleSubmit = async () => {
     const trimmed = message.trim();
@@ -73,7 +73,7 @@ export default function VolunteerIssuesPage() {
     }
     try {
       await createIssue({ message: trimmed });
-      setSubmitted((prev) => [
+      setSubmitted((prev: any) => [
         { message: trimmed, sentAt: new Date() },
         ...prev,
       ]);
@@ -81,11 +81,11 @@ export default function VolunteerIssuesPage() {
       enqueueSnackbar("Issue escalated to Department Head", {
         variant: "success",
       });
-    } catch (err) {
+    } catch (err: any) {
       enqueueSnackbar(
         err?.response?.data?.message ||
-          err?.message ||
-          "Failed to submit issue",
+        err?.message ||
+        "Failed to submit issue",
         { variant: "error" },
       );
     }
@@ -259,7 +259,7 @@ export default function VolunteerIssuesPage() {
             Submitted This Session
           </Typography>
           <Stack spacing={1.25}>
-            {submitted.map((item, idx) => (
+            {submitted.map((item: any, idx: any) => (
               <Paper
                 key={idx}
                 sx={{

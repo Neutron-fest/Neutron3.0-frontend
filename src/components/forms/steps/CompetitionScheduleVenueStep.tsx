@@ -5,7 +5,7 @@ import { Box } from "@mui/material";
 import { Plus, Trash2 } from "lucide-react";
 import { FieldGroup, inputCss } from "./CompetitionBasicInfoStep";
 
-export default function CompetitionScheduleVenueStep({ control, errors }) {
+export default function CompetitionScheduleVenueStep({ control, errors }: any) {
   const { fields, append, remove } = useFieldArray({
     control,
     name: "subVenues",

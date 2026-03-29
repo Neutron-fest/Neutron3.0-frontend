@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ListItemButton, ListItemIcon, ListItemText, Box } from "@mui/material";
 
-export function NavLink({ href, icon: Icon, label, onClick }) {
+export function NavLink({ href, icon: Icon, label, onClick }:any) {
   const pathname = usePathname();
   const isActive = pathname === href;
 

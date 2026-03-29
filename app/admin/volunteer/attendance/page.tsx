@@ -72,7 +72,7 @@ function ParticipantRow({
   onMarkFest,
   markedIds,
   markingId,
-}) {
+}: any) {
   const userId = participant.userId || participant.id;
   const name = participant.name || participant.user?.name || "Unknown";
   const email = participant.email || participant.user?.email || "";
@@ -197,7 +197,7 @@ export default function VolunteerAttendancePage() {
   const isGateVolunteer = !!profile?.isRegistrationDeskVolunteer;
   const assignedComps = profile?.assignedCompetitions || [];
   const attendanceComps = assignedComps.filter(
-    (ac) => ac.competition?.attendanceRequired,
+    (ac: any) => ac.competition?.attendanceRequired,
   );
 
   // Build mode options: gate/fest first (if applicable), then competitions
@@ -205,7 +205,7 @@ export default function VolunteerAttendancePage() {
     ...(isGateVolunteer
       ? [{ value: FEST_OPTION, label: "Gate / Fest Attendance" }]
       : []),
-    ...attendanceComps.map((ac) => ({
+    ...attendanceComps.map((ac: any) => ({
       value: ac.competition?.id,
       label: ac.competition?.title || "Unnamed Competition",
     })),
@@ -217,8 +217,8 @@ export default function VolunteerAttendancePage() {
   const [markedIds, setMarkedIds] = useState(new Set());
   const [markingId, setMarkingId] = useState(null);
 
-  const debounceRef = useRef(null);
-  const handleQueryChange = useCallback((val) => {
+  const debounceRef: any = useRef(null);
+  const handleQueryChange = useCallback((val: any) => {
     setQuery(val);
     if (debounceRef.current) clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(() => setDebouncedQuery(val), 380);
@@ -245,14 +245,14 @@ export default function VolunteerAttendancePage() {
 
   const canAccess = isGateVolunteer || attendanceComps.length > 0;
 
-  async function handleMarkComp(userId) {
+  async function handleMarkComp(userId: any) {
     if (!competitionId) return;
     setMarkingId(userId);
     try {
       await markCompAttendance({ competitionId, userId });
       setMarkedIds((prev) => new Set(prev).add(userId));
       enqueueSnackbar("Attendance marked", { variant: "success" });
-    } catch (err) {
+    } catch (err: any) {
       enqueueSnackbar(
         err?.response?.data?.message || err?.message || "Failed to mark",
         { variant: "error" },
@@ -262,13 +262,13 @@ export default function VolunteerAttendancePage() {
     }
   }
 
-  async function handleMarkFest(userId) {
+  async function handleMarkFest(userId: any) {
     setMarkingId(userId);
     try {
       await markFestAttendance({ userId });
       setMarkedIds((prev) => new Set(prev).add(userId));
       enqueueSnackbar("Fest attendance marked", { variant: "success" });
-    } catch (err) {
+    } catch (err: any) {
       enqueueSnackbar(
         err?.response?.data?.message || err?.message || "Failed to mark",
         { variant: "error" },

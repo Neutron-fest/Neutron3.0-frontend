@@ -2,7 +2,7 @@
 
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
+import { any, z } from "zod";
 import {
   Box,
   FormControl,
@@ -15,9 +15,11 @@ import {
 } from "@mui/material";
 
 const roleSchema = z.object({
-  role: z.enum(["SA", "DH", "CH", "VH", "V"], {
-    errorMap: () => ({ message: "Please select a valid role" }),
-  }),
+  role: z
+    .enum(["SA", "DH", "CH", "VH", "V"])
+    .refine((val) => val !== undefined, {
+      message: "Please select a valid role",
+    }),
 });
 
 const roles = [
@@ -27,13 +29,13 @@ const roles = [
   { value: "VH", label: "Volunteer Head" },
   { value: "V", label: "Volunteer" },
 ];
-
-export function UserRoleForm({ currentRole, onSubmit, loading, onCancel }) {
+  
+export function UserRoleForm({ currentRole, onSubmit, loading, onCancel }:any) {
   const {
     control,
     handleSubmit,
     formState: { errors },
-  } = useForm({
+  }:any = useForm({
     resolver: zodResolver(roleSchema),
     defaultValues: {
       role: currentRole || "V",

@@ -21,7 +21,7 @@ import { usePublicCompetitionFormFields } from "@/src/hooks/api/usePublicRegistr
 
 /* ─────────────── tiny atoms ─────────────── */
 
-function Tag({ children }) {
+function Tag({ children }: any) {
   return (
     <span className="inline-block rounded px-2.5 py-0.75 text-[10px] uppercase tracking-[0.12em] border border-violet-400/40 bg-violet-500/10 text-violet-300 font-mono">
       {children}
@@ -29,7 +29,7 @@ function Tag({ children }) {
   );
 }
 
-function Pill({ icon, label, value }) {
+function Pill({ icon, label, value }: any) {
   return (
     <div className="flex items-start gap-3 rounded-[10px] border border-white/10 bg-white/5 px-4 py-3.5">
       <span className="mt-px shrink-0 text-violet-500">{icon}</span>
@@ -43,7 +43,7 @@ function Pill({ icon, label, value }) {
   );
 }
 
-function PrizeCard({ prize, index }) {
+function PrizeCard({ prize, index }: any) {
   const theme = [
     {
       border: "border-violet-400/20",
@@ -93,18 +93,18 @@ function PrizeCard({ prize, index }) {
   );
 }
 
-const toAbsoluteUrl = (base, path) => {
+const toAbsoluteUrl = (base: any, path: any) => {
   if (!base || !path) return null;
   const normalizedBase = base.endsWith("/") ? base.slice(0, -1) : base;
   const normalizedPath = path.startsWith("/") ? path : `/${path}`;
   return `${normalizedBase}${normalizedPath}`;
 };
 
-const buildPosterCandidates = (posterPath) => {
+const buildPosterCandidates = (posterPath: any) => {
   if (!posterPath) return [];
 
-  const candidates = [];
-  const add = (value) => {
+  const candidates: any = [];
+  const add = (value: any) => {
     if (!value) return;
     if (!candidates.includes(value)) {
       candidates.push(value);
@@ -147,7 +147,7 @@ export default function PublicCompetitionDetailsPage() {
   const params = useParams();
   const router = useRouter();
   const { user } = useAuth();
-  const competitionId = params?.competitionId;
+  const competitionId: any = params?.competitionId;
   const [posterCandidateIndex, setPosterCandidateIndex] = useState(0);
 
   const {
@@ -155,9 +155,9 @@ export default function PublicCompetitionDetailsPage() {
     isLoading,
     isError,
     error,
-  } = useCompetition(competitionId);
+  } = useCompetition(competitionId) as any;
   const { data: formInfo, isLoading: formLoading } =
-    usePublicCompetitionFormFields(competitionId);
+    usePublicCompetitionFormFields(competitionId) as any;
 
   const registerEnabled = useMemo(() => {
     if (!competition) return false;
@@ -193,15 +193,15 @@ export default function PublicCompetitionDetailsPage() {
   const hasDynamicForm = (formInfo?.fields || []).length > 0;
   const hasPrizes = (competition?.prizePool || []).length > 0;
 
-  const formatDate = (iso) =>
+  const formatDate = (iso: any) =>
     iso
       ? new Date(iso).toLocaleString("en-IN", {
-          day: "numeric",
-          month: "short",
-          year: "numeric",
-          hour: "2-digit",
-          minute: "2-digit",
-        })
+        day: "numeric",
+        month: "short",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      })
       : null;
 
   const handleRegister = () => {
@@ -354,7 +354,7 @@ export default function PublicCompetitionDetailsPage() {
               Sub Venues
             </div>
             <div className="grid gap-2.5 grid-cols-[repeat(auto-fill,minmax(220px,1fr))]">
-              {competition.subVenues.map((sv, i) => (
+              {competition.subVenues.map((sv: any, i: any) => (
                 <Pill
                   key={i}
                   icon={<MapPin size={14} />}
@@ -381,7 +381,7 @@ export default function PublicCompetitionDetailsPage() {
               Prize Pool
             </div>
             <div className="grid gap-2.5 grid-cols-[repeat(auto-fill,minmax(180px,1fr))]">
-              {competition.prizePool.map((p, i) => (
+              {competition.prizePool.map((p: any, i: any) => (
                 <PrizeCard key={i} prize={p} index={i} />
               ))}
             </div>
@@ -409,11 +409,10 @@ export default function PublicCompetitionDetailsPage() {
           {competition.title}
         </span>
         <button
-          className={`shrink-0 inline-flex items-center gap-2 rounded-lg px-6 py-2.75 text-[11px] uppercase tracking-[0.12em] font-mono transition-opacity ${
-            registerEnabled
+          className={`shrink-0 inline-flex items-center gap-2 rounded-lg px-6 py-2.75 text-[11px] uppercase tracking-[0.12em] font-mono transition-opacity ${registerEnabled
               ? "bg-linear-to-br from-violet-600 to-indigo-700 text-white hover:opacity-85"
               : "bg-white/10 text-white/35 cursor-not-allowed"
-          }`}
+            }`}
           onClick={handleRegister}
           disabled={!registerEnabled}
         >

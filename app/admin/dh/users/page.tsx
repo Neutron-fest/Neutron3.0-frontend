@@ -14,7 +14,7 @@ import {
 } from "lucide-react";
 import { LoadingState } from "@/src/components/LoadingState";
 
-const ROLE_COLORS = {
+const ROLE_COLORS: any = {
   SA: {
     bg: "rgba(239,68,68,0.1)",
     text: "#f87171",
@@ -62,7 +62,7 @@ const ROLE_COLORS = {
   },
 };
 
-const ROLE_LABELS = {
+const ROLE_LABELS: any = {
   SA: "Super Admin",
   DH: "Dept Head",
   VH: "Vol Head",
@@ -74,7 +74,7 @@ const ROLE_LABELS = {
   BOARD: "Board",
 };
 
-function RolePill({ role }) {
+function RolePill({ role }: any) {
   const c = ROLE_COLORS[role] || ROLE_COLORS.USER;
   return (
     <Box
@@ -100,7 +100,7 @@ function RolePill({ role }) {
   );
 }
 
-function StatusDot({ isSuspended, isRevoked }) {
+function StatusDot({ isSuspended, isRevoked }: any) {
   if (isRevoked)
     return (
       <Box sx={{ display: "flex", alignItems: "center", gap: 0.75 }}>
@@ -147,7 +147,7 @@ function StatusDot({ isSuspended, isRevoked }) {
   );
 }
 
-function UserAvatar({ name }) {
+function UserAvatar({ name }: any) {
   return (
     <Box sx={{ position: "relative", width: 36, height: 36, flexShrink: 0 }}>
       <Image
@@ -171,23 +171,23 @@ export default function DHUsersPage() {
    * No departmentId is passed from the client — a DH cannot request another
    * department's members by modifying the request.
    */
-  const { data, isLoading, isError, error } = useDHDepartmentMembers();
+  const { data, isLoading, isError, error } = useDHDepartmentMembers() as any;
 
   const [searchQuery, setSearchQuery] = useState("");
 
   const members = useMemo(() => {
     if (!data?.members) return [];
-    const list = data.members.map((m) => m.user).filter(Boolean);
+    const list = data.members.map((m: any) => m.user).filter(Boolean);
     if (!searchQuery) return list;
     const q = searchQuery.toLowerCase();
     return list.filter(
-      (u) =>
+      (u: any) =>
         (u.name || "").toLowerCase().includes(q) ||
         (u.email || "").toLowerCase().includes(q),
     );
   }, [data, searchQuery]);
 
-  const fmtDate = (d) =>
+  const fmtDate = (d: any) =>
     new Date(d).toLocaleDateString("en-US", {
       year: "numeric",
       month: "short",
@@ -450,7 +450,7 @@ export default function DHUsersPage() {
               </Typography>
             </Box>
           ) : (
-            members.map((user, idx) => (
+            members.map(({ user, idx }: any) => (
               <Box key={user.id}>
                 <Box
                   sx={{

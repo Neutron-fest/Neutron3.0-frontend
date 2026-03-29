@@ -17,7 +17,7 @@ import { LoadingState } from "@/src/components/LoadingState";
 
 /* ── Constants ── */
 
-const TYPE_LABELS = {
+const TYPE_LABELS: any = {
   SCORE_LOCK: "Score Lock",
   EVENT_UPDATE: "Event Update",
   COMPETITION_EDIT: "Competition Update",
@@ -25,7 +25,7 @@ const TYPE_LABELS = {
   FORM_EDIT: "Form Update",
 };
 
-const TYPE_COLORS = {
+const TYPE_COLORS: any = {
   SCORE_LOCK: {
     bg: "rgba(59,130,246,0.1)",
     text: "#60a5fa",
@@ -53,7 +53,7 @@ const TYPE_COLORS = {
   },
 };
 
-const STATUS_COLORS = {
+const STATUS_COLORS: any = {
   PENDING: {
     bg: "rgba(234,179,8,0.1)",
     text: "#fbbf24",
@@ -71,38 +71,38 @@ const STATUS_COLORS = {
   },
 };
 
-const fmtDate = (d) =>
+const fmtDate = (d: any) =>
   d
     ? new Date(d).toLocaleDateString("en-US", {
-        year: "numeric",
-        month: "short",
-        day: "numeric",
-      })
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    })
     : "—";
 
-const fmtDateTime = (d) =>
+const fmtDateTime = (d: any) =>
   d
     ? new Date(d).toLocaleString("en-US", {
-        year: "numeric",
-        month: "short",
-        day: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-      })
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    })
     : "—";
 
-const toAbsoluteUrl = (base, path) => {
+const toAbsoluteUrl = (base: any, path: any) => {
   if (!base || !path) return null;
   const normalizedBase = base.endsWith("/") ? base.slice(0, -1) : base;
   const normalizedPath = path.startsWith("/") ? path : `/${path}`;
   return `${normalizedBase}${normalizedPath}`;
 };
 
-const buildImageCandidates = (mediaPath) => {
+const buildImageCandidates = (mediaPath: any) => {
   if (!mediaPath || typeof mediaPath !== "string") return [];
 
-  const candidates = [];
-  const add = (value) => {
+  const candidates: any = [];
+  const add = (value: any) => {
     if (!value) return;
     if (!candidates.includes(value)) {
       candidates.push(value);
@@ -137,7 +137,7 @@ const buildImageCandidates = (mediaPath) => {
   return candidates;
 };
 
-const extractMediaPath = (value) => {
+const extractMediaPath = (value: any) => {
   if (!value) return null;
   if (typeof value === "string") return value;
   if (typeof value === "object") {
@@ -149,7 +149,7 @@ const extractMediaPath = (value) => {
 
 /* ── Sub-components ── */
 
-function Pill({ bg, text, border, children }) {
+function Pill({ bg, text, border, children }: any) {
   return (
     <Box
       component="span"
@@ -175,7 +175,7 @@ function Pill({ bg, text, border, children }) {
   );
 }
 
-function TypePill({ type }) {
+function TypePill({ type }: any) {
   const c = TYPE_COLORS[type] || {
     bg: "rgba(255,255,255,0.06)",
     text: "rgba(255,255,255,0.4)",
@@ -184,7 +184,7 @@ function TypePill({ type }) {
   return <Pill {...c}>{TYPE_LABELS[type] || type}</Pill>;
 }
 
-function StatusBadge({ status }) {
+function StatusBadge({ status }: any) {
   const c = STATUS_COLORS[status] || STATUS_COLORS.PENDING;
   const Icon =
     status === "APPROVED"
@@ -208,7 +208,7 @@ const RowDivider = () => (
   <Box sx={{ height: "1px", background: "rgba(255,255,255,0.06)" }} />
 );
 
-function EmptyRow({ message }) {
+function EmptyRow({ message }: any) {
   return (
     <Box sx={{ py: 8, textAlign: "center" }}>
       <AlertCircle size={16} color="rgba(255,255,255,0.15)" />
@@ -226,7 +226,7 @@ function EmptyRow({ message }) {
   );
 }
 
-function RequestMediaPreview({ label, path }) {
+function RequestMediaPreview({ label, path }: any) {
   const candidates = useMemo(() => buildImageCandidates(path), [path]);
   const [candidateIndex, setCandidateIndex] = useState(0);
 
@@ -286,13 +286,13 @@ export default function MyRequestsPage() {
   const [typeFilter, setTypeFilter] = useState("all");
   const [search, setSearch] = useState("");
   const [detailDialogOpen, setDetailDialogOpen] = useState(false);
-  const [detailRequest, setDetailRequest] = useState(null);
+  const [detailRequest, setDetailRequest] = useState<any>(null);
 
-  const filters = {};
+  const filters: any = {};
   if (statusFilter !== "all") filters.status = statusFilter;
   if (typeFilter !== "all") filters.type = typeFilter;
 
-  const { data: requestsData, isLoading } = useMyApprovalRequests(filters);
+  const { data: requestsData, isLoading } = useMyApprovalRequests(filters) as any;
   const { enqueueSnackbar } = useSnackbar();
 
   const allRequests = useMemo(
@@ -304,7 +304,7 @@ export default function MyRequestsPage() {
     if (!search) return allRequests;
     const q = search.toLowerCase();
     return allRequests.filter(
-      (a) =>
+      (a: any) =>
         (a.title || "").toLowerCase().includes(q) ||
         (a.description || "").toLowerCase().includes(q),
     );
@@ -312,14 +312,14 @@ export default function MyRequestsPage() {
 
   const stats = useMemo(
     () => ({
-      pending: allRequests.filter((a) => a.status === "PENDING").length,
-      approved: allRequests.filter((a) => a.status === "APPROVED").length,
-      rejected: allRequests.filter((a) => a.status === "REJECTED").length,
+      pending: allRequests.filter((a: any) => a.status === "PENDING").length,
+      approved: allRequests.filter((a: any) => a.status === "APPROVED").length,
+      rejected: allRequests.filter((a: any) => a.status === "REJECTED").length,
     }),
     [allRequests],
   );
 
-  const openDetail = (request) => {
+  const openDetail = (request: any) => {
     setDetailRequest(request);
     setDetailDialogOpen(true);
   };
@@ -606,7 +606,7 @@ export default function MyRequestsPage() {
               {filteredRequests.length === 0 ? (
                 <EmptyRow message="No requests found" />
               ) : (
-                filteredRequests.map((req) => (
+                filteredRequests.map((req: any) => (
                   <Box key={req.id}>
                     <Box
                       sx={{

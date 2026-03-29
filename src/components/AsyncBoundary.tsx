@@ -27,7 +27,7 @@ export function AsyncDataBoundary({
   error,
   fallback = <CardSkeleton />,
   children,
-}) {
+}: any) {
   if (loading) {
     return fallback;
   }
@@ -58,14 +58,14 @@ export function AsyncDataBoundary({
  *   </SectionSuspense>
  * </PageSuspense>
  */
-export function PageSuspense({ children }) {
+export function PageSuspense({ children }: any) {
   return <Suspense fallback={<CardSkeleton count={3} />}>{children}</Suspense>;
 }
 
 /**
  * Section-level Suspense with custom fallback
  */
-export function SectionSuspense({ children, fallback = <CardSkeleton /> }) {
+export function SectionSuspense({ children, fallback = <CardSkeleton /> }: any) {
   return <Suspense fallback={fallback}>{children}</Suspense>;
 }
 
@@ -73,19 +73,19 @@ export function SectionSuspense({ children, fallback = <CardSkeleton /> }) {
  * Prebuilt Suspense wrappers for common patterns
  */
 
-export function TableSuspense({ children }) {
+export function TableSuspense({ children }: any) {
   return <Suspense fallback={<TableSkeleton />}>{children}</Suspense>;
 }
 
-export function ListSuspense({ children }) {
+export function ListSuspense({ children }: any) {
   return <Suspense fallback={<ListSkeleton />}>{children}</Suspense>;
 }
 
-export function FormSuspense({ children }) {
+export function FormSuspense({ children }: any) {
   return <Suspense fallback={<FormSkeleton />}>{children}</Suspense>;
 }
 
-export function CardSuspense({ children, count = 1, height = 120 }) {
+export function CardSuspense({ children, count = 1, height = 120 }: any) {
   return (
     <Suspense fallback={<CardSkeleton count={count} height={height} />}>
       {children}

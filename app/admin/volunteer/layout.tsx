@@ -53,7 +53,7 @@ const NAV = [
 
 const ALLOWED_ROLES = new Set(["VOLUNTEER", "DH", "SA"]);
 
-function SidebarContent({ user, pathname, onLogout, onClose }) {
+function SidebarContent({ user, pathname, onLogout, onClose }: any) {
   return (
     <Box
       sx={{
@@ -263,8 +263,8 @@ function SidebarContent({ user, pathname, onLogout, onClose }) {
   );
 }
 
-export default function VolunteerLayout({ children }) {
-  const { user, loading, logout } = useAuth();
+export default function VolunteerLayout({ children }: any) {
+  const { user, loading, logout } = useAuth() as any;
   const router = useRouter();
   const pathname = usePathname();
   const theme = useTheme();
@@ -318,7 +318,7 @@ export default function VolunteerLayout({ children }) {
             user={user}
             pathname={pathname}
             onLogout={logout}
-            onClose={() => {}}
+            onClose={() => { }}
           />
         </Box>
       )}

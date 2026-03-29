@@ -56,7 +56,7 @@ function AcceptInvitePageContent() {
   const [error, setError] = useState("");
   const [validating, setValidating] = useState(true);
   const [isInviteValid, setIsInviteValid] = useState(false);
-  const [inviteMeta, setInviteMeta] = useState(null);
+  const [inviteMeta, setInviteMeta] = useState<any>(null);
 
   useEffect(() => {
     let mounted = true;
@@ -83,7 +83,7 @@ function AcceptInvitePageContent() {
         if (!mounted) return;
         setIsInviteValid(Boolean(data?.data?.valid));
         setInviteMeta(data?.data || null);
-      } catch (err) {
+      } catch (err: any) {
         if (!mounted) return;
 
         const apiMessage = err?.response?.data?.message;
@@ -112,7 +112,7 @@ function AcceptInvitePageContent() {
     [isInviteValid, submitting, validating],
   );
 
-  const handleSubmit = async (event) => {
+  const handleSubmit = async (event: any) => {
     event.preventDefault();
 
     if (!token || !isInviteValid) {
@@ -144,7 +144,7 @@ function AcceptInvitePageContent() {
         variant: "success",
       });
       router.replace("/admin/auth");
-    } catch (err) {
+    } catch (err: any) {
       const message =
         err?.response?.data?.message ||
         err?.message ||

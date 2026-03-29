@@ -20,7 +20,7 @@ export function ConfirmDialog({
   cancelText = "Cancel",
   loading = false,
   severity = "info",
-}) {
+}: any) {
   const getConfirmStyles = () => {
     switch (severity) {
       case "error":

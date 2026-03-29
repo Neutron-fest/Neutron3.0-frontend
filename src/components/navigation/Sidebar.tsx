@@ -76,7 +76,7 @@ const CH_NAVIGATION = [
 
 export const SIDEBAR_WIDTH = 272;
 
-export function getAdminNavigation(role) {
+export function getAdminNavigation(role: any) {
   if (role === "SA") {
     return [...SA_NAVIGATION, ...SA_DH_NAVIGATION, ...SHARED_NAVIGATION];
   }
@@ -96,7 +96,7 @@ export function getAdminNavigation(role) {
   return [];
 }
 
-export function getAdminSettingsLink(role) {
+export function getAdminSettingsLink(role: any) {
   if (role === "SA") {
     return {
       name: "Platform Settings",
@@ -108,7 +108,7 @@ export function getAdminSettingsLink(role) {
   return null;
 }
 
-export function getPersonalSettingsLink(role) {
+export function getPersonalSettingsLink(role: any) {
   if (role === "SA" || role === "DH" || role === "JUDGE" || role === "CH") {
     return {
       name: "Personal Settings",
@@ -137,7 +137,7 @@ const RightEdge = () => (
   />
 );
 
-export function Sidebar({ user, onLogout, mobileOpen, onMobileClose }) {
+export function Sidebar({ user, onLogout, mobileOpen, onMobileClose }: any) {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("lg"));
   const navigation = getAdminNavigation(user?.role);
@@ -478,7 +478,7 @@ export function Sidebar({ user, onLogout, mobileOpen, onMobileClose }) {
 }
 
 // ── Inline nav item (replaces NavLink for full style control) ──
-function SidebarNavItem({ href, icon: Icon, label, onClick }) {
+function SidebarNavItem({ href, icon: Icon, label, onClick }: any) {
   const pathname = usePathname();
   const isFormsRoute = pathname === "/admin/dh/competitions/forms";
   const isFormsChildRoute = pathname.startsWith(
@@ -506,31 +506,31 @@ function SidebarNavItem({ href, icon: Icon, label, onClick }) {
         border: "1px solid transparent",
         ...(active
           ? {
-              background: "rgba(255,255,255,0.06)",
-              borderColor: "rgba(255,255,255,0.08)",
-              "& .nav-icon": { color: "#fff" },
-              "& .nav-label": { color: "#f4f4f5" },
-              "&::before": {
-                content: '""',
-                position: "absolute",
-                left: 0,
-                top: "20%",
-                bottom: "20%",
-                width: "2px",
-                borderRadius: "0 2px 2px 0",
-                background: "rgba(255,255,255,0.6)",
-              },
-            }
+            background: "rgba(255,255,255,0.06)",
+            borderColor: "rgba(255,255,255,0.08)",
+            "& .nav-icon": { color: "#fff" },
+            "& .nav-label": { color: "#f4f4f5" },
+            "&::before": {
+              content: '""',
+              position: "absolute",
+              left: 0,
+              top: "20%",
+              bottom: "20%",
+              width: "2px",
+              borderRadius: "0 2px 2px 0",
+              background: "rgba(255,255,255,0.6)",
+            },
+          }
           : {
-              "& .nav-icon": { color: "rgba(255,255,255,0.3)" },
-              "& .nav-label": { color: "rgba(255,255,255,0.45)" },
-              "&:hover": {
-                background: "rgba(255,255,255,0.04)",
-                borderColor: "rgba(255,255,255,0.05)",
-                "& .nav-icon": { color: "rgba(255,255,255,0.7)" },
-                "& .nav-label": { color: "rgba(255,255,255,0.8)" },
-              },
-            }),
+            "& .nav-icon": { color: "rgba(255,255,255,0.3)" },
+            "& .nav-label": { color: "rgba(255,255,255,0.45)" },
+            "&:hover": {
+              background: "rgba(255,255,255,0.04)",
+              borderColor: "rgba(255,255,255,0.05)",
+              "& .nav-icon": { color: "rgba(255,255,255,0.7)" },
+              "& .nav-label": { color: "rgba(255,255,255,0.8)" },
+            },
+          }),
       }}
     >
       <Box

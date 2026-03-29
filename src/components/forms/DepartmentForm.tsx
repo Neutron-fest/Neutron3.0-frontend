@@ -11,7 +11,7 @@ const departmentSchema = z.object({
   headId: z.string().optional(),
 });
 
-export function DepartmentForm({ initialData, onSubmit, loading, onCancel }) {
+export function DepartmentForm({ initialData, onSubmit, loading, onCancel }: any) {
   const {
     control,
     handleSubmit,

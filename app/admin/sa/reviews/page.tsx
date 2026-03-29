@@ -9,7 +9,7 @@ import { LoadingState } from "@/src/components/LoadingState";
 
 // ── Config ────────────────────────────────────────────────────────────────────
 
-const STATUS_CONFIG = {
+const STATUS_CONFIG: any = {
   PENDING: {
     label: "Pending",
     bg: "rgba(234,179,8,0.1)",
@@ -35,7 +35,7 @@ const STATUS_CONFIG = {
 
 // ── Primitives ────────────────────────────────────────────────────────────────
 
-function StatusPill({ status }) {
+function StatusPill({ status }: any) {
   const cfg = STATUS_CONFIG[status] || STATUS_CONFIG.PENDING;
   const Icon = cfg.icon;
   return (
@@ -307,9 +307,9 @@ export default function ReviewsPage() {
                   >
                     {proposal.createdAt
                       ? new Date(proposal.createdAt).toLocaleDateString("en-US", {
-                          month: "short",
-                          day: "numeric",
-                        })
+                        month: "short",
+                        day: "numeric",
+                      })
                       : "—"}
                   </Typography>
 

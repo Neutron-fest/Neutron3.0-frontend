@@ -24,23 +24,23 @@ export function DataTable({
   rowsPerPageOptions = [10, 25, 50, 100],
   emptyMessage = "No data available",
   maxTableHeight = 560,
-}) {
+}: any) {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(rowsPerPageOptions[0]);
   const [orderBy, setOrderBy] = useState("");
   const [order, setOrder] = useState("asc");
 
-  const handleRequestSort = (property) => {
+  const handleRequestSort = (property: any) => {
     const isAsc = orderBy === property && order === "asc";
     setOrder(isAsc ? "desc" : "asc");
     setOrderBy(property);
   };
 
-  const handleChangePage = (event, newPage) => {
+  const handleChangePage = (event: any, newPage: any) => {
     setPage(newPage);
   };
 
-  const handleChangeRowsPerPage = (event) => {
+  const handleChangeRowsPerPage = (event: any) => {
     setRowsPerPage(parseInt(event.target.value, 10));
     setPage(0);
   };
@@ -66,7 +66,7 @@ export function DataTable({
         <Table>
           <TableHead>
             <TableRow>
-              {columns.map((column) => (
+              {columns.map((column: any) => (
                 <TableCell key={column.id}>
                   <Skeleton width="80%" />
                 </TableCell>
@@ -76,7 +76,7 @@ export function DataTable({
           <TableBody>
             {[...Array(5)].map((_, index) => (
               <TableRow key={index}>
-                {columns.map((column) => (
+                {columns.map((column: any) => (
                   <TableCell key={column.id}>
                     <Skeleton />
                   </TableCell>
@@ -95,7 +95,7 @@ export function DataTable({
         <Table stickyHeader>
           <TableHead>
             <TableRow>
-              {columns.map((column) => (
+              {columns.map((column: any) => (
                 <TableCell
                   key={column.id}
                   align={column.align || "left"}
@@ -104,7 +104,7 @@ export function DataTable({
                   {column.sortable ? (
                     <TableSortLabel
                       active={orderBy === column.id}
-                      direction={orderBy === column.id ? order : "asc"}
+                      direction={orderBy === column.id ? (order as "asc" | "desc") : "asc"}
                       onClick={() => handleRequestSort(column.id)}
                     >
                       {column.label}
@@ -137,7 +137,7 @@ export function DataTable({
                     cursor: onRowClick ? "pointer" : "default",
                   }}
                 >
-                  {columns.map((column) => (
+                  {columns.map((column: any) => (
                     <TableCell key={column.id} align={column.align || "left"}>
                       {column.render ? column.render(row) : row[column.id]}
                     </TableCell>

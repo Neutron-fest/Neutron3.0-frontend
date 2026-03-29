@@ -10,7 +10,7 @@ import {
 
 // ── Shared primitive styles matching audit/approvals design language ─────────
 
-export const inputCss = {
+export const inputCss: any = {
   width: "100%",
   padding: "9px 12px",
   background: "rgba(255,255,255,0.04)",
@@ -30,7 +30,7 @@ export const selectCss = {
   WebkitAppearance: "none",
 };
 
-export function FieldLabel({ children }) {
+export function FieldLabel({ children }: any) {
   return (
     <Typography
       sx={{
@@ -47,7 +47,7 @@ export function FieldLabel({ children }) {
   );
 }
 
-export function FieldError({ message }) {
+export function FieldError({ message }: any) {
   if (!message) return null;
   return (
     <Typography
@@ -63,7 +63,7 @@ export function FieldError({ message }) {
   );
 }
 
-export function FieldGroup({ label, error, children, span = 1 }) {
+export function FieldGroup({ label, error, children, span = 1 }: any) {
   return (
     <Box sx={{ gridColumn: `span ${span}` }}>
       <FieldLabel>{label}</FieldLabel>
@@ -79,7 +79,7 @@ export default function CompetitionBasicInfoStep({
   control,
   errors,
   statusOptions = STATUS_OPTS,
-}) {
+}: any) {
   return (
     <Box
       sx={{
@@ -188,7 +188,7 @@ export default function CompetitionBasicInfoStep({
           control={control}
           render={({ field }) => (
             <select {...field} style={selectCss}>
-              {statusOptions.map((s) => (
+              {statusOptions.map((s: any) => (
                 <option key={s} value={s} style={{ background: "#0e0e0e" }}>
                   {s}
                 </option>

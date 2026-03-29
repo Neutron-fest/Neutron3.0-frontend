@@ -68,7 +68,7 @@ const headSx = {
   fontFamily: "'DM Mono', monospace",
 };
 
-function SubmitChip({ submitted }) {
+function SubmitChip({ submitted }: { submitted: boolean }) {
   if (submitted)
     return (
       <Chip
@@ -104,27 +104,27 @@ function SubmitChip({ submitted }) {
 
 /* ── ScoringPanel ─────────────────────────────────────────────────── */
 
-function ScoringPanel({ team, roundId, criteria, onScoreSubmitted }) {
+function ScoringPanel({ team, roundId, criteria, onScoreSubmitted }: any) {
   const { enqueueSnackbar } = useSnackbar();
   const { data: scoreDetails } = useTeamScoreDetails(roundId, team?.teamId);
   const { mutateAsync: submitCriteriaScore } = useSubmitCriteriaScore();
   const { mutateAsync: addNotes } = useAddEvaluationNotes();
   const { mutateAsync: submitFinal } = useSubmitFinalScore();
 
-  const [scores, setScores] = useState({});
+  const [scores, setScores] = useState<any>({});
   const [notes, setNotes] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
   // Pre-fill from existing score details when team or details change
   useEffect(() => {
     if (!scoreDetails) return;
-    const existingScores = {};
+    const existingScores: any = {};
     const myScores =
       scoreDetails.criteriaScores ||
       scoreDetails.scores ||
       scoreDetails.myScores ||
       [];
-    myScores.forEach((s) => {
+    myScores.forEach((s: any) => {
       existingScores[s.criteriaId] = s.score;
     });
     if (Object.keys(existingScores).length > 0) setScores(existingScores);
@@ -136,7 +136,7 @@ function ScoringPanel({ team, roundId, criteria, onScoreSubmitted }) {
     if (!criteria || criteria.length === 0) return null;
     let total = 0;
     let coveredWeight = 0;
-    criteria.forEach((c) => {
+    criteria.forEach((c: any) => {
       const s = scores[c.id];
       if (s != null) {
         const weight = parseFloat(c.weight) || 0;
@@ -150,7 +150,7 @@ function ScoringPanel({ team, roundId, criteria, onScoreSubmitted }) {
 
   async function handleSubmit() {
     if (!team) return;
-    const unanswered = criteria.filter((c) => scores[c.id] == null);
+    const unanswered = criteria.filter((c: any) => scores[c.id] == null);
     if (unanswered.length > 0) {
       enqueueSnackbar(
         `Please score all ${unanswered.length} criterion${unanswered.length !== 1 ? "a" : ""} before submitting`,
@@ -181,7 +181,7 @@ function ScoringPanel({ team, roundId, criteria, onScoreSubmitted }) {
 
       enqueueSnackbar("Score submitted successfully!", { variant: "success" });
       onScoreSubmitted?.();
-    } catch (err) {
+    } catch (err: any) {
       enqueueSnackbar(
         err?.response?.data?.message || "Failed to submit score",
         { variant: "error" },
@@ -278,7 +278,7 @@ function ScoringPanel({ team, roundId, criteria, onScoreSubmitted }) {
         </Box>
       ) : (
         <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
-          {criteria.map((criterion, idx) => {
+          {criteria.map((criterion: any, idx: any) => {
             const score = scores[criterion.id] ?? "";
             const maxScore = criterion.maxScore || 100;
             const weight = Math.round(parseFloat(criterion.weight) * 100);
@@ -328,7 +328,7 @@ function ScoringPanel({ team, roundId, criteria, onScoreSubmitted }) {
                       onChange={(e) => {
                         const v = e.target.value;
                         if (v === "") {
-                          const next = { ...scores };
+                          const next: any = { ...scores };
                           delete next[criterion.id];
                           setScores(next);
                           return;
@@ -337,7 +337,7 @@ function ScoringPanel({ team, roundId, criteria, onScoreSubmitted }) {
                           0,
                           Math.min(maxScore, parseInt(v, 10) || 0),
                         );
-                        setScores((p) => ({ ...p, [criterion.id]: n }));
+                        setScores((p: any) => ({ ...p, [criterion.id]: n }));
                       }}
                       disabled={alreadySubmitted}
                       type="number"
@@ -377,7 +377,7 @@ function ScoringPanel({ team, roundId, criteria, onScoreSubmitted }) {
                 <Slider
                   value={typeof score === "number" ? score : 0}
                   onChange={(_, val) =>
-                    setScores((p) => ({ ...p, [criterion.id]: val }))
+                    setScores((p: any) => ({ ...p, [criterion.id]: val }))
                   }
                   disabled={alreadySubmitted}
                   min={0}
@@ -531,7 +531,10 @@ function ScoringPanel({ team, roundId, criteria, onScoreSubmitted }) {
 /* ── Main page ─────────────────────────────────────────────────────── */
 
 export default function JudgeScoringPage() {
-  const { competitionId, roundId } = useParams();
+  const params = useParams();
+
+  const competitionId = params.competitionId as string;
+  const roundId = params.roundId as string;
   const router = useRouter();
   const { user } = useAuth();
   const { enqueueSnackbar } = useSnackbar();
@@ -566,8 +569,8 @@ export default function JudgeScoringPage() {
 
   // Build a set of teamIds already submitted by this judge from leaderboard
   const submittedTeamIds = useMemo(() => {
-    const myEntry = leaderboard.filter((e) => e.submittedByMe);
-    return new Set(myEntry.map((e) => e.teamId));
+    const myEntry = leaderboard.filter((e: any) => e.submittedByMe);
+    return new Set(myEntry.map((e: any) => e.teamId));
   }, [leaderboard]);
 
   function handleLockRequest() {
@@ -576,7 +579,7 @@ export default function JudgeScoringPage() {
         enqueueSnackbar("Lock request sent to SA for approval!", {
           variant: "success",
         }),
-      onError: (err) =>
+      onError: (err: any) =>
         enqueueSnackbar(
           err?.response?.data?.message || "Failed to send lock request",
           { variant: "error" },
@@ -724,7 +727,7 @@ export default function JudgeScoringPage() {
           <Box sx={{ display: "flex", gap: 1.5, flexWrap: "wrap" }}>
             {!allScored && pendingJudges.length > 0 && (
               <Tooltip
-                title={`${pendingJudges.length} judge${pendingJudges.length !== 1 ? "s" : ""} pending: ${pendingJudges.map((j) => j.name || j.email).join(", ")}`}
+                title={`${pendingJudges.length} judge${pendingJudges.length !== 1 ? "s" : ""} pending: ${pendingJudges.map((j: any) => j.name || j.email).join(", ")}`}
               >
                 <Box
                   sx={{
@@ -881,7 +884,7 @@ export default function JudgeScoringPage() {
             <Box>
               {participants.map((team) => {
                 const isSelected = selectedTeamId === team.teamId;
-                const submitted =
+                const submitted: boolean =
                   team.hasSubmitted ||
                   team.isSubmitted ||
                   submittedTeamIds.has(team.teamId);
@@ -1048,7 +1051,7 @@ export default function JudgeScoringPage() {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {leaderboard.map((entry, idx) => (
+                  {leaderboard.map(({ entry, idx }: any) => (
                     <TableRow
                       key={entry.teamId}
                       sx={{

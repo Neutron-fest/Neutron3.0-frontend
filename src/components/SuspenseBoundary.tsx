@@ -81,7 +81,7 @@ export function SuspenseBoundary({
   children,
   fallback = <CardSkeleton />,
   name = "Content",
-}) {
+}:any) {
   return <Suspense fallback={fallback}>{children}</Suspense>;
 }
 
@@ -89,7 +89,7 @@ export function SuspenseBoundary({
  * Suspense boundary for page layout sections
  * Wraps multiple related content areas with a single fallback
  */
-export function SectionSuspense({ children, fallback = null }) {
+export function SectionSuspense({ children, fallback = null }:any) {
   return (
     <Suspense fallback={fallback || <CardSkeleton />}>{children}</Suspense>
   );

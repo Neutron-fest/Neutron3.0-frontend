@@ -53,35 +53,35 @@ export default function DepartmentsPage() {
   const [searchQuery, setSearchQuery] = useState("");
 
   const [anchorEl, setAnchorEl] = useState(null);
-  const [menuDept, setMenuDept] = useState(null);
+  const [menuDept, setMenuDept] = useState<any>(null);
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [dialogType, setDialogType] = useState(null);
 
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
-  const [deptHeadIds, setDeptHeadIds] = useState([]);
-  const [selectedVolunteerIds, setSelectedVolunteerIds] = useState([]);
-  const [selectedDepartmentId, setSelectedDepartmentId] = useState(null);
+  const [deptHeadIds, setDeptHeadIds] = useState<any>([]);
+  const [selectedVolunteerIds, setSelectedVolunteerIds] = useState<any>([]);
+  const [selectedDepartmentId, setSelectedDepartmentId] = useState<any>(null);
   const [removingUserId, setRemovingUserId] = useState(null);
 
   const {
     data: selectedDepartment,
     isLoading: isDepartmentDetailsLoading,
     refetch: refetchDepartmentDetails,
-  } = useDepartment(selectedDepartmentId);
+  } = useDepartment(selectedDepartmentId) as any;
 
-  const getErrorMessage = (error, fallbackMessage) => {
+  const getErrorMessage = (error: any, fallbackMessage: any) => {
     return error?.response?.data?.message || error?.message || fallbackMessage;
   };
 
   const filteredDepartments = useMemo(() => {
-    return departments.filter((dept) =>
+    return departments.filter((dept: any) =>
       dept.name.toLowerCase().includes(searchQuery.toLowerCase()),
     );
   }, [departments, searchQuery]);
 
-  const handleMenuOpen = (event, dept) => {
+  const handleMenuOpen = (event: any, dept: any) => {
     setAnchorEl(event.currentTarget);
     setMenuDept(dept);
   };
@@ -90,7 +90,7 @@ export default function DepartmentsPage() {
     setAnchorEl(null);
   };
 
-  const openDialog = (type, dept = null) => {
+  const openDialog = (type: any, dept: any = null) => {
     setDialogType(type);
     setMenuDept(dept);
 
@@ -115,7 +115,7 @@ export default function DepartmentsPage() {
       if (Array.isArray(dept.deptHeadIds)) {
         setDeptHeadIds(dept.deptHeadIds.filter(Boolean));
       } else if (Array.isArray(dept.deptHeads)) {
-        setDeptHeadIds(dept.deptHeads.map((head) => head?.id).filter(Boolean));
+        setDeptHeadIds(dept.deptHeads.map((head: any) => head?.id).filter(Boolean));
       } else {
         setDeptHeadIds([dept.deptHead?.id || dept.deptHeadId].filter(Boolean));
       }
@@ -209,7 +209,7 @@ export default function DepartmentsPage() {
     }
 
     const results = await Promise.allSettled(
-      selectedVolunteerIds.map((userId) =>
+      selectedVolunteerIds.map((userId: any) =>
         assignMemberMutation.mutateAsync({
           departmentId: menuDept.id,
           userId,
@@ -246,11 +246,11 @@ export default function DepartmentsPage() {
     closeDialog();
   };
 
-  const handleOpenDepartmentMembers = (dept) => {
+  const handleOpenDepartmentMembers = (dept: any) => {
     openDialog("viewMembers", dept);
   };
 
-  const handleRemoveMember = async (member) => {
+  const handleRemoveMember = async (member: any) => {
     if (!selectedDepartmentId || !member?.userId) return;
 
     try {
@@ -273,8 +273,8 @@ export default function DepartmentsPage() {
   const selectedVolunteerNames = useMemo(() => {
     const selectedSet = new Set(selectedVolunteerIds);
     return volunteers
-      .filter((volunteer) => selectedSet.has(volunteer.id))
-      .map((volunteer) => volunteer.name || volunteer.email);
+      .filter((volunteer: any) => selectedSet.has(volunteer.id))
+      .map((volunteer: any) => volunteer.name || volunteer.email);
   }, [selectedVolunteerIds, volunteers]);
 
   const [volunteerSearch, setVolunteerSearch] = useState("");
@@ -282,7 +282,7 @@ export default function DepartmentsPage() {
 
   const existingMemberIds = useMemo(() => {
     const members = selectedDepartment?.members || [];
-    return new Set(members.map((member) => member?.userId).filter(Boolean));
+    return new Set(members.map((member: any) => member?.userId).filter(Boolean));
   }, [selectedDepartment?.members]);
 
   const availableVolunteers = useMemo(() => {
@@ -306,7 +306,7 @@ export default function DepartmentsPage() {
     if (!deptHeadSearch) return departmentHeads;
     const q = deptHeadSearch.toLowerCase();
     return departmentHeads.filter(
-      (h) =>
+      (h: any) =>
         (h.name || "").toLowerCase().includes(q) ||
         (h.email || "").toLowerCase().includes(q),
     );
@@ -560,7 +560,7 @@ export default function DepartmentsPage() {
               </Typography>
             </Box>
           ) : (
-            filteredDepartments.map((dept, idx) => (
+            filteredDepartments.map((dept: any, idx: any) => (
               <Box key={dept.id}>
                 <Box
                   onClick={() => handleOpenDepartmentMembers(dept)}
@@ -782,14 +782,14 @@ export default function DepartmentsPage() {
       >
         <DarkInput
           value={name}
-          onChange={(e) => setName(e.target.value)}
+          onChange={(e: any) => setName(e.target.value)}
           placeholder="Department name"
           style={{ marginBottom: 12 }}
         />
         <DarkTextarea
           rows={3}
           value={description}
-          onChange={(e) => setDescription(e.target.value)}
+          onChange={(e: any) => setDescription(e.target.value)}
           placeholder="Description (optional)"
         />
         <Typography
@@ -870,15 +870,15 @@ export default function DepartmentsPage() {
               </Typography>
             </Box>
           ) : (
-            filteredDeptHeads.map((h, idx) => {
+            filteredDeptHeads.map(({ h, idx }: any) => {
               const checked = deptHeadIds.includes(h.id);
               return (
                 <Box key={h.id}>
                   <Box
                     onClick={() =>
-                      setDeptHeadIds((prev) =>
+                      setDeptHeadIds((prev: any) =>
                         checked
-                          ? prev.filter((id) => id !== h.id)
+                          ? prev.filter((id: any) => id !== h.id)
                           : [...prev, h.id],
                       )
                     }
@@ -1116,9 +1116,9 @@ export default function DepartmentsPage() {
                 <Box key={v.id}>
                   <Box
                     onClick={() =>
-                      setSelectedVolunteerIds((prev) =>
+                      setSelectedVolunteerIds((prev: any) =>
                         checked
-                          ? prev.filter((id) => id !== v.id)
+                          ? prev.filter((id: any) => id !== v.id)
                           : [...prev, v.id],
                       )
                     }
@@ -1276,14 +1276,14 @@ export default function DepartmentsPage() {
           >
             {(() => {
               const dhIdSet = new Set(
-                (selectedDepartment.deptHeads || []).map((h) => h.id),
+                (selectedDepartment.deptHeads || []).map((h: any) => h.id),
               );
               const sorted = [...selectedDepartment.members].sort(
-                (a, b) =>
+                (a: any, b: any) =>
                   (dhIdSet.has(b.userId) ? 1 : 0) -
                   (dhIdSet.has(a.userId) ? 1 : 0),
               );
-              const roleLabel = {
+              const roleLabel: any = {
                 SA: "Super Admin",
                 BOARD: "Board",
                 DH: "Dept Head",
@@ -1377,7 +1377,7 @@ export default function DepartmentsPage() {
                         }
                       >
                         {removeMemberMutation.isPending &&
-                        removingUserId === member.userId
+                          removingUserId === member.userId
                           ? "Removing…"
                           : "Remove"}
                       </DangerBtn>
@@ -1410,7 +1410,7 @@ const RowDivider = () => (
   <Box sx={{ height: "1px", background: "rgba(255,255,255,0.06)" }} />
 );
 
-function DarkDialog({ open, onClose, title, children }) {
+function DarkDialog({ open, onClose, title, children }: any) {
   return (
     <Dialog
       open={open}
@@ -1450,7 +1450,7 @@ function DarkDialog({ open, onClose, title, children }) {
   );
 }
 
-function MultiNativeSelect({ values, onChange, options, fullWidth, disabled }) {
+function MultiNativeSelect({ values, onChange, options, fullWidth, disabled }: any) {
   return (
     <select
       multiple
@@ -1476,7 +1476,7 @@ function MultiNativeSelect({ values, onChange, options, fullWidth, disabled }) {
         opacity: disabled ? 0.5 : 1,
       }}
     >
-      {options.map((option) => (
+      {options.map((option: any) => (
         <option key={option.value} value={option.value}>
           {option.label}
         </option>
@@ -1492,7 +1492,7 @@ function DarkInput({
   placeholder,
   style = {},
   ...rest
-}) {
+}: any) {
   return (
     <input
       type={type}
@@ -1517,7 +1517,7 @@ function DarkInput({
   );
 }
 
-function DarkTextarea({ rows = 3, value, onChange, placeholder }) {
+function DarkTextarea({ rows = 3, value, onChange, placeholder }: any) {
   return (
     <textarea
       rows={rows}
@@ -1541,7 +1541,7 @@ function DarkTextarea({ rows = 3, value, onChange, placeholder }) {
   );
 }
 
-function DangerNote({ children }) {
+function DangerNote({ children }: any) {
   return (
     <Box
       sx={{
@@ -1565,7 +1565,7 @@ function DangerNote({ children }) {
   );
 }
 
-function BtnRow({ children }) {
+function BtnRow({ children }: any) {
   return (
     <Box sx={{ display: "flex", gap: 1, justifyContent: "flex-end", mt: 3 }}>
       {children}
@@ -1578,7 +1578,7 @@ function CtxItem({
   icon,
   color = "rgba(255,255,255,0.65)",
   children,
-}) {
+}: any) {
   return (
     <MenuItem
       onClick={onClick}
@@ -1597,7 +1597,7 @@ function CtxItem({
   );
 }
 
-function InlineBtn({ onClick, icon, children }) {
+function InlineBtn({ onClick, icon, children }: any) {
   return (
     <button
       onClick={onClick}
@@ -1660,7 +1660,7 @@ function BtnSpinner({ color = "currentColor" }) {
   );
 }
 
-function GhostBtn({ onClick, children, loading, disabled }) {
+function GhostBtn({ onClick, children, loading, disabled }: any) {
   const isDisabled = disabled || loading;
   return (
     <button
@@ -1690,7 +1690,7 @@ function GhostBtn({ onClick, children, loading, disabled }) {
     </button>
   );
 }
-function PrimaryBtn({ onClick, children, disabled, loading }) {
+function PrimaryBtn({ onClick, children, disabled, loading }: any) {
   const isDisabled = disabled || loading;
   return (
     <button
@@ -1717,7 +1717,7 @@ function PrimaryBtn({ onClick, children, disabled, loading }) {
     </button>
   );
 }
-function DangerBtn({ onClick, children, disabled, loading }) {
+function DangerBtn({ onClick, children, disabled, loading }: any) {
   const isDisabled = disabled || loading;
   return (
     <button

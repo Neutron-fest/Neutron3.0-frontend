@@ -12,7 +12,7 @@ import {
 } from "@/src/components/AsyncBoundary";
 import { CardSkeleton } from "@/src/components/SuspenseBoundary";
 
-const STATUS_CONFIG = {
+const STATUS_CONFIG: any = {
   DRAFT: {
     label: "Draft",
     bg: "rgba(161,161,170,0.12)",
@@ -39,13 +39,32 @@ const STATUS_CONFIG = {
   },
 };
 
-const EVENT_TYPE_CONFIG = {
+const EVENT_TYPE_CONFIG: any = {
   SOLO: { label: "Solo", bg: "rgba(59,130,246,0.12)", text: "#60a5fa" },
   TEAM: { label: "Team", bg: "rgba(168,85,247,0.12)", text: "#c084fc" },
   GROUP: { label: "Group", bg: "rgba(20,184,166,0.12)", text: "#2dd4bf" },
 };
 
-function CompetitionCard({ competition, isHeadJudge, onClick }) {
+type Competition = {
+  competition?: any; // nested case
+  status?: string;
+  eventType?: string;
+  type?: string;
+  title?: string;
+  name?: string;
+  description?: string;
+  tagline?: string;
+};
+
+function CompetitionCard({
+  competition,
+  isHeadJudge,
+  onClick,
+}: {
+  competition: Competition;
+  isHeadJudge?: boolean;
+  onClick?: () => void;
+}) {
   const comp = competition.competition || competition;
   const status = STATUS_CONFIG[comp.status] || STATUS_CONFIG.DRAFT;
   const eventType = EVENT_TYPE_CONFIG[comp.eventType || comp.type];
@@ -265,7 +284,7 @@ export default function JudgeCompetitionsPage() {
   );
 }
 
-function CompetitionsContent({ filtered, search, router }) {
+function CompetitionsContent({ filtered, search, router }: any) {
   if (filtered.length === 0) {
     return (
       <Paper
@@ -288,11 +307,11 @@ function CompetitionsContent({ filtered, search, router }) {
 
   return (
     <Grid container spacing={2}>
-      {filtered.map((assignment) => {
+      {filtered.map((assignment: any) => {
         const comp = assignment.competition || assignment;
         const compId = assignment.competitionId || comp.id;
         return (
-          <Grid item xs={12} sm={6} md={4} key={compId}>
+          <Grid size={{ xs: 12, sm: 6, md: 4 }} key={compId}>
             <CompetitionCard
               competition={assignment}
               isHeadJudge={assignment.isHeadJudge}

@@ -58,7 +58,7 @@ function derivePlatformName(userAgent = "") {
   return "";
 }
 
-function deriveSessionDeviceName(session) {
+function deriveSessionDeviceName(session: any) {
   if (session?.deviceName && session.deviceName !== "Unknown device") {
     return session.deviceName;
   }
@@ -91,7 +91,7 @@ export default function PersonalSettingsPage() {
   const [confirmPassword, setConfirmPassword] = useState("");
 
   useEffect(() => {
-    if (!loading && (!user || !["SA", "DH"].includes(user.role))) {
+    if (!loading && (!(user as any) || !["SA", "DH"].includes((user as any)?.role))) {
       router.replace("/admin/auth");
     }
   }, [loading, router, user]);
@@ -132,25 +132,25 @@ export default function PersonalSettingsPage() {
       setCurrentPassword("");
       setNewPassword("");
       setConfirmPassword("");
-    } catch (error) {
+    } catch (error: any) {
       enqueueSnackbar(
         error?.response?.data?.message ||
-          error?.message ||
-          "Failed to change password",
+        error?.message ||
+        "Failed to change password",
         { variant: "error" },
       );
     }
   };
 
-  const handleRevokeSession = async (sessionId) => {
+  const handleRevokeSession = async (sessionId: any) => {
     try {
       await revokeSessionMutation.mutateAsync(sessionId);
       enqueueSnackbar("Session revoked", { variant: "success" });
-    } catch (error) {
+    } catch (error: any) {
       enqueueSnackbar(
         error?.response?.data?.message ||
-          error?.message ||
-          "Failed to revoke session",
+        error?.message ||
+        "Failed to revoke session",
         { variant: "error" },
       );
     }
@@ -163,17 +163,17 @@ export default function PersonalSettingsPage() {
         variant: "success",
       });
       router.replace("/admin/auth");
-    } catch (error) {
+    } catch (error: any) {
       enqueueSnackbar(
         error?.response?.data?.message ||
-          error?.message ||
-          "Failed to revoke all sessions",
+        error?.message ||
+        "Failed to revoke all sessions",
         { variant: "error" },
       );
     }
   };
 
-  const formatDateTime = (value) =>
+  const formatDateTime = (value: any) =>
     new Date(value).toLocaleString("en-US", {
       month: "short",
       day: "numeric",
@@ -186,7 +186,7 @@ export default function PersonalSettingsPage() {
     return <LoadingState />;
   }
 
-  if (!user || !["SA", "DH"].includes(user.role)) {
+  if (!(user as any) || !["SA", "DH"].includes((user as any).role)) {
     return null;
   }
 
@@ -338,19 +338,19 @@ export default function PersonalSettingsPage() {
                 <DarkInput
                   type="password"
                   value={currentPassword}
-                  onChange={(e) => setCurrentPassword(e.target.value)}
+                  onChange={(e: any) => setCurrentPassword(e.target.value)}
                   placeholder="Current password"
                 />
                 <DarkInput
                   type="password"
                   value={newPassword}
-                  onChange={(e) => setNewPassword(e.target.value)}
+                  onChange={(e: any) => setNewPassword(e.target.value)}
                   placeholder="New password"
                 />
                 <DarkInput
                   type="password"
                   value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  onChange={(e: any) => setConfirmPassword(e.target.value)}
                   placeholder="Confirm new password"
                 />
               </Box>
@@ -544,7 +544,7 @@ export default function PersonalSettingsPage() {
   );
 }
 
-function SectionHeader({ title, description }) {
+function SectionHeader({ title, description }: any) {
   return (
     <Box>
       <Typography
@@ -572,7 +572,7 @@ function SectionHeader({ title, description }) {
   );
 }
 
-function MetaRow({ icon, label }) {
+function MetaRow({ icon, label }: any) {
   return (
     <Box sx={{ display: "flex", alignItems: "center", gap: 0.75, mt: 0.5 }}>
       <Box sx={{ color: "rgba(255,255,255,0.2)", display: "flex" }}>{icon}</Box>
@@ -589,7 +589,7 @@ function MetaRow({ icon, label }) {
   );
 }
 
-function DarkInput({ type = "text", value, onChange, placeholder }) {
+function DarkInput({ type = "text", value, onChange, placeholder }: any) {
   return (
     <input
       type={type}
@@ -612,7 +612,7 @@ function DarkInput({ type = "text", value, onChange, placeholder }) {
   );
 }
 
-function BtnRow({ children }) {
+function BtnRow({ children }: any) {
   return (
     <Box sx={{ display: "flex", gap: 1, justifyContent: "flex-end", mt: 3 }}>
       {children}
@@ -632,7 +632,7 @@ const btnBase = {
   transition: "all 0.15s",
 };
 
-function PrimaryBtn({ onClick, children, disabled }) {
+function PrimaryBtn({ onClick, children, disabled }: any) {
   return (
     <button
       onClick={onClick}
@@ -658,7 +658,7 @@ function PrimaryBtn({ onClick, children, disabled }) {
   );
 }
 
-function DangerBtn({ onClick, children, disabled }) {
+function DangerBtn({ onClick, children, disabled }: any) {
   return (
     <button
       onClick={onClick}

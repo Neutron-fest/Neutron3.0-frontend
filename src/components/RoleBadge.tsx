@@ -2,7 +2,7 @@
 
 import { Chip } from "@mui/material";
 
-const roleConfig = {
+const roleConfig:any = {
   SA: {
     label: "Super Admin",
     color: "#a855f7",
@@ -30,7 +30,7 @@ const roleConfig = {
   },
 };
 
-export function RoleBadge({ role }) {
+export function RoleBadge({ role }:any) {
   const config = roleConfig[role] || roleConfig.V;
 
   return (

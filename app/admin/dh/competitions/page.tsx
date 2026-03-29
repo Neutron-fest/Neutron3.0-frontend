@@ -697,7 +697,7 @@ function ManageDialog({ competition, open, onClose }: any) {
               />
             </Box>
             {judgesLoading ? (
-              <LoadingState message="Loading…"  />
+              <LoadingState message="Loading…" />
             ) : (
               <Box
                 sx={{
@@ -939,7 +939,7 @@ function ManageDialog({ competition, open, onClose }: any) {
               />
             </Box>
             {volunteersLoading ? (
-              <LoadingState message="Loading…"  />
+              <LoadingState message="Loading…" />
             ) : (
               <Box
                 sx={{
@@ -962,10 +962,10 @@ function ManageDialog({ competition, open, onClose }: any) {
                     </Typography>
                   </Box>
                 ) : (
-                  filteredAllVolunteers.map((v, idx) => {
+                  filteredAllVolunteers.map((v: any, idx: any) => {
                     const name = v.name || "—";
                     const email = v.email || "";
-                    const volunteerId = v.id;
+                    const volunteerId: any = v.id;
                     const checked = assignedVolIds.has(volunteerId);
                     const assignedEntry = volunteers.find((a: any) => (a.userId || a.user?.id) === volunteerId,
                     );
@@ -1014,7 +1014,7 @@ function ManageDialog({ competition, open, onClose }: any) {
                               {
                                 competitionId: competition.id,
                                 volunteerUserId: volunteerId,
-                              },
+                              } as any,
                               {
                                 onSuccess: () =>
                                   enqueueSnackbar("Volunteer assigned", {
@@ -1307,7 +1307,7 @@ function ManageDialog({ competition, open, onClose }: any) {
               />
             </Box>
             {compClubsLoading ? (
-              <LoadingState message="Loading…"  />
+              <LoadingState message="Loading…" />
             ) : (
               <Box
                 sx={{
@@ -1513,7 +1513,7 @@ function ManageDialog({ competition, open, onClose }: any) {
               />
             </Box>
             {compDepartmentsLoading ? (
-              <LoadingState message="Loading…"  />
+              <LoadingState message="Loading…" />
             ) : (
               <Box
                 sx={{
@@ -1749,22 +1749,22 @@ export default function CompetitionsPage() {
 
     const payload = isCurrentlyOpen
       ? {
-          competitionId: comp.id,
-          status: "DRAFT",
-          registrationsOpen: false,
-        }
+        competitionId: comp.id,
+        status: "DRAFT",
+        registrationsOpen: false,
+      }
       : {
-          competitionId: comp.id,
-          status: "OPEN",
-          registrationsOpen: true,
-        };
+        competitionId: comp.id,
+        status: "OPEN",
+        registrationsOpen: true,
+      };
 
     updateCompetition(payload, {
       onSuccess: (response) => {
         if (isDH && response?.pendingApproval) {
           enqueueSnackbar(
             response?.message ||
-              "Change submitted to proposal queue for review.",
+            "Change submitted to proposal queue for review.",
             { variant: "info" },
           );
           return;
@@ -1780,9 +1780,9 @@ export default function CompetitionsPage() {
       onError: (err: any) =>
         enqueueSnackbar(
           err?.response?.data?.message ||
-            (isCurrentlyOpen
-              ? "Failed to unpublish competition"
-              : "Failed to publish competition"),
+          (isCurrentlyOpen
+            ? "Failed to unpublish competition"
+            : "Failed to publish competition"),
           { variant: "error" },
         ),
       onSettled: () => setPublishingId(null),
@@ -1813,7 +1813,7 @@ export default function CompetitionsPage() {
         if (response?.pendingApproval) {
           enqueueSnackbar(
             response?.message ||
-              "Competition deletion submitted for SA approval.",
+            "Competition deletion submitted for SA approval.",
             { variant: "info" },
           );
         } else {
@@ -2217,7 +2217,7 @@ export default function CompetitionsPage() {
                     {/* Actions */}
                     <Box sx={{ display: "flex", justifyContent: "center" }}>
                       <IconButton
-                        
+
                         onClick={(e) => {
                           setMenuAnchor(e.currentTarget);
                           setMenuComp(comp);
@@ -2263,7 +2263,7 @@ export default function CompetitionsPage() {
         }}
       >
         {menuComp?.status === "OPEN" ||
-        (menuComp?.id && publishedFormCompetitionIds.has(menuComp.id)) ? (
+          (menuComp?.id && publishedFormCompetitionIds.has(menuComp.id)) ? (
           <MenuItem
             onClick={() => {
               handleTogglePublishCompetition(menuComp);

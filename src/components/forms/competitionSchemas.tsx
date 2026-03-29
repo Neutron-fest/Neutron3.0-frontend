@@ -41,20 +41,20 @@ export const STEP_FIELDS = [
   [],
 ];
 
-const trimOrUndefined = (value) => {
+const trimOrUndefined = (value: any) => {
   if (value === undefined || value === null) return undefined;
   if (typeof value !== "string") return value;
   const trimmed = value.trim();
   return trimmed === "" ? undefined : trimmed;
 };
 
-const trimOrEmptyString = (value) => {
+const trimOrEmptyString = (value: any) => {
   if (value === undefined || value === null) return "";
   if (typeof value !== "string") return String(value);
   return value.trim();
 };
 
-const toIntegerOrUndefined = (value) => {
+const toIntegerOrUndefined = (value: any) => {
   if (value === "" || value === undefined || value === null) return undefined;
   const parsed =
     typeof value === "number" ? value : Number.parseInt(String(value), 10);
@@ -62,21 +62,21 @@ const toIntegerOrUndefined = (value) => {
   return parsed;
 };
 
-const toMoneyOrZero = (value) => {
+const toMoneyOrZero = (value: any) => {
   if (value === "" || value === undefined || value === null) return 0;
   const parsed = typeof value === "number" ? value : Number(value);
   if (!Number.isFinite(parsed)) return 0;
   return parsed;
 };
 
-const toMoneyOrUndefined = (value) => {
+const toMoneyOrUndefined = (value: any) => {
   if (value === "" || value === undefined || value === null) return undefined;
   const parsed = typeof value === "number" ? value : Number(value);
   if (!Number.isFinite(parsed)) return undefined;
   return parsed;
 };
 
-const toDateTimeStringOrUndefined = (value) => {
+const toDateTimeStringOrUndefined = (value: any) => {
   const trimmed = trimOrUndefined(value);
   if (!trimmed) return undefined;
   const date = new Date(trimmed);
@@ -473,12 +473,12 @@ export const DEFAULT_VALUES = {
   promoCodes: [],
 };
 
-const toDateTimeLocal = (value) => {
+const toDateTimeLocal = (value: any) => {
   if (!value) return "";
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return "";
 
-  const pad = (num) => String(num).padStart(2, "0");
+  const pad = (num: any) => String(num).padStart(2, "0");
   const year = date.getFullYear();
   const month = pad(date.getMonth() + 1);
   const day = pad(date.getDate());
@@ -488,7 +488,7 @@ const toDateTimeLocal = (value) => {
   return `${year}-${month}-${day}T${hours}:${minutes}`;
 };
 
-export function getEditDefaults(competition = {}) {
+export function getEditDefaults(competition: any = {}) {
   return {
     title: competition.title ?? "",
     shortDescription: competition.shortDescription ?? "",
@@ -503,13 +503,13 @@ export function getEditDefaults(competition = {}) {
     venueRoom: competition.venueRoom ?? "",
     venueFloor: competition.venueFloor ?? "",
     subVenues: Array.isArray(competition.subVenues)
-      ? competition.subVenues.map((venue) => ({
-          name: venue?.name ?? "",
-          room: venue?.room ?? "",
-          floor: venue?.floor ?? "",
-          capacity: venue?.capacity ?? "",
-          notes: venue?.notes ?? "",
-        }))
+      ? competition.subVenues.map((venue: any) => ({
+        name: venue?.name ?? "",
+        room: venue?.room ?? "",
+        floor: venue?.floor ?? "",
+        capacity: venue?.capacity ?? "",
+        notes: venue?.notes ?? "",
+      }))
       : [],
     rulesRichText: competition.rulesRichText ?? "",
     registrationFee: competition.registrationFee ?? 0,
@@ -524,34 +524,34 @@ export function getEditDefaults(competition = {}) {
     isPaid: competition.isPaid ?? false,
     perPerson: competition.perPerson ?? false,
     prizePool: Array.isArray(competition.prizePool)
-      ? competition.prizePool.map((prize) => ({
-          rank: prize?.rank ?? "",
-          label: prize?.label ?? "",
-          cash: prize?.cash ?? "",
-          inkind: Array.isArray(prize?.inkind)
-            ? prize.inkind.join(", ")
-            : (prize?.inkind ?? ""),
-        }))
+      ? competition.prizePool.map((prize: any) => ({
+        rank: prize?.rank ?? "",
+        label: prize?.label ?? "",
+        cash: prize?.cash ?? "",
+        inkind: Array.isArray(prize?.inkind)
+          ? prize.inkind.join(", ")
+          : (prize?.inkind ?? ""),
+      }))
       : [],
     promoCodes: Array.isArray(competition.promoCodes)
-      ? competition.promoCodes.map((promoCode) => ({
-          code: promoCode?.code ?? "",
-          discountType: promoCode?.discountType ?? "PERCENT",
-          discountValue: promoCode?.discountValue ?? "",
-          maxUses: promoCode?.maxUses ?? "",
-          isActive: promoCode?.isActive ?? true,
-          description: promoCode?.description ?? "",
-        }))
+      ? competition.promoCodes.map((promoCode: any) => ({
+        code: promoCode?.code ?? "",
+        discountType: promoCode?.discountType ?? "PERCENT",
+        discountValue: promoCode?.discountValue ?? "",
+        maxUses: promoCode?.maxUses ?? "",
+        isActive: promoCode?.isActive ?? true,
+        description: promoCode?.description ?? "",
+      }))
       : [],
   };
 }
 
-const toDateTimePayloadOrNull = (value) => {
+const toDateTimePayloadOrNull = (value: any) => {
   if (!value) return null;
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return null;
 
-  const pad = (num) => String(num).padStart(2, "0");
+  const pad = (num: any) => String(num).padStart(2, "0");
   const year = date.getFullYear();
   const month = pad(date.getMonth() + 1);
   const day = pad(date.getDate());
@@ -564,7 +564,7 @@ const toDateTimePayloadOrNull = (value) => {
 
 const normalizePrizePool = (prizePool = []) => {
   return prizePool
-    .map((item) => {
+    .map((item: any) => {
       const rank = trimOrUndefined(item?.rank);
       const label = trimOrUndefined(item?.label);
       const cash = toMoneyOrUndefined(item?.cash);
@@ -572,9 +572,9 @@ const normalizePrizePool = (prizePool = []) => {
 
       const inkind = inKindRaw
         ? inKindRaw
-            .split(",")
-            .map((value) => value.trim())
-            .filter(Boolean)
+          .split(",")
+          .map((value: any) => value.trim())
+          .filter(Boolean)
         : undefined;
 
       if (!label) return null;
@@ -591,7 +591,7 @@ const normalizePrizePool = (prizePool = []) => {
 
 const normalizePromoCodes = (promoCodes = []) => {
   return promoCodes
-    .map((item) => {
+    .map((item: any) => {
       const code = trimOrUndefined(item?.code)?.toUpperCase();
       const discountType = item?.discountType || "PERCENT";
       const discountValue = toMoneyOrUndefined(item?.discountValue);
@@ -615,7 +615,7 @@ const normalizePromoCodes = (promoCodes = []) => {
 
 const normalizeSubVenues = (subVenues = []) => {
   return subVenues
-    .map((item) => {
+    .map((item: any) => {
       const name = trimOrUndefined(item?.name);
       if (!name) return null;
 
@@ -635,10 +635,10 @@ const normalizeSubVenues = (subVenues = []) => {
     .filter(Boolean);
 };
 
-export function buildCompetitionPayloadFormData(values, poster, banner) {
+export function buildCompetitionPayloadFormData(values: any, poster: any, banner: any) {
   const formData = new FormData();
 
-  const append = (key, value) => {
+  const append = (key: any, value: any) => {
     if (value === undefined || value === null || value === "") return;
     formData.append(key, String(value));
   };

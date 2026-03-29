@@ -59,7 +59,7 @@ const PENDING_CAMPAIGN_STATUSES = new Set([
 
 const SENDABLE_CAMPAIGN_STATUSES = new Set(["DRAFT", "SCHEDULED", "FAILED"]);
 
-const CAMPAIGN_STATUS_COLORS = {
+const CAMPAIGN_STATUS_COLORS: any = {
   DRAFT: "#fbbf24",
   SCHEDULED: "#60a5fa",
   QUEUED: "#a78bfa",
@@ -79,13 +79,13 @@ const CAMPAIGN_CREATION_STEPS = [
   { key: "review", label: "Review" },
 ];
 
-const toTitle = (text) =>
+const toTitle = (text: any) =>
   text
     .split(/[_-]/g)
-    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .map((part: any) => part.charAt(0).toUpperCase() + part.slice(1))
     .join(" ");
 
-const getSampleValue = (key) => {
+const getSampleValue = (key: any) => {
   const lowerKey = key.toLowerCase();
 
   if (lowerKey.includes("url") || lowerKey.includes("link")) {
@@ -115,7 +115,7 @@ const formatHtml = (source = "") => {
   const lines = [];
   let depth = 0;
 
-  const shouldIncreaseDepth = (token) => {
+  const shouldIncreaseDepth = (token: any) => {
     return (
       /^<[^/!][^>]*>$/.test(token) &&
       !token.endsWith("/>") &&
@@ -147,9 +147,9 @@ const formatHtml = (source = "") => {
   return lines.join("\n");
 };
 
-const applyVariables = (template = "", variables = {}) => {
-  return template.replace(/\{\{\s*([a-zA-Z0-9_]+)\s*\}\}/g, (_, key) => {
-    const value = variables[key];
+const applyVariables = (template = "", variables: any = {}) => {
+  return template.replace(/\{\{\s*([a-zA-Z0-9_]+)\s*\}\}/g, (_, key: any) => {
+    const value: any = variables[key];
     return value === undefined || value === null ? "" : String(value);
   });
 };
@@ -161,7 +161,7 @@ const parseCsvEmailsText = (value = "") => {
     .filter(Boolean);
 };
 
-const toDateTimeLocalValue = (dateValue) => {
+const toDateTimeLocalValue = (dateValue: any) => {
   if (!dateValue) return "";
   const date = new Date(dateValue);
   if (Number.isNaN(date.getTime())) return "";
@@ -175,7 +175,7 @@ const toDateTimeLocalValue = (dateValue) => {
   return `${year}-${month}-${day}T${hours}:${mins}`;
 };
 
-const renderCampaignStatusPill = (status) => {
+const renderCampaignStatusPill = (status: any) => {
   const color = CAMPAIGN_STATUS_COLORS[status] || "rgba(255,255,255,0.5)";
 
   return (
@@ -210,8 +210,8 @@ export default function SettingsPage() {
     useEmailTemplates();
 
   const [selectedTemplateKey, setSelectedTemplateKey] = useState(null);
-  const effectiveTemplateKey = selectedTemplateKey || templates[0]?.key || null;
-  const { data: selectedTemplate } = useEmailTemplate(effectiveTemplateKey);
+  const effectiveTemplateKey: any = selectedTemplateKey || templates[0]?.key || null;
+  const { data: selectedTemplate }: any = useEmailTemplate(effectiveTemplateKey);
 
   const [subject, setSubject] = useState("");
   const [html, setHtml] = useState("");
@@ -221,15 +221,15 @@ export default function SettingsPage() {
   const [campaignSubject, setCampaignSubject] = useState("");
   const [campaignTemplateHtml, setCampaignTemplateHtml] = useState("");
   const [campaignAudienceType, setCampaignAudienceType] = useState("FILTER");
-  const [campaignRoles, setCampaignRoles] = useState([]);
-  const [campaignDepartmentIds, setCampaignDepartmentIds] = useState([]);
-  const [campaignUserIds, setCampaignUserIds] = useState([]);
+  const [campaignRoles, setCampaignRoles] = useState<any>([]);
+  const [campaignDepartmentIds, setCampaignDepartmentIds] = useState<any>([]);
+  const [campaignUserIds, setCampaignUserIds] = useState<any>([]);
   const [campaignCompetitionId, setCampaignCompetitionId] = useState("");
   const [campaignCsvEmailsText, setCampaignCsvEmailsText] = useState("");
-  const [campaignCsvFile, setCampaignCsvFile] = useState(null);
+  const [campaignCsvFile, setCampaignCsvFile] = useState<any>(null);
   const [campaignScheduledAt, setCampaignScheduledAt] = useState("");
   const [campaignSearch, setCampaignSearch] = useState("");
-  const [selectedCampaignId, setSelectedCampaignId] = useState(null);
+  const [selectedCampaignId, setSelectedCampaignId] = useState<any>(null);
   const [campaignStepIndex, setCampaignStepIndex] = useState(0);
   const [campaignPreviewHtml, setCampaignPreviewHtml] = useState("");
   const [campaignPreviewError, setCampaignPreviewError] = useState("");
@@ -288,7 +288,7 @@ export default function SettingsPage() {
         value: JSON.parse(testDataText || "{}"),
         error: null,
       };
-    } catch (error) {
+    } catch (error: any) {
       return {
         value: null,
         error: error.message,
@@ -322,7 +322,7 @@ export default function SettingsPage() {
           { variant: "success" },
         );
       },
-      onError: (error) => {
+      onError: (error: any) => {
         enqueueSnackbar(
           error?.response?.data?.message || "Failed to update freeze state",
           { variant: "error" },
@@ -340,10 +340,10 @@ export default function SettingsPage() {
           { variant: "success" },
         );
       },
-      onError: (error) => {
+      onError: (error: any) => {
         enqueueSnackbar(
           error?.response?.data?.message ||
-            "Failed to update registration state",
+          "Failed to update registration state",
           { variant: "error" },
         );
       },
@@ -352,13 +352,13 @@ export default function SettingsPage() {
 
   const handleBackup = async () => {
     try {
-      const backup = await triggerBackup();
+      const backup: any = await triggerBackup();
       enqueueSnackbar(
         `Backup created (${backup.format.toUpperCase()}): ${backup.fileName}`,
         { variant: "success" },
       );
       await refetchSummary();
-    } catch (error) {
+    } catch (error: any) {
       enqueueSnackbar(
         error?.response?.data?.message || "Failed to create backup",
         { variant: "error" },
@@ -380,7 +380,7 @@ export default function SettingsPage() {
           enqueueSnackbar("Email template saved", { variant: "success" });
           refetchTemplates();
         },
-        onError: (error) => {
+        onError: (error: any) => {
           enqueueSnackbar(
             error?.response?.data?.message || "Failed to save template",
             { variant: "error" },
@@ -400,7 +400,7 @@ export default function SettingsPage() {
         setHtml(template.html || "");
         refetchTemplates();
       },
-      onError: (error) => {
+      onError: (error: any) => {
         enqueueSnackbar(
           error?.response?.data?.message || "Failed to reset template",
           { variant: "error" },
@@ -420,8 +420,8 @@ export default function SettingsPage() {
       return;
     }
 
-    const scaffold = {};
-    selectedTemplate.variables.forEach((key) => {
+    const scaffold: any = {};
+    selectedTemplate.variables.forEach((key: any) => {
       scaffold[key] = getSampleValue(key);
     });
     setTestDataText(JSON.stringify(scaffold, null, 2));
@@ -443,18 +443,18 @@ export default function SettingsPage() {
 
     const debounceTimer = setTimeout(async () => {
       try {
-        const preview = await previewCampaign({
+        const preview: any = await previewCampaign({
           templateHtml: campaignTemplateHtml,
           sampleData: {},
         });
 
         setCampaignPreviewHtml(preview?.html || "");
         setCampaignPreviewError("");
-      } catch (error) {
+      } catch (error: any) {
         setCampaignPreviewHtml("");
         setCampaignPreviewError(
           error?.response?.data?.message ||
-            "Failed to generate preview from template.",
+          "Failed to generate preview from template.",
         );
       }
     }, 350);
@@ -512,7 +512,7 @@ export default function SettingsPage() {
     setCampaignPreviewError("");
   };
 
-  const canProceedCampaignStep = (stepIndex) => {
+  const canProceedCampaignStep = (stepIndex: any) => {
     if (stepIndex === 0) {
       return (
         Boolean(campaignName.trim()) &&
@@ -581,9 +581,9 @@ export default function SettingsPage() {
         name: campaignName.trim(),
         subject: campaignSubject.trim(),
         templateHtml: campaignTemplateHtml,
-        audienceType: campaignAudienceType,
+        audienceType: campaignAudienceType as any,
         audienceQuery,
-        csvFile: campaignCsvFile,
+        csvFile: campaignCsvFile as any,
         scheduledAt: campaignScheduledAt
           ? new Date(campaignScheduledAt).toISOString()
           : null,
@@ -592,7 +592,7 @@ export default function SettingsPage() {
       enqueueSnackbar("Campaign created successfully.", { variant: "success" });
       setSelectedCampaignId(createdCampaign?.id || null);
       resetCampaignComposer();
-    } catch (error) {
+    } catch (error: any) {
       enqueueSnackbar(
         error?.response?.data?.message || "Failed to create campaign.",
         { variant: "error" },
@@ -600,11 +600,11 @@ export default function SettingsPage() {
     }
   };
 
-  const handleSendCampaign = async (campaignId) => {
+  const handleSendCampaign = async (campaignId: any) => {
     try {
       await sendCampaignNow(campaignId);
       enqueueSnackbar("Campaign queued for sending.", { variant: "success" });
-    } catch (error) {
+    } catch (error: any) {
       enqueueSnackbar(
         error?.response?.data?.message || "Failed to send campaign.",
         {
@@ -614,7 +614,7 @@ export default function SettingsPage() {
     }
   };
 
-  const handleScheduleCampaign = async (campaignId, scheduledAt) => {
+  const handleScheduleCampaign = async (campaignId: any, scheduledAt: any) => {
     try {
       if (!scheduledAt) {
         enqueueSnackbar("Choose schedule date/time before scheduling.", {
@@ -631,7 +631,7 @@ export default function SettingsPage() {
       enqueueSnackbar("Campaign scheduled successfully.", {
         variant: "success",
       });
-    } catch (error) {
+    } catch (error: any) {
       enqueueSnackbar(
         error?.response?.data?.message || "Failed to schedule campaign.",
         {
@@ -641,11 +641,11 @@ export default function SettingsPage() {
     }
   };
 
-  const handleCancelCampaign = async (campaignId) => {
+  const handleCancelCampaign = async (campaignId: any) => {
     try {
       await cancelCampaign(campaignId);
       enqueueSnackbar("Campaign cancelled.", { variant: "success" });
-    } catch (error) {
+    } catch (error: any) {
       enqueueSnackbar(
         error?.response?.data?.message || "Failed to cancel campaign.",
         {
@@ -655,11 +655,11 @@ export default function SettingsPage() {
     }
   };
 
-  const handleRetryFailedCampaign = async (campaignId) => {
+  const handleRetryFailedCampaign = async (campaignId: any) => {
     try {
       await retryFailedCampaign(campaignId);
       enqueueSnackbar("Failed recipients re-queued.", { variant: "success" });
-    } catch (error) {
+    } catch (error: any) {
       enqueueSnackbar(
         error?.response?.data?.message || "Failed to retry failed recipients.",
         { variant: "error" },
@@ -667,13 +667,13 @@ export default function SettingsPage() {
     }
   };
 
-  const handleRerunCampaign = async (campaignId) => {
+  const handleRerunCampaign = async (campaignId: any) => {
     try {
       await rerunCampaign(campaignId);
       enqueueSnackbar("Campaign re-queued for full rerun.", {
         variant: "success",
       });
-    } catch (error) {
+    } catch (error: any) {
       enqueueSnackbar(
         error?.response?.data?.message || "Failed to rerun campaign.",
         { variant: "error" },
@@ -932,7 +932,7 @@ export default function SettingsPage() {
             </Box>
 
             <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
-              {templates.map((template) => (
+              {templates.map((template: any) => (
                 <Box
                   key={template.key}
                   component="button"
@@ -941,8 +941,8 @@ export default function SettingsPage() {
                     setSubject("");
                     setHtml("");
 
-                    const scaffold = {};
-                    (template.variables || []).forEach((key) => {
+                    const scaffold: any = {};
+                    (template.variables || []).forEach((key: any) => {
                       scaffold[key] = getSampleValue(key);
                     });
                     setTestDataText(JSON.stringify(scaffold, null, 2));
@@ -1030,7 +1030,7 @@ export default function SettingsPage() {
               <Box
                 component="input"
                 value={effectiveSubject}
-                onChange={(event) => setSubject(event.target.value)}
+                onChange={(event: any) => setSubject(event.target.value)}
                 sx={{
                   width: "100%",
                   px: 1.5,
@@ -1471,11 +1471,11 @@ export default function SettingsPage() {
                         component="select"
                         multiple
                         value={campaignRoles}
-                        onChange={(event) =>
+                        onChange={(event: any) =>
                           setCampaignRoles(
                             Array.from(
                               event.target.selectedOptions,
-                              (option) => option.value,
+                              (option: any) => option.value,
                             ),
                           )
                         }
@@ -1675,7 +1675,7 @@ export default function SettingsPage() {
                         component="input"
                         type="file"
                         accept=".csv,text/csv"
-                        onChange={(event) =>
+                        onChange={(event: any) =>
                           setCampaignCsvFile(event.target.files?.[0] || null)
                         }
                         sx={{
@@ -2203,7 +2203,7 @@ export default function SettingsPage() {
                       handleScheduleCampaign(
                         selectedCampaign.id,
                         toDateTimeLocalValue(selectedCampaign.scheduledAt) ||
-                          campaignScheduledAt,
+                        campaignScheduledAt,
                       )
                     }
                     disabled={schedulingCampaign}
@@ -2248,7 +2248,7 @@ export default function SettingsPage() {
                       cursor: "pointer",
                       opacity:
                         Number(selectedCampaign.failedRecipients || 0) <= 0 ||
-                        retryingCampaign
+                          retryingCampaign
                           ? 0.5
                           : 1,
                     }}

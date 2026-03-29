@@ -52,7 +52,7 @@ const STEP_DESCRIPTIONS = [
 
 // ─── Backend error mapping ────────────────────────────────────────────────────
 
-const BACKEND_FIELD_TOKEN_TO_FORM_FIELD = {
+const BACKEND_FIELD_TOKEN_TO_FORM_FIELD: any = {
   TITLE: "title",
   SHORTDESCRIPTION: "shortDescription",
   CATEGORY: "category",
@@ -84,7 +84,7 @@ const BACKEND_FIELD_TOKEN_TO_FORM_FIELD = {
   BANNERSIZEBYTES: "banner",
 };
 
-const ERROR_MESSAGE_MAP = {
+const ERROR_MESSAGE_MAP: any = {
   INVALID_SCHEDULE_RANGE: "Event end time must be after start time",
   INVALID_START_TIME_NOT_IN_FUTURE: "Event start time must be in the future",
   INVALID_END_TIME_NOT_IN_FUTURE: "Event end time must be in the future",
@@ -103,14 +103,14 @@ const ERROR_MESSAGE_MAP = {
     "Flat discount cannot exceed registration fee",
 };
 
-const findStepIndexForField = (fieldName) => {
+const findStepIndexForField = (fieldName: any) => {
   if (fieldName === "poster" || fieldName === "banner")
     return STEP_LABELS.length - 1;
   const index = STEP_FIELDS.findIndex((fields) => fields.includes(fieldName));
   return index >= 0 ? index : 0;
 };
 
-const parseBackendValidationCode = (code) => {
+const parseBackendValidationCode = (code: any) => {
   if (typeof code !== "string") return null;
 
   if (ERROR_MESSAGE_MAP[code]) {
@@ -161,7 +161,7 @@ const parseBackendValidationCode = (code) => {
 
 // ─── Error collection helpers ─────────────────────────────────────────────────
 
-const FIELD_LABELS = {
+const FIELD_LABELS: any = {
   title: "Title",
   shortDescription: "Short Description",
   category: "Category",
@@ -191,12 +191,12 @@ const FIELD_LABELS = {
   promoCodes: "Promo Codes",
 };
 
-const collectErrorMessages = (node, path = [], bag = []) => {
+const collectErrorMessages = (node: any, path: any = [], bag: any = []) => {
   if (!node) return bag;
   if (typeof node?.message === "string" && node.message.trim()) {
     const [root, second, third] = path;
     const rootLabel = FIELD_LABELS[root] || root;
-    let fieldLabel = rootLabel;
+    let fieldLabel: any = rootLabel;
     if (typeof second === "number") {
       const nested = third ? ` · ${FIELD_LABELS[third] || third}` : "";
       fieldLabel = `${rootLabel} #${second + 1}${nested}`;
@@ -216,11 +216,11 @@ const collectErrorMessages = (node, path = [], bag = []) => {
   return bag;
 };
 
-const getStepErrorMessages = (errors, fields = []) => {
-  const messages = [];
-  fields.forEach((f) => collectErrorMessages(errors?.[f], [f], messages));
+const getStepErrorMessages = (errors: any, fields: any = []) => {
+  const messages: any = [];
+  fields.forEach((f: any) => collectErrorMessages(errors?.[f], [f], messages));
   const seen = new Set();
-  return messages.filter(({ field, message }) => {
+  return messages.filter(({ field, message }: any) => {
     const key = `${field}:${message}`;
     if (seen.has(key)) return false;
     seen.add(key);
@@ -228,7 +228,7 @@ const getStepErrorMessages = (errors, fields = []) => {
   });
 };
 
-const countStepErrors = (errors, fields = []) =>
+const countStepErrors = (errors: any, fields = []) =>
   getStepErrorMessages(errors, fields).length;
 
 // ─── Buttons ──────────────────────────────────────────────────────────────────
@@ -248,7 +248,7 @@ const btnBase = {
   gap: 6,
 };
 
-function GhostBtn({ onClick, children, disabled }) {
+function GhostBtn({ onClick, children, disabled }: any) {
   return (
     <button
       type="button"
@@ -268,7 +268,7 @@ function GhostBtn({ onClick, children, disabled }) {
   );
 }
 
-function PurpleBtn({ children, disabled, onClick }) {
+function PurpleBtn({ children, disabled, onClick }: any) {
   return (
     <button
       type="button"
@@ -294,7 +294,7 @@ function StepIndicator({
   visitedUpTo,
   stepErrorCounts,
   onStepClick,
-}) {
+}: any) {
   return (
     <Box
       sx={{
@@ -422,7 +422,7 @@ function StepIndicator({
 
 // ─── Inline step error banner ─────────────────────────────────────────────────
 
-function StepErrorBanner({ messages }) {
+function StepErrorBanner({ messages }: any) {
   if (!messages.length) return null;
   return (
     <Box
@@ -448,7 +448,7 @@ function StepErrorBanner({ messages }) {
         Fix the following before continuing
       </Typography>
       <Box component="ul" sx={{ m: 0, pl: 2.25 }}>
-        {messages.map((item, i) => (
+        {messages.map((item: any, i: any) => (
           <Typography
             key={`${item.field}-${i}`}
             component="li"
@@ -476,7 +476,7 @@ export default function CompetitionFormModal({
   onClose,
   competition,
   mode = "modal",
-}) {
+}: any) {
   const isPageMode = mode === "page";
   const isVisible = isPageMode ? true : Boolean(open);
   const isEdit = Boolean(competition);
@@ -550,7 +550,7 @@ export default function CompetitionFormModal({
 
   // Compute per-step error counts for the indicator
   const stepErrorCounts = useMemo(
-    () => STEP_FIELDS.map((fields) => countStepErrors(errors, fields)),
+    () => STEP_FIELDS.map((fields: any) => countStepErrors(errors, fields)),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [JSON.stringify(errors)], // eslint avoidance — errors is a deep object
   );
@@ -564,7 +564,7 @@ export default function CompetitionFormModal({
   );
 
   const goNext = async () => {
-    const fields = STEP_FIELDS[activeStep] || [];
+    const fields: any = STEP_FIELDS[activeStep] || [];
     if (!fields.length) {
       setShowErrorBanner(false);
       const next = Math.min(activeStep + 1, STEP_LABELS.length - 1);
@@ -590,15 +590,15 @@ export default function CompetitionFormModal({
     setActiveStep((prev) => Math.max(prev - 1, 0));
   };
 
-  const goToStep = (index) => {
+  const goToStep = (index: any) => {
     setShowErrorBanner(false);
     setActiveStep(index);
   };
 
-  const onSubmit = async (values) => {
+  const onSubmit = async (values: any) => {
     const formData = buildCompetitionPayloadFormData(values, poster, banner);
 
-    const handleError = (error) => {
+    const handleError = (error: any) => {
       const backendCode =
         error?.response?.data?.error || error?.response?.data?.message;
       const mapped = parseBackendValidationCode(backendCode);
@@ -610,10 +610,10 @@ export default function CompetitionFormModal({
       }
       enqueueSnackbar(
         mapped?.message ||
-          error?.response?.data?.message ||
-          (isEdit
-            ? "Failed to update competition"
-            : "Failed to create competition"),
+        error?.response?.data?.message ||
+        (isEdit
+          ? "Failed to update competition"
+          : "Failed to create competition"),
         { variant: "error" },
       );
     };
@@ -626,7 +626,7 @@ export default function CompetitionFormModal({
             enqueueSnackbar(
               response?.pendingApproval
                 ? response?.message ||
-                    "Competition change submitted for SA approval."
+                "Competition change submitted for SA approval."
                 : "Competition updated successfully",
               {
                 variant: response?.pendingApproval ? "info" : "success",
@@ -646,7 +646,7 @@ export default function CompetitionFormModal({
         enqueueSnackbar(
           response?.pendingApproval
             ? response?.message ||
-                "Competition creation submitted for SA approval."
+            "Competition creation submitted for SA approval."
             : "Competition created successfully",
           {
             variant: response?.pendingApproval ? "info" : "success",

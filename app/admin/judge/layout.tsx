@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import {
@@ -18,7 +18,7 @@ import {
   getAdminNavigation,
 } from "@/src/components/navigation/Sidebar";
 
-export default function JudgeLayout({ children }) {
+export default function JudgeLayout({ children }: { children: React.ReactNode }) {
   const { user, loading, logout } = useAuth();
   const router = useRouter();
   const pathname = usePathname();

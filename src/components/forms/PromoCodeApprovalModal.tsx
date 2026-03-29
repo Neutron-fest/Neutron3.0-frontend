@@ -30,12 +30,12 @@ export default function PromoCodeApprovalModal({
   onClose,
   competition,
   registrationFee,
-}) {
+}:any) {
   const { enqueueSnackbar } = useSnackbar();
   const { mutate: requestApproval, isPending } = useRequestPromoCodeApproval();
 
-  const [promoCodes, setPromoCodes] = useState([]);
-  const [currentCode, setCurrentCode] = useState({
+  const [promoCodes, setPromoCodes] = useState<any>([]);
+  const [currentCode, setCurrentCode] = useState<any>({
     code: "",
     discountType: "PERCENT",
     discountValue: 0,
@@ -89,8 +89,8 @@ export default function PromoCodeApprovalModal({
     setCurrentCode({ code: "", discountType: "PERCENT", discountValue: 0 });
   };
 
-  const handleRemoveCode = (index) => {
-    setPromoCodes(promoCodes.filter((_, i) => i !== index));
+  const handleRemoveCode = (index:any) => {
+    setPromoCodes(promoCodes.filter((_:any, i:any) => i !== index));
   };
 
   const handleSubmit = async () => {
@@ -120,7 +120,7 @@ export default function PromoCodeApprovalModal({
           });
           onClose();
         },
-        onError: (err) => {
+        onError: (err:any) => {
           const message =
             err?.response?.data?.message || "Failed to request approval";
           setError(message);
@@ -433,7 +433,7 @@ export default function PromoCodeApprovalModal({
                     </TableRow>
                   </TableHead>
                   <TableBody>
-                    {promoCodes.map((code, idx) => (
+                    {promoCodes.map((code:any, idx:any) => (
                       <TableRow
                         key={idx}
                         sx={{

@@ -2,7 +2,7 @@
 
 import { Chip } from "@mui/material";
 
-const statusConfig = {
+const statusConfig:any = {
   active: {
     label: "Active",
     color: "success",
@@ -29,7 +29,7 @@ export function UserStatusChip({
   status,
   isSuspended = false,
   isRevoked = false,
-}) {
+}:any) {
   let resolvedStatus = status;
 
   if (!resolvedStatus) {

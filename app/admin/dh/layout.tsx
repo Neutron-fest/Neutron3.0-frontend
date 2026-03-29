@@ -19,7 +19,7 @@ import {
 } from "@/src/components/navigation/Sidebar";
 import { useDHDepartmentMembers } from "@/src/hooks/api/useUsers";
 
-export default function DHLayout({ children }) {
+export default function DHLayout({ children }: { children: React.ReactNode }) {
   const { user, loading, logout } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
@@ -32,7 +32,7 @@ export default function DHLayout({ children }) {
     isLoading: departmentLoading,
     isError: departmentError,
     error: departmentErrorObject,
-  } = useDHDepartmentMembers(mounted && !!user && isDH);
+  } = useDHDepartmentMembers(mounted && !!user && isDH) as any;
 
   useEffect(() => {
     setMounted(true);
@@ -95,7 +95,7 @@ export default function DHLayout({ children }) {
   const currentPage = pathname.startsWith("/admin/settings")
     ? "Personal Settings"
     : navigation.find((item) => pathname.startsWith(item.href))?.name ||
-      "Dashboard";
+    "Dashboard";
 
   return (
     <Box sx={{ display: "flex", minHeight: "100vh", backgroundColor: "#000" }}>

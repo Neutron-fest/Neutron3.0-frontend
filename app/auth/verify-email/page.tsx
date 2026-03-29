@@ -52,7 +52,7 @@ function PublicVerifyEmailPageContent() {
         if (!mounted) return;
         setStatus("success");
         setMessage(data?.message || "Email verified successfully.");
-      } catch (error) {
+      } catch (error: any) {
         if (!mounted) return;
 
         const apiMessage = error?.response?.data?.message;

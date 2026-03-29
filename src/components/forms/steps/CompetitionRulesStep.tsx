@@ -16,7 +16,7 @@ const escapeHtml = (value = "") =>
 
 // ─── Inline markdown (bold, italic, code, links) ─────────────────────────────
 
-const renderInline = (line) => {
+const renderInline = (line: any) => {
   const escaped = escapeHtml(line);
   return escaped
     .replace(/`([^`]+)`/g, "<code>$1</code>")
@@ -43,14 +43,14 @@ const renderMarkdownToHtml = (markdownValue = "") => {
   let inFencedCode = false;
   let fenceLang = "";
   let codeLines = [];
-  let listStack = []; // [{type:'ul'|'ol', indent:number}]
+  let listStack: any = []; // [{type:'ul'|'ol', indent:number}]
 
   // ── helpers ──────────────────────────────────────────────────────────────
 
   const currentList = () => listStack[listStack.length - 1] ?? null;
 
   /** Close list levels whose indent is deeper than `toIndent`. */
-  const closeListsDeeper = (toIndent) => {
+  const closeListsDeeper = (toIndent: any) => {
     while (listStack.length && currentList().indent > toIndent) {
       blocks.push(`</${listStack.pop().type}>`);
     }
@@ -64,7 +64,7 @@ const renderMarkdownToHtml = (markdownValue = "") => {
   };
 
   /** Push an opening list tag and track it. */
-  const openList = (type, indent) => {
+  const openList = (type: any, indent: any) => {
     blocks.push(`<${type}>`);
     listStack.push({ type, indent });
   };
@@ -219,7 +219,7 @@ const renderMarkdownToHtml = (markdownValue = "") => {
 
 // ─── Editor component ─────────────────────────────────────────────────────────
 
-function RulesMarkdownEditor({ value, onChange, hasError }) {
+function RulesMarkdownEditor({ value, onChange, hasError }: any) {
   const markdownValue = value || "";
   const previewHtml = renderMarkdownToHtml(markdownValue);
 
@@ -433,7 +433,7 @@ function RulesMarkdownEditor({ value, onChange, hasError }) {
 
 // ─── Step component ───────────────────────────────────────────────────────────
 
-export default function CompetitionRulesStep({ control, errors }) {
+export default function CompetitionRulesStep({ control, errors }: any) {
   return (
     <Box sx={{ display: "flex", flexDirection: "column", gap: 0.5 }}>
       <Box

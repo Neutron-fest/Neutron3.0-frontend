@@ -14,7 +14,7 @@ const STATUS_CONFIG = {
   POSTPONED: { color: "#fb923c" },
 };
 
-function ReviewRow({ label, value }) {
+function ReviewRow({ label, value }: any) {
   if (!value && value !== 0 && value !== false) return null;
   return (
     <Box
@@ -53,7 +53,7 @@ function ReviewRow({ label, value }) {
   );
 }
 
-function ReviewSection({ title, children }) {
+function ReviewSection({ title, children }: any) {
   return (
     <Box>
       <Typography
@@ -91,15 +91,15 @@ export default function CompetitionPosterReviewStep({
   banner,
   onBannerChange,
   existingBannerPath,
-}) {
-  const fileInputRef = useRef(null);
-  const bannerInputRef = useRef(null);
+}: any) {
+  const fileInputRef = useRef<any>(null);
+  const bannerInputRef = useRef<any>(null);
   const [dragOver, setDragOver] = useState(false);
   const [dragOverBanner, setDragOverBanner] = useState(false);
 
   const formValues = watch();
 
-  const toPreviewUrl = (file, existingPath) => {
+  const toPreviewUrl = (file: any, existingPath: any) => {
     if (file) {
       return URL.createObjectURL(file);
     }
@@ -142,7 +142,7 @@ export default function CompetitionPosterReviewStep({
     };
   }, [poster, previewUrl, banner, bannerPreviewUrl]);
 
-  function handleFiles(files, onChange) {
+  function handleFiles(files: any, onChange: any) {
     if (!files || files.length === 0) return;
     const file = files[0];
     if (!file.type.startsWith("image/")) return;
@@ -150,7 +150,7 @@ export default function CompetitionPosterReviewStep({
     onChange(file);
   }
 
-  const fmtDate = (d) => {
+  const fmtDate = (d: any) => {
     if (!d) return null;
     try {
       return new Date(d).toLocaleString("en-US", {
@@ -165,21 +165,21 @@ export default function CompetitionPosterReviewStep({
     }
   };
 
-  const boolLabel = (v) => (v ? "Yes" : "No");
+  const boolLabel = (v: any) => (v ? "Yes" : "No");
   const statusValue =
     typeof formValues.status === "object" && formValues.status !== null
       ? formValues.status.value || formValues.status.label || ""
       : formValues.status;
   const subVenueSummary = Array.isArray(formValues.subVenues)
     ? formValues.subVenues
-        .map((venue) => String(venue?.name || "").trim())
-        .filter(Boolean)
+      .map((venue: any) => String(venue?.name || "").trim())
+      .filter(Boolean)
     : [];
 
   const promoCodeSummary = Array.isArray(formValues.promoCodes)
     ? formValues.promoCodes
-        .map((promo) => String(promo?.code || "").trim())
-        .filter(Boolean)
+      .map((promo: any) => String(promo?.code || "").trim())
+      .filter(Boolean)
     : [];
 
   return (

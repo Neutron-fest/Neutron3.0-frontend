@@ -44,7 +44,7 @@ export default function IssuesResolutionPage() {
   const openCount = issues.filter((i) => !i.resolved).length;
   const resolvedCount = issues.filter((i) => i.resolved).length;
 
-  const fmtDateTime = (value) => {
+  const fmtDateTime = (value: string | number | Date) => {
     if (!value) return "-";
     return new Date(value).toLocaleString("en-US", {
       year: "numeric",
@@ -55,15 +55,15 @@ export default function IssuesResolutionPage() {
     });
   };
 
-  const handleResolve = async (issueId) => {
+  const handleResolve = async (issueId: any) => {
     try {
       await resolveMutation.mutateAsync({ issueId });
       enqueueSnackbar("Issue marked as resolved", { variant: "success" });
-    } catch (err) {
+    } catch (err: any) {
       enqueueSnackbar(
         err?.response?.data?.message ||
-          err?.message ||
-          "Failed to resolve issue",
+        err?.message ||
+        "Failed to resolve issue",
         { variant: "error" },
       );
     }

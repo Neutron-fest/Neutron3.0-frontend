@@ -25,14 +25,14 @@ import { LoadingState } from "@/src/components/LoadingState";
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
-const STATUS_CONFIG = {
+const STATUS_CONFIG: any = {
   PENDING: { label: "Pending", bg: "rgba(234,179,8,0.1)", text: "#fbbf24", border: "rgba(234,179,8,0.2)", icon: Clock },
   APPROVED: { label: "Approved", bg: "rgba(34,197,94,0.1)", text: "#4ade80", border: "rgba(34,197,94,0.2)", icon: CheckCircle },
   REJECTED: { label: "Rejected", bg: "rgba(239,68,68,0.1)", text: "#f87171", border: "rgba(239,68,68,0.2)", icon: XCircle },
 };
 
 // Human-readable field label mapping
-const FIELD_LABELS = {
+const FIELD_LABELS: any = {
   title: "Title",
   shortDescription: "Short Description",
   category: "Category",
@@ -61,7 +61,7 @@ const FIELD_LABELS = {
   prizePool: "Prize Pool",
 };
 
-function formatFieldValue(key, value) {
+function formatFieldValue(key: any, value: any) {
   if (value === null || value === undefined) return "—";
   if (typeof value === "boolean") return value ? "Yes" : "No";
   if (typeof value === "object") return JSON.stringify(value, null, 2);
@@ -77,7 +77,7 @@ function formatFieldValue(key, value) {
   return String(value);
 }
 
-function getDiffRows(before = {}, after = {}) {
+function getDiffRows(before: any = {}, after: any = {}) {
   const keys = Array.from(new Set([...Object.keys(before || {}), ...Object.keys(after || {})]));
   return keys
     .filter((k) => JSON.stringify(before?.[k]) !== JSON.stringify(after?.[k]))
@@ -86,7 +86,7 @@ function getDiffRows(before = {}, after = {}) {
 
 // ── Primitives ────────────────────────────────────────────────────────────────
 
-function StatusPill({ status }) {
+function StatusPill({ status }: any) {
   const cfg = STATUS_CONFIG[status] || STATUS_CONFIG.PENDING;
   const Icon = cfg.icon;
   return (
@@ -117,7 +117,7 @@ function StatusPill({ status }) {
   );
 }
 
-const MetaItem = ({ icon: Icon, label, value }) => (
+const MetaItem = ({ icon: Icon, label, value }: any) => (
   <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
     <Icon size={13} color="rgba(255,255,255,0.25)" />
     <Typography sx={{ fontSize: 11, color: "rgba(255,255,255,0.25)", fontFamily: "'DM Mono', monospace" }}>
@@ -144,7 +144,7 @@ const btnBase = {
   gap: 6,
 };
 
-function GhostBtn({ onClick, children, disabled }) {
+function GhostBtn({ onClick, children, disabled }: any) {
   return (
     <button
       type="button"
@@ -164,7 +164,7 @@ function GhostBtn({ onClick, children, disabled }) {
   );
 }
 
-function DarkInput({ label, value, onChange, placeholder }) {
+function DarkInput({ label, value, onChange, placeholder }: any) {
   return (
     <Box sx={{ mb: 1.5 }}>
       {label && (
@@ -196,7 +196,7 @@ function DarkInput({ label, value, onChange, placeholder }) {
   );
 }
 
-function DarkTextarea({ label, value, onChange, placeholder, rows = 3 }) {
+function DarkTextarea({ label, value, onChange, placeholder, rows = 3 }: any) {
   return (
     <Box sx={{ mb: 1.5 }}>
       {label && (
@@ -232,11 +232,11 @@ function DarkTextarea({ label, value, onChange, placeholder, rows = 3 }) {
 
 // ── Decision panel sub-components ─────────────────────────────────────────────
 
-function PendingDecisionPanel({ proposalId, onSuccess }) {
+function PendingDecisionPanel({ proposalId, onSuccess }: any) {
   const { enqueueSnackbar } = useSnackbar();
   const [reviewNotes, setReviewNotes] = useState("");
   const [rejectionReason, setRejectionReason] = useState("");
-  const [confirming, setConfirming] = useState(null); // "approve" | "reject"
+  const [confirming, setConfirming] = useState<any>(null); // "approve" | "reject"
   const approveMutation = useApproveReviewProposal();
   const rejectMutation = useRejectReviewProposal();
 
@@ -248,7 +248,7 @@ function PendingDecisionPanel({ proposalId, onSuccess }) {
       enqueueSnackbar("Proposal approved and changes applied", { variant: "success" });
       setConfirming(null);
       onSuccess?.();
-    } catch (err) {
+    } catch (err: any) {
       enqueueSnackbar(err?.response?.data?.message || err?.message || "Failed to approve", { variant: "error" });
     }
   }
@@ -263,7 +263,7 @@ function PendingDecisionPanel({ proposalId, onSuccess }) {
       enqueueSnackbar("Proposal rejected", { variant: "success" });
       setConfirming(null);
       onSuccess?.();
-    } catch (err) {
+    } catch (err: any) {
       enqueueSnackbar(err?.response?.data?.message || err?.message || "Failed to reject", { variant: "error" });
     }
   }
@@ -379,7 +379,7 @@ function PendingDecisionPanel({ proposalId, onSuccess }) {
   );
 }
 
-function ReviewedPanel({ proposal }) {
+function ReviewedPanel({ proposal }: any) {
   const cfg = STATUS_CONFIG[proposal.status];
   const Icon = cfg?.icon || CheckCircle;
 
@@ -445,7 +445,7 @@ function ReviewedPanel({ proposal }) {
 // ── Main page ─────────────────────────────────────────────────────────────────
 
 export default function ReviewDetailPage() {
-  const { proposalId } = useParams();
+  const { proposalId } = useParams<any>();
   const { data: proposal, isLoading } = useReviewProposalDetail(proposalId);
 
   const diffRows = useMemo(

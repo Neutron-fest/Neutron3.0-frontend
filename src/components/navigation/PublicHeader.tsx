@@ -6,7 +6,7 @@ import { UserRound, Trophy } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePendingTeamInvites } from "@/src/hooks/api/usePublicRegistration";
 
-function NavLink({ href, children }) {
+function NavLink({ href, children }: any) {
   return (
     <Link href={href} style={{ textDecoration: "none" }}>
       <Typography

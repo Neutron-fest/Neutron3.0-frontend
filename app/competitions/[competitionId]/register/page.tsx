@@ -44,7 +44,7 @@ const inputSx = {
   },
 };
 
-const isEmptyFieldValue = (value, fieldType) => {
+const isEmptyFieldValue = (value: any, fieldType: any) => {
   if (fieldType === "MULTI_SELECT")
     return !Array.isArray(value) || value.length === 0;
   if (fieldType === "CHECKBOX") return value !== true;
@@ -55,7 +55,7 @@ const isEmptyFieldValue = (value, fieldType) => {
 const REGISTRATION_UPLOAD_MAX_MB = 5;
 const REGISTRATION_UPLOAD_MAX_BYTES = REGISTRATION_UPLOAD_MAX_MB * 1024 * 1024;
 
-const parsePositiveInt = (...candidates) => {
+const parsePositiveInt = (...candidates: any) => {
   for (const candidate of candidates) {
     const parsed = Number.parseInt(String(candidate ?? ""), 10);
     if (Number.isFinite(parsed) && parsed > 0) {
@@ -71,7 +71,7 @@ export default function PublicCompetitionRegisterPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { user, loading } = useAuth();
-  const competitionId = params?.competitionId;
+  const competitionId: any = params?.competitionId;
   const mode = searchParams.get("mode");
   const memberModeTeamId = searchParams.get("teamId");
 
@@ -91,10 +91,10 @@ export default function PublicCompetitionRegisterPage() {
   const [teamName, setTeamName] = useState("");
   const [teamStep, setTeamStep] = useState(1);
   const [memberEmailInput, setMemberEmailInput] = useState("");
-  const [memberEmails, setMemberEmails] = useState([]);
+  const [memberEmails, setMemberEmails] = useState<any>([]);
   const [teamStepError, setTeamStepError] = useState("");
-  const [valuesByField, setValuesByField] = useState({});
-  const [errorsByField, setErrorsByField] = useState({});
+  const [valuesByField, setValuesByField] = useState<any>({});
+  const [errorsByField, setErrorsByField] = useState<any>({});
   const [submitError, setSubmitError] = useState("");
   const [success, setSuccess] = useState(false);
   const [createdTeamId, setCreatedTeamId] = useState("");
@@ -105,7 +105,7 @@ export default function PublicCompetitionRegisterPage() {
   const formId = formInfo?.formId || null;
   const existingRegistration = useMemo(() => {
     return myRegistrations.find(
-      (registration) => registration.competition?.id === competitionId,
+      (registration: any) => registration.competition?.id === competitionId,
     );
   }, [myRegistrations, competitionId]);
   const canReRegisterFromWithdrawn =
@@ -177,13 +177,13 @@ export default function PublicCompetitionRegisterPage() {
     }
   }, [loading, user, router, competitionId]);
 
-  const onFieldChange = (fieldId, value) => {
-    setValuesByField((prev) => ({ ...prev, [fieldId]: value }));
-    setErrorsByField((prev) => ({ ...prev, [fieldId]: "" }));
+  const onFieldChange = (fieldId: any, value: any) => {
+    setValuesByField((prev: any) => ({ ...prev, [fieldId]: value }));
+    setErrorsByField((prev: any) => ({ ...prev, [fieldId]: "" }));
   };
 
   const validateForm = () => {
-    const nextErrors = {};
+    const nextErrors: any = {};
 
     for (const field of effectiveFields) {
       if (!field.isRequired) continue;
@@ -197,12 +197,12 @@ export default function PublicCompetitionRegisterPage() {
     return Object.keys(nextErrors).length === 0;
   };
 
-  const isValidEmail = (email) => {
+  const isValidEmail = (email: any) => {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
   };
 
   const addMemberEmail = () => {
-    const normalized = memberEmailInput.trim().toLowerCase();
+    const normalized: any = memberEmailInput.trim().toLowerCase();
     setTeamStepError("");
 
     if (!normalized) {
@@ -235,12 +235,12 @@ export default function PublicCompetitionRegisterPage() {
       return;
     }
 
-    setMemberEmails((previous) => [...previous, normalized]);
+    setMemberEmails((previous: any) => [...previous, normalized]);
     setMemberEmailInput("");
   };
 
-  const removeMemberEmail = (email) => {
-    setMemberEmails((previous) => previous.filter((item) => item !== email));
+  const removeMemberEmail = (email: any) => {
+    setMemberEmails((previous: any) => previous.filter((item: any) => item !== email));
     setTeamStepError("");
   };
 
@@ -252,7 +252,7 @@ export default function PublicCompetitionRegisterPage() {
       return;
     }
 
-    const nextErrors = {};
+    const nextErrors: any = {};
 
     if (!teamName.trim()) {
       nextErrors.__teamName = "Team name is required";
@@ -260,8 +260,7 @@ export default function PublicCompetitionRegisterPage() {
 
     if (memberEmails.length < minAdditionalMembers) {
       setTeamStepError(
-        `Add at least ${minAdditionalMembers} teammate email${
-          minAdditionalMembers === 1 ? "" : "s"
+        `Add at least ${minAdditionalMembers} teammate email${minAdditionalMembers === 1 ? "" : "s"
         } before continuing.`,
       );
     } else {
@@ -280,7 +279,7 @@ export default function PublicCompetitionRegisterPage() {
     setTeamStep(2);
   };
 
-  const handleSubmit = async (event) => {
+  const handleSubmit = async (event: any) => {
     event.preventDefault();
     setSubmitError("");
 
@@ -314,7 +313,7 @@ export default function PublicCompetitionRegisterPage() {
       return;
     }
 
-    const oversizedFieldErrors = {};
+    const oversizedFieldErrors: any = {};
     for (const field of effectiveFields) {
       const rawValue = valuesByField[field.id];
       if (!(rawValue instanceof File)) continue;
@@ -332,7 +331,7 @@ export default function PublicCompetitionRegisterPage() {
     }
 
     if (Object.keys(oversizedFieldErrors).length > 0) {
-      setErrorsByField((prev) => ({ ...prev, ...oversizedFieldErrors }));
+      setErrorsByField((prev: any) => ({ ...prev, ...oversizedFieldErrors }));
       setSubmitError(
         `One or more files exceed the ${REGISTRATION_UPLOAD_MAX_MB}MB limit. Please upload smaller files.`,
       );
@@ -403,7 +402,7 @@ export default function PublicCompetitionRegisterPage() {
         setCreatedTeamId(createdTeam);
 
         if (createdTeam && memberEmails.length > 0) {
-          const successfulInvites = [];
+          const successfulInvites: any = [];
           const failedInvites = [];
 
           for (const email of memberEmails) {
@@ -434,11 +433,11 @@ export default function PublicCompetitionRegisterPage() {
       }
 
       setSuccess(true);
-    } catch (error) {
+    } catch (error: any) {
       setSubmitError(
         error?.response?.data?.message ||
-          error?.message ||
-          "Failed to submit registration",
+        error?.message ||
+        "Failed to submit registration",
       );
     }
   };
@@ -733,18 +732,15 @@ export default function PublicCompetitionRegisterPage() {
                 <FieldLabel
                   label="Team Members (Email Invites)"
                   required={minAdditionalMembers > 0}
-                  helpText={`Team size allowed: ${minTeamSize} to ${
-                    typeof maxTeamSize === "number" ? maxTeamSize : "any"
-                  } members (including leader). Add ${minAdditionalMembers}${
-                    typeof maxAdditionalMembers === "number"
+                  helpText={`Team size allowed: ${minTeamSize} to ${typeof maxTeamSize === "number" ? maxTeamSize : "any"
+                    } members (including leader). Add ${minAdditionalMembers}${typeof maxAdditionalMembers === "number"
                       ? ` to ${maxAdditionalMembers}`
                       : "+"
-                  } teammate email${
-                    typeof maxAdditionalMembers === "number" &&
-                    maxAdditionalMembers === 1
+                    } teammate email${typeof maxAdditionalMembers === "number" &&
+                      maxAdditionalMembers === 1
                       ? ""
                       : "s"
-                  }.`}
+                    }.`}
                 >
                   <Box sx={{ display: "flex", gap: 1, mb: 1 }}>
                     <input
@@ -791,7 +787,7 @@ export default function PublicCompetitionRegisterPage() {
 
                   {memberEmails.length > 0 ? (
                     <Box sx={{ display: "grid", gap: 0.7 }}>
-                      {memberEmails.map((email) => (
+                      {memberEmails.map((email: any) => (
                         <Box
                           key={email}
                           sx={{
@@ -900,7 +896,7 @@ export default function PublicCompetitionRegisterPage() {
                   field={field}
                   value={valuesByField[field.id]}
                   error={errorsByField[field.id]}
-                  onChange={(value) => onFieldChange(field.id, value)}
+                  onChange={(value: any) => onFieldChange(field.id, value)}
                 />
               ))}
 
@@ -909,90 +905,90 @@ export default function PublicCompetitionRegisterPage() {
             {(!isTeamCompetition ||
               teamStep === 2 ||
               isExistingTeamMemberRegistration) && (
-              <Box
-                sx={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  mt: 1.5,
-                  gap: 1,
-                }}
-              >
-                {isTeamCompetition && !isTeamMemberFlow ? (
-                  <button
-                    type="button"
-                    onClick={() => setTeamStep(1)}
-                    style={{
-                      border: "1px solid rgba(255,255,255,0.12)",
-                      borderRadius: 10,
-                      padding: "11px 16px",
-                      background: "rgba(255,255,255,0.04)",
-                      color: "rgba(255,255,255,0.75)",
-                      fontFamily: "'Syne', sans-serif",
-                      fontWeight: 600,
-                      fontSize: 12,
-                      letterSpacing: "0.06em",
-                      textTransform: "uppercase",
-                      cursor: "pointer",
-                      display: "inline-flex",
-                      alignItems: "center",
-                      gap: 6,
-                    }}
-                  >
-                    <ChevronLeft size={14} /> Back
-                  </button>
-                ) : (
-                  <Box />
-                )}
+                <Box
+                  sx={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    mt: 1.5,
+                    gap: 1,
+                  }}
+                >
+                  {isTeamCompetition && !isTeamMemberFlow ? (
+                    <button
+                      type="button"
+                      onClick={() => setTeamStep(1)}
+                      style={{
+                        border: "1px solid rgba(255,255,255,0.12)",
+                        borderRadius: 10,
+                        padding: "11px 16px",
+                        background: "rgba(255,255,255,0.04)",
+                        color: "rgba(255,255,255,0.75)",
+                        fontFamily: "'Syne', sans-serif",
+                        fontWeight: 600,
+                        fontSize: 12,
+                        letterSpacing: "0.06em",
+                        textTransform: "uppercase",
+                        cursor: "pointer",
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: 6,
+                      }}
+                    >
+                      <ChevronLeft size={14} /> Back
+                    </button>
+                  ) : (
+                    <Box />
+                  )}
 
-                <button
-                  type="submit"
-                  disabled={
-                    soloMutation.isPending ||
-                    teamMutation.isPending ||
-                    uploadImageMutation.isPending ||
-                    submitTeamMemberFormMutation.isPending
-                  }
-                  style={{
-                    border: "1px solid rgba(168,85,247,0.35)",
-                    borderRadius: 10,
-                    padding: "11px 20px",
-                    background:
-                      "linear-gradient(135deg, #6d28d9 0%, #4338ca 100%)",
-                    color: "#fff",
-                    fontFamily: "'Syne', sans-serif",
-                    fontWeight: 600,
-                    fontSize: 13,
-                    letterSpacing: "0.06em",
-                    textTransform: "uppercase",
-                    cursor: "pointer",
-                    opacity:
+                  <button
+                    type="submit"
+                    disabled={
                       soloMutation.isPending ||
                       teamMutation.isPending ||
                       uploadImageMutation.isPending ||
                       submitTeamMemberFormMutation.isPending
-                        ? 0.6
-                        : 1,
-                    display: "inline-flex",
-                    alignItems: "center",
-                    gap: 8,
-                  }}
-                >
-                  {soloMutation.isPending ||
-                  teamMutation.isPending ||
-                  uploadImageMutation.isPending ||
-                  submitTeamMemberFormMutation.isPending ? (
-                    <>
-                      <CircularProgress size={14} sx={{ color: "#fff" }} />
-                      Submitting...
-                    </>
-                  ) : isTeamMemberFlow ? (
-                    "Submit Member Fields"
-                  ) : (
-                    "Submit Registration"
-                  )}
-                </button>
-              </Box>
-            )}
+                    }
+                    style={{
+                      border: "1px solid rgba(168,85,247,0.35)",
+                      borderRadius: 10,
+                      padding: "11px 20px",
+                      background:
+                        "linear-gradient(135deg, #6d28d9 0%, #4338ca 100%)",
+                      color: "#fff",
+                      fontFamily: "'Syne', sans-serif",
+                      fontWeight: 600,
+                      fontSize: 13,
+                      letterSpacing: "0.06em",
+                      textTransform: "uppercase",
+                      cursor: "pointer",
+                      opacity:
+                        soloMutation.isPending ||
+                          teamMutation.isPending ||
+                          uploadImageMutation.isPending ||
+                          submitTeamMemberFormMutation.isPending
+                          ? 0.6
+                          : 1,
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: 8,
+                    }}
+                  >
+                    {soloMutation.isPending ||
+                      teamMutation.isPending ||
+                      uploadImageMutation.isPending ||
+                      submitTeamMemberFormMutation.isPending ? (
+                      <>
+                        <CircularProgress size={14} sx={{ color: "#fff" }} />
+                        Submitting...
+                      </>
+                    ) : isTeamMemberFlow ? (
+                      "Submit Member Fields"
+                    ) : (
+                      "Submit Registration"
+                    )}
+                  </button>
+                </Box>
+              )}
           </Box>
         </Box>
       </Box>
@@ -1000,7 +996,7 @@ export default function PublicCompetitionRegisterPage() {
   );
 }
 
-function StepPill({ active, children }) {
+function StepPill({ active, children }: any) {
   return (
     <Box
       sx={{
@@ -1021,7 +1017,7 @@ function StepPill({ active, children }) {
   );
 }
 
-function FieldLabel({ label, required, children, helpText }) {
+function FieldLabel({ label, required, children, helpText }: any) {
   return (
     <Box>
       <Typography
@@ -1042,7 +1038,7 @@ function FieldLabel({ label, required, children, helpText }) {
   );
 }
 
-function ErrorText({ children }) {
+function ErrorText({ children }: any) {
   return (
     <Typography sx={{ color: "#f87171", fontSize: 12, mt: 0.55 }}>
       {children}
@@ -1050,7 +1046,7 @@ function ErrorText({ children }) {
   );
 }
 
-function FieldRenderer({ field, value, error, onChange }) {
+function FieldRenderer({ field, value, error, onChange }: any) {
   const options = Array.isArray(field.options) ? field.options : [];
 
   if (field.fieldType === "TEXTAREA") {
@@ -1085,7 +1081,7 @@ function FieldRenderer({ field, value, error, onChange }) {
           style={baseInputStyle()}
         >
           <option value="">Select an option</option>
-          {options.map((option) => (
+          {options.map((option: any) => (
             <option
               key={option.value || option.label}
               value={option.value || option.label}
@@ -1107,7 +1103,7 @@ function FieldRenderer({ field, value, error, onChange }) {
         helpText={field.helpText}
       >
         <Box sx={{ display: "grid", gap: 0.7 }}>
-          {options.map((option) => {
+          {options.map((option: any) => {
             const optionValue = option.value || option.label;
             const active = Array.isArray(value) && value.includes(optionValue);
 
@@ -1152,7 +1148,7 @@ function FieldRenderer({ field, value, error, onChange }) {
         helpText={field.helpText}
       >
         <Box sx={{ display: "grid", gap: 0.7 }}>
-          {options.map((option) => {
+          {options.map((option: any) => {
             const optionValue = option.value || option.label;
             return (
               <label
@@ -1339,5 +1335,5 @@ function baseInputStyle({ multiline = false } = {}) {
     boxSizing: "border-box",
     outline: "none",
     resize: multiline ? "vertical" : "none",
-  };
+  } as any;
 }

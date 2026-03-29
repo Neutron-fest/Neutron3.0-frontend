@@ -14,7 +14,7 @@ import {
 
 // ─── Section heading ─────────────────────────────────────────────────────────
 
-function SectionHeading({ title, subtitle }) {
+function SectionHeading({ title, subtitle }: any) {
   return (
     <Box sx={{ mb: 1.5 }}>
       <Typography
@@ -47,7 +47,7 @@ function SectionHeading({ title, subtitle }) {
 
 // ─── Toggle row ──────────────────────────────────────────────────────────────
 
-function ToggleRow({ label, description, checked, onChange, disabled, error }) {
+function ToggleRow({ label, description, checked, onChange, disabled, error }: any) {
   return (
     <Box>
       <Box
@@ -127,7 +127,7 @@ function ToggleRow({ label, description, checked, onChange, disabled, error }) {
 
 // ─── Add button ──────────────────────────────────────────────────────────────
 
-function AddBtn({ onClick, disabled, children }) {
+function AddBtn({ onClick, disabled, children }: any) {
   return (
     <button
       type="button"
@@ -156,7 +156,7 @@ function AddBtn({ onClick, disabled, children }) {
 
 // ─── Card wrapper ─────────────────────────────────────────────────────────────
 
-function Card({ children }) {
+function Card({ children }: any) {
   return (
     <Box
       sx={{
@@ -175,7 +175,7 @@ function Card({ children }) {
   );
 }
 
-function CardHeader({ label, index, onRemove, extra }) {
+function CardHeader({ label, index, onRemove, extra }: any) {
   return (
     <Box
       sx={{
@@ -227,7 +227,7 @@ export default function CompetitionRegistrationConfigStep({
   control,
   errors,
   setValue,
-}) {
+}: any) {
   const competitionType = useWatch({ control, name: "type" });
   const registrationFee = useWatch({ control, name: "registrationFee" });
   const isPaid = useWatch({ control, name: "isPaid" });
@@ -456,7 +456,7 @@ export default function CompetitionRegistrationConfigStep({
                 label="Requires Approval"
                 description="Registrations need manual DH sign-off before confirming"
                 checked={!!field.value}
-                onChange={(v) => {
+                onChange={(v: any) => {
                   field.onChange(v);
                   setValue("autoApproveTeams", !v, {
                     shouldDirty: true,
@@ -479,7 +479,7 @@ export default function CompetitionRegistrationConfigStep({
                 label="Auto-Approve Registrations"
                 description="Skip manual review — approve all registrations instantly"
                 checked={!!field.value}
-                onChange={(v) => {
+                onChange={(v: any) => {
                   field.onChange(v);
                   setValue("requiresApproval", !v, {
                     shouldDirty: true,

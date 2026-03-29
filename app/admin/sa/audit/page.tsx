@@ -121,7 +121,7 @@ const ACTION_COLOR = (action: any) => {
   return "rgba(255,255,255,0.5)";
 };
 
-const SEVERITY_COLORS = {
+const SEVERITY_COLORS: any = {
   LOW: {
     bg: "rgba(34,197,94,0.1)",
     text: "#4ade80",
@@ -144,7 +144,7 @@ const SEVERITY_COLORS = {
   },
 };
 
-const ROLE_COLORS = {
+const ROLE_COLORS: any = {
   SA: {
     bg: "rgba(239,68,68,0.1)",
     text: "#f87171",
@@ -194,7 +194,7 @@ function ActionPill({ action }: any) {
   );
 }
 
-function RolePill({ role }) {
+function RolePill({ role }: { role: string }) {
   const c = ROLE_COLORS[role] || {
     bg: "rgba(255,255,255,0.06)",
     text: "rgba(255,255,255,0.4)",
@@ -224,7 +224,7 @@ function RolePill({ role }) {
   );
 }
 
-function SeverityPill({ severity }) {
+function SeverityPill({ severity }: any) {
   const c = SEVERITY_COLORS[severity] || SEVERITY_COLORS.LOW;
   return (
     <Box
@@ -395,7 +395,7 @@ function LogsTab() {
   const { data: stats } = useAuditStats({});
 
   const logs = data?.logs || [];
-  const pagination = data?.pagination || null;
+  const pagination: any = data?.pagination || null;
 
   const resetPage = () => setPage(1);
 
@@ -408,7 +408,7 @@ function LogsTab() {
       minute: "2-digit",
     });
 
-  const openDetail = (log) => {
+  const openDetail = (log: any) => {
     setDetailLog(log);
     setDetailDialogOpen(true);
   };
@@ -457,7 +457,7 @@ function LogsTab() {
           <StatCard
             label="Anomalies"
             value={(stats.anomalyStats || []).reduce(
-              (s, a) => s + Number(a.count),
+              ({ s, a }: any) => s + Number(a.count),
               0,
             )}
             color="#fbbf24"
@@ -514,7 +514,7 @@ function LogsTab() {
         </Box>
         <NativeSelect
           value={action}
-          onChange={(v) => {
+          onChange={(v: any) => {
             setAction(v);
             resetPage();
           }}
@@ -528,7 +528,7 @@ function LogsTab() {
         </NativeSelect>
         <NativeSelect
           value={entityType}
-          onChange={(v) => {
+          onChange={(v: any) => {
             setEntityType(v);
             resetPage();
           }}
@@ -827,7 +827,7 @@ function LogsTab() {
   );
 }
 
-function LogDetail({ log, fmtTs }) {
+function LogDetail({ log, fmtTs }: any) {
   return (
     <Box sx={{ display: "flex", flexDirection: "column", gap: 2.5 }}>
       {/* Top row */}
@@ -992,13 +992,13 @@ function AnomaliesTab() {
   const [page, setPage] = useState(1);
 
   const [resolveDialogOpen, setResolveDialogOpen] = useState(false);
-  const [selectedAnomaly, setSelectedAnomaly] = useState(null);
+  const [selectedAnomaly, setSelectedAnomaly] = useState<any>(null);
   const [resolutionNotes, setResolutionNotes] = useState("");
   const [detailDialogOpen, setDetailDialogOpen] = useState(false);
-  const [detailAnomaly, setDetailAnomaly] = useState(null);
+  const [detailAnomaly, setDetailAnomaly] = useState<any>(null);
 
   const filters = useMemo(() => {
-    const f = { page, limit: 50 };
+    const f: any = { page, limit: 50 };
     if (severity) f.severity = severity;
     if (resolvedFilter) f.resolved = resolvedFilter;
     return f;
@@ -1009,9 +1009,9 @@ function AnomaliesTab() {
   const { enqueueSnackbar } = useSnackbar();
 
   const anomalies = data?.anomalies || [];
-  const pagination = data?.pagination || null;
+  const pagination: any = data?.pagination || null;
 
-  const openResolve = (a) => {
+  const openResolve = (a: any) => {
     setSelectedAnomaly(a);
     setResolutionNotes("");
     setResolveDialogOpen(true);
@@ -1026,21 +1026,21 @@ function AnomaliesTab() {
       enqueueSnackbar("Anomaly resolved", { variant: "success" });
       setResolveDialogOpen(false);
       setSelectedAnomaly(null);
-    } catch (err) {
+    } catch (err: any) {
       enqueueSnackbar(err?.response?.data?.message || "Failed to resolve", {
         variant: "error",
       });
     }
   };
 
-  const fmtDate = (d) =>
+  const fmtDate = (d: any) =>
     new Date(d).toLocaleDateString("en-US", {
       year: "numeric",
       month: "short",
       day: "numeric",
     });
 
-  const openDetail = (a) => {
+  const openDetail = (a: any) => {
     setDetailAnomaly(a);
     setDetailDialogOpen(true);
   };
@@ -1134,7 +1134,7 @@ function AnomaliesTab() {
       >
         <NativeSelect
           value={severity}
-          onChange={(v) => {
+          onChange={(v: any) => {
             setSeverity(v);
             setPage(1);
           }}
@@ -1147,7 +1147,7 @@ function AnomaliesTab() {
         </NativeSelect>
         <NativeSelect
           value={resolvedFilter}
-          onChange={(v) => {
+          onChange={(v: any) => {
             setResolvedFilter(v);
             setPage(1);
           }}
@@ -1425,7 +1425,7 @@ function AnomaliesTab() {
             <DarkTextarea
               rows={3}
               value={resolutionNotes}
-              onChange={(e) => setResolutionNotes(e.target.value)}
+              onChange={(e: any) => setResolutionNotes(e.target.value)}
               placeholder="Resolution notes (optional)…"
             />
             <BtnRow>
@@ -1584,7 +1584,7 @@ function StatCard({ label, value, color, small }: any) {
   );
 }
 
-function JsonBlock({ data }) {
+function JsonBlock({ data }: any) {
   return (
     <Box
       sx={{
@@ -1608,7 +1608,7 @@ function JsonBlock({ data }) {
   );
 }
 
-function Label({ children }) {
+function Label({ children }: any) {
   return (
     <Typography
       sx={{
@@ -1625,7 +1625,7 @@ function Label({ children }) {
   );
 }
 
-function DarkDialog({ open, onClose, title, children, wide }) {
+function DarkDialog({ open, onClose, title, children, wide }: any) {
   return (
     <Dialog
       open={open}
@@ -1665,7 +1665,7 @@ function DarkDialog({ open, onClose, title, children, wide }) {
   );
 }
 
-function NativeSelect({ value, onChange, children }) {
+function NativeSelect({ value, onChange, children }: any) {
   return (
     <select
       value={value}
@@ -1687,7 +1687,7 @@ function NativeSelect({ value, onChange, children }) {
   );
 }
 
-function DarkTextarea({ rows = 3, value, onChange, placeholder }) {
+function DarkTextarea({ rows = 3, value, onChange, placeholder }: any) {
   return (
     <textarea
       rows={rows}
@@ -1711,7 +1711,7 @@ function DarkTextarea({ rows = 3, value, onChange, placeholder }) {
   );
 }
 
-function BtnRow({ children }) {
+function BtnRow({ children }: any) {
   return (
     <Box sx={{ display: "flex", gap: 1, justifyContent: "flex-end", mt: 3 }}>
       {children}
@@ -1731,7 +1731,7 @@ const btnBase = {
   transition: "all 0.15s",
 };
 
-function GhostBtn({ onClick, children }) {
+function GhostBtn({ onClick, children }: any) {
   return (
     <button
       onClick={onClick}
@@ -1755,7 +1755,7 @@ function GhostBtn({ onClick, children }) {
   );
 }
 
-function GreenBtn({ onClick, children, disabled }) {
+function GreenBtn({ onClick, children, disabled }: any) {
   return (
     <button
       onClick={onClick}
@@ -1781,7 +1781,7 @@ function GreenBtn({ onClick, children, disabled }) {
   );
 }
 
-function PageBtn({ onClick, disabled, children }) {
+function PageBtn({ onClick, disabled, children }: any) {
   return (
     <button
       onClick={onClick}
@@ -1818,7 +1818,7 @@ function PageBtn({ onClick, disabled, children }) {
   );
 }
 
-function ResolveBtn({ onClick, children }) {
+function ResolveBtn({ onClick, children }: any) {
   return (
     <button
       onClick={onClick}

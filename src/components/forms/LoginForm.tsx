@@ -56,7 +56,7 @@ const fieldSx = {
   },
 };
 
-export function LoginForm({ onSubmit, loading, error, onGoogleLogin }) {
+export function LoginForm({ onSubmit, loading, error, onGoogleLogin }: any) {
   const {
     control,
     handleSubmit,

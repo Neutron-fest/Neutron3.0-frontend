@@ -56,7 +56,7 @@ const inputSx = {
   },
 };
 
-function renderAnswer(field) {
+function renderAnswer(field: any) {
   if (field?.jsonValue != null) {
     if (Array.isArray(field.jsonValue)) return field.jsonValue.join(", ");
     if (typeof field.jsonValue === "object")
@@ -73,16 +73,16 @@ export default function VolunteerScanPage() {
   const { user } = useAuth();
 
   const [qrPayload, setQrPayload] = useState("");
-  const [scannedUserId, setScannedUserId] = useState("");
+  const [scannedUserId, setScannedUserId] = useState<any>(null);
   const [cameraActive, setCameraActive] = useState(false);
   const [cameraError, setCameraError] = useState("");
   const [markedFest, setMarkedFest] = useState(false);
   const [markedComps, setMarkedComps] = useState(new Set());
-  const [marking, setMarking] = useState(null); // null | "fest" | compId
+  const [marking, setMarking] = useState<any>(null); // null | "fest" | compId
 
-  const videoRef = useRef(null);
-  const streamRef = useRef(null);
-  const scanTimerRef = useRef(null);
+  const videoRef: any = useRef(null);
+  const streamRef: any = useRef(null);
+  const scanTimerRef: any = useRef(null);
 
   const { mutateAsync: verifyQRCode, isPending: verifying } = useVerifyQRCode();
   const { mutateAsync: markFestAttendance } = useMarkFestAttendance();
@@ -96,7 +96,7 @@ export default function VolunteerScanPage() {
   const isGateVolunteer = !!profile?.isRegistrationDeskVolunteer;
   const assignedComps = profile?.assignedCompetitions || [];
   const attendanceComps = assignedComps.filter(
-    (ac) => ac.competition?.attendanceRequired,
+    (ac: any) => ac.competition?.attendanceRequired,
   );
   const canAccess = isGateVolunteer || attendanceComps.length > 0;
 
@@ -105,7 +105,7 @@ export default function VolunteerScanPage() {
   // registrations keyed by competitionId
   const registrationMap = useMemo(() => {
     const map = new Map();
-    (participantDetails?.registrations || []).forEach((r) =>
+    (participantDetails?.registrations || []).forEach((r: any) =>
       map.set(r.competitionId, r),
     );
     return map;
@@ -118,7 +118,7 @@ export default function VolunteerScanPage() {
       scanTimerRef.current = null;
     }
     if (streamRef.current) {
-      streamRef.current.getTracks().forEach((t) => t.stop());
+      streamRef.current.getTracks().forEach((t: any) => t.stop());
       streamRef.current = null;
     }
     if (videoRef.current) videoRef.current.srcObject = null;
@@ -134,7 +134,7 @@ export default function VolunteerScanPage() {
       video.srcObject = streamRef.current;
       video.muted = true;
       video.setAttribute("playsinline", "true");
-      video.play().catch(() => {});
+      video.play().catch(() => { });
     }
   }, [cameraActive]);
 
@@ -142,9 +142,9 @@ export default function VolunteerScanPage() {
     setCameraError("");
     try {
       const hasBarcodeDetector =
-        typeof window !== "undefined" && !!window.BarcodeDetector;
+        typeof window !== "undefined" && !!(window as any).BarcodeDetector;
       const detector = hasBarcodeDetector
-        ? new window.BarcodeDetector({ formats: ["qr_code"] })
+        ? new (window as any).BarcodeDetector({ formats: ["qr_code"] })
         : null;
 
       const stream = await navigator.mediaDevices.getUserMedia({
@@ -175,7 +175,7 @@ export default function VolunteerScanPage() {
         stopCamera();
         enqueueSnackbar("QR captured", { variant: "success" });
       }, 650);
-    } catch (err) {
+    } catch (err: any) {
       stopCamera();
       setCameraError(
         err?.message || "Unable to start camera. Check permissions.",
@@ -197,7 +197,7 @@ export default function VolunteerScanPage() {
       setMarkedFest(false);
       setMarkedComps(new Set());
       enqueueSnackbar("QR verified", { variant: "success" });
-    } catch (err) {
+    } catch (err: any) {
       setScannedUserId("");
       enqueueSnackbar(
         err?.response?.data?.message || err?.message || "Invalid QR code",
@@ -214,7 +214,7 @@ export default function VolunteerScanPage() {
       await markFestAttendance({ userId: uid });
       setMarkedFest(true);
       enqueueSnackbar("Fest attendance marked", { variant: "success" });
-    } catch (err) {
+    } catch (err: any) {
       enqueueSnackbar(
         err?.response?.data?.message || err?.message || "Failed",
         { variant: "error" },
@@ -224,7 +224,7 @@ export default function VolunteerScanPage() {
     }
   };
 
-  const handleMarkComp = async (compId) => {
+  const handleMarkComp = async (compId: any) => {
     const uid = participantDetails?.user?.id;
     if (!uid) return;
     setMarking(compId);
@@ -232,7 +232,7 @@ export default function VolunteerScanPage() {
       await markCompAttendance({ competitionId: compId, userId: uid });
       setMarkedComps((prev) => new Set(prev).add(compId));
       enqueueSnackbar("Competition attendance marked", { variant: "success" });
-    } catch (err) {
+    } catch (err: any) {
       enqueueSnackbar(
         err?.response?.data?.message || err?.message || "Failed",
         { variant: "error" },
@@ -609,7 +609,7 @@ export default function VolunteerScanPage() {
                     Competition Attendance
                   </Typography>
                   <Stack spacing={1}>
-                    {attendanceComps.map((ac) => {
+                    {attendanceComps.map((ac: any) => {
                       const comp = ac.competition;
                       const compId = comp?.id;
                       const registration = registrationMap.get(compId);
@@ -757,7 +757,7 @@ export default function VolunteerScanPage() {
                 </Typography>
               ) : (
                 <Stack spacing={0.6}>
-                  {participantDetails.registrations.map((r) => (
+                  {participantDetails.registrations.map((r: any) => (
                     <Box
                       key={r.registrationId}
                       sx={{

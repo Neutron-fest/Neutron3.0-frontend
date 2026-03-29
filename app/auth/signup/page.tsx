@@ -23,7 +23,7 @@ function PublicSignupPageContent() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
 
-  const handleSubmit = async (event) => {
+  const handleSubmit = async (event: any) => {
     event.preventDefault();
     setSubmitting(true);
     setError("");
@@ -35,7 +35,7 @@ function PublicSignupPageContent() {
         password,
       });
       setSuccess(true);
-    } catch (err) {
+    } catch (err: any) {
       setError(err?.response?.data?.message || err?.message || "Signup failed");
     } finally {
       setSubmitting(false);
@@ -153,7 +153,7 @@ function PublicSignupPageContent() {
   );
 }
 
-const inputStyle = {
+const inputStyle: any = {
   width: "100%",
   padding: "10px 12px",
   borderRadius: 10,
@@ -166,7 +166,7 @@ const inputStyle = {
   outline: "none",
 };
 
-const buttonStyle = (disabled) => ({
+const buttonStyle = (disabled: any) => ({
   border: "1px solid rgba(168,85,247,0.35)",
   borderRadius: 10,
   padding: "10px 16px",

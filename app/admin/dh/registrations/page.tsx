@@ -42,7 +42,13 @@ import { LoadingState } from "@/src/components/LoadingState";
 const cellSx = { color: "#d4d4d8", borderColor: "#27272a" };
 const headSx = { color: "#a1a1aa", borderColor: "#27272a", fontWeight: 600 };
 
-const renderFieldAnswer = (field) => {
+type Field = {
+  fieldType?: string;
+  fileUrl?: string;
+  label?: string;
+  displayValue: string
+};
+const renderFieldAnswer = (field: Field) => {
   if (field?.fieldType === "IMAGE" && field?.fileUrl) {
     return (
       <Box sx={{ mt: 0.2 }}>
@@ -82,7 +88,7 @@ const renderFieldAnswer = (field) => {
   return field?.displayValue || "—";
 };
 
-const isUuid = (value) =>
+const isUuid = (value: any) =>
   typeof value === "string" &&
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
     value,
@@ -97,7 +103,7 @@ export default function RegistrationsPage() {
   const [createdWindow, setCreatedWindow] = useState("all");
 
   // Reject dialog
-  const [rejectDialog, setRejectDialog] = useState({
+  const [rejectDialog, setRejectDialog] = useState<any>({
     open: false,
     registration: null,
     registrationId: null,
@@ -107,7 +113,7 @@ export default function RegistrationsPage() {
   // In-flight tracking
   const [approvingId, setApprovingId] = useState(null);
   const [approvingTeamKey, setApprovingTeamKey] = useState(null);
-  const [formDialog, setFormDialog] = useState({
+  const [formDialog, setFormDialog] = useState<any>({
     open: false,
     row: null,
   });
@@ -156,14 +162,14 @@ export default function RegistrationsPage() {
 
   const groupedByTeam = useMemo(() => {
     const groups = new Map();
-    const getCreatedAtMs = (row) => {
+    const getCreatedAtMs = (row: any) => {
       const createdAt =
         row?.createdAt || row?.registration?.createdAt || row?.submittedAt;
       const time = createdAt ? new Date(createdAt).getTime() : Number.NaN;
       return Number.isFinite(time) ? time : 0;
     };
 
-    filtered.forEach((row, index) => {
+    filtered.forEach((row: any, index) => {
       const teamId = row.team?.id || row.teamId || null;
       const teamName = row.team?.name || row.teamName || "Solo Registration";
       const competitionName =
@@ -200,7 +206,7 @@ export default function RegistrationsPage() {
     const normalized = Array.from(groups.values());
 
     normalized.forEach((group) => {
-      group.members.sort((a, b) => {
+      group.members.sort(({ a, b }: any) => {
         const aIsLeader =
           group.teamId &&
           (a.team?.leaderId || a.teamLeaderId) &&
@@ -229,17 +235,17 @@ export default function RegistrationsPage() {
     return normalized;
   }, [filtered]);
 
-  function getRegistrationId(row) {
+  function getRegistrationId(row: any) {
     const candidate = row?.registrationId || row?.id || row?.registration?.id;
     return isUuid(candidate) ? candidate : null;
   }
 
-  async function handleApprove(registrationId) {
+  async function handleApprove(registrationId: any) {
     setApprovingId(registrationId);
     try {
       await approve(registrationId);
       enqueueSnackbar("Registration approved", { variant: "success" });
-    } catch (err) {
+    } catch (err: any) {
       enqueueSnackbar(
         err?.response?.data?.message || err?.message || "Failed to approve",
         { variant: "error" },
@@ -249,24 +255,24 @@ export default function RegistrationsPage() {
     }
   }
 
-  async function handleApproveTeam(group) {
+  async function handleApproveTeam(group: any) {
     setApprovingTeamKey(group.key);
     try {
       // Approve all members in the team
       const approvalPromises = group.members
-        .map((member) => getRegistrationId(member))
+        .map((member: any) => getRegistrationId(member))
         .filter(Boolean)
-        .map((registrationId) => approve(registrationId));
+        .map((registrationId: any) => approve(registrationId));
 
       await Promise.all(approvalPromises);
       enqueueSnackbar(`All ${group.members.length} registrations approved`, {
         variant: "success",
       });
-    } catch (err) {
+    } catch (err: any) {
       enqueueSnackbar(
         err?.response?.data?.message ||
-          err?.message ||
-          "Failed to approve team",
+        err?.message ||
+        "Failed to approve team",
         { variant: "error" },
       );
     } finally {
@@ -274,7 +280,7 @@ export default function RegistrationsPage() {
     }
   }
 
-  function openRejectDialog(registration, registrationId) {
+  function openRejectDialog(registration: any, registrationId: any) {
     setRejectDialog({ open: true, registration, registrationId });
     setRejectReason("");
   }
@@ -296,7 +302,7 @@ export default function RegistrationsPage() {
             registrationId: null,
           });
         },
-        onError: (err) => {
+        onError: (err: any) => {
           enqueueSnackbar(
             err?.response?.data?.message || err?.message || "Failed to reject",
             { variant: "error" },
@@ -306,7 +312,7 @@ export default function RegistrationsPage() {
     );
   }
 
-  function formatDate(dateStr) {
+  function formatDate(dateStr: any) {
     if (!dateStr) return "—";
     return new Date(dateStr).toLocaleDateString("en-IN", {
       day: "2-digit",
@@ -315,7 +321,7 @@ export default function RegistrationsPage() {
     });
   }
 
-  function openFormDialog(row) {
+  function openFormDialog(row: any) {
     setFormDialog({ open: true, row });
   }
 
@@ -510,21 +516,21 @@ export default function RegistrationsPage() {
                     }}
                   />
                   {group.members.some(
-                    (m) =>
+                    (m: any) =>
                       (m.status || m.registrationStatus) === "PENDING" &&
                       getRegistrationId(m),
                   ) && (
-                    <GreenBtn
-                      onClick={() => handleApproveTeam(group)}
-                      loading={approvingTeamKey === group.key}
-                      disabled={approvingTeamKey !== null}
-                      sx={{
-                        ml: 1,
-                      }}
-                    >
-                      <CheckCircle size={14} /> Approve All
-                    </GreenBtn>
-                  )}
+                      <GreenBtn
+                        onClick={() => handleApproveTeam(group)}
+                        loading={approvingTeamKey === group.key}
+                        disabled={approvingTeamKey !== null}
+                        sx={{
+                          ml: 1,
+                        }}
+                      >
+                        <CheckCircle size={14} /> Approve All
+                      </GreenBtn>
+                    )}
                 </Box>
               </Box>
 
@@ -541,7 +547,7 @@ export default function RegistrationsPage() {
                     </TableRow>
                   </TableHead>
                   <TableBody>
-                    {group.members.map((row, memberIndex) => {
+                    {group.members.map(({ row, memberIndex }: any) => {
                       const name = row.user?.name || row.userName || "Unknown";
                       const email = row.user?.email || row.userEmail || "";
                       const registrationId = getRegistrationId(row);
@@ -567,8 +573,8 @@ export default function RegistrationsPage() {
                       const approvalTooltip = readinessReady
                         ? "Approve"
                         : readinessReasons[0] ||
-                          readiness?.reason ||
-                          "Registration is not ready for approval";
+                        readiness?.reason ||
+                        "Registration is not ready for approval";
                       const formDetails = row.formDetails || {};
                       const hasSubmittedForm = Boolean(
                         formDetails.hasSubmittedForm,
@@ -795,7 +801,7 @@ export default function RegistrationsPage() {
 
           {formDialog.row?.formDetails?.fields?.length ? (
             <Box sx={{ display: "grid", gap: 1.2 }}>
-              {formDialog.row.formDetails.fields.map((field) => (
+              {formDialog.row.formDetails.fields.map((field: any) => (
                 <Box
                   key={field.fieldId}
                   sx={{
@@ -995,7 +1001,7 @@ function BtnSpinner({ color = "currentColor" }) {
   );
 }
 
-function GhostBtn({ onClick, children, loading, disabled }) {
+function GhostBtn({ onClick, children, loading, disabled }: any) {
   const isDisabled = disabled || loading;
   return (
     <button
@@ -1026,7 +1032,7 @@ function GhostBtn({ onClick, children, loading, disabled }) {
   );
 }
 
-function PrimaryBtn({ onClick, children, disabled, loading }) {
+function PrimaryBtn({ onClick, children, disabled, loading }: any) {
   const isDisabled = disabled || loading;
   return (
     <button
@@ -1054,7 +1060,7 @@ function PrimaryBtn({ onClick, children, disabled, loading }) {
   );
 }
 
-function GreenBtn({ onClick, children, disabled, loading }) {
+function GreenBtn({ onClick, children, disabled, loading }: any) {
   const isDisabled = disabled || loading;
   return (
     <button
@@ -1082,7 +1088,7 @@ function GreenBtn({ onClick, children, disabled, loading }) {
   );
 }
 
-function DangerBtn({ onClick, children, disabled, loading }) {
+function DangerBtn({ onClick, children, disabled, loading }: any) {
   const isDisabled = disabled || loading;
   return (
     <button

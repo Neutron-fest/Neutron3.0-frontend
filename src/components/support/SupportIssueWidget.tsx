@@ -26,7 +26,7 @@ export default function SupportIssueWidget() {
 
   const [open, setOpen] = useState(false);
   const [message, setMessage] = useState("");
-  const [imageFile, setImageFile] = useState(null);
+  const [imageFile, setImageFile] = useState<any>(null);
 
   const [previewUrl, setPreviewUrl] = useState(null);
 
@@ -36,7 +36,7 @@ export default function SupportIssueWidget() {
       return;
     }
 
-    const objectUrl = URL.createObjectURL(imageFile);
+    const objectUrl: any = URL.createObjectURL(imageFile);
     setPreviewUrl(objectUrl);
 
     return () => {
@@ -76,7 +76,7 @@ export default function SupportIssueWidget() {
       enqueueSnackbar("Issue submitted to support queue", {
         variant: "success",
       });
-    } catch (error) {
+    } catch (error: any) {
       enqueueSnackbar(
         error?.response?.data?.message || "Failed to submit issue",
         { variant: "error" },
@@ -84,7 +84,7 @@ export default function SupportIssueWidget() {
     }
   };
 
-  const handleImageChange = (event) => {
+  const handleImageChange = (event: any) => {
     const file = event.target.files?.[0] || null;
 
     if (!file) {

@@ -9,7 +9,14 @@ import {
 } from "@/src/hooks/api/useJudging";
 import { LoadingState } from "@/src/components/LoadingState";
 
-function RoundCard({ round, onClick }) {
+
+type Round = {
+  roundNumber?: number;
+  name?: string;
+  scoresLocked?: boolean;
+  teamCount?: number;
+};
+function RoundCard({ round, onClick }: { round: Round; onClick: () => void }) {
   return (
     <Paper
       onClick={onClick}
@@ -92,7 +99,9 @@ function RoundCard({ round, onClick }) {
 }
 
 export default function JudgeRoundsPage() {
-  const { competitionId } = useParams();
+  const params = useParams();
+
+  const competitionId = params.competitionId as string;
   const router = useRouter();
   const { data: rounds = [], isLoading } = useCompetitionRounds(competitionId);
   const { data: assignments = [] } = useMyJudgingCompetitions();
@@ -207,7 +216,7 @@ export default function JudgeRoundsPage() {
       ) : (
         <Grid container spacing={2}>
           {rounds.map((round) => (
-            <Grid item xs={12} sm={6} key={round.id}>
+            <Grid size={{ xs: 12, sm: 6 }} key={round.id}>
               <RoundCard
                 round={round}
                 onClick={() =>

@@ -10,7 +10,7 @@ export function SearchBar({
   debounceMs = 300,
   fullWidth = false,
   sx = {},
-}) {
+}:any) {
   const [searchValue, setSearchValue] = useState("");
 
   useEffect(() => {

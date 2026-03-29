@@ -25,7 +25,7 @@ export default function TeamInvitePage() {
   const { user, loading } = useAuth();
   const router = useRouter();
   const params = useParams();
-  const inviteToken = params?.inviteToken;
+  const inviteToken: any = params?.inviteToken;
 
   const acceptInviteMutation = useAcceptTeamInvite();
   const declineInviteMutation = useDeclineTeamInvite();
@@ -34,11 +34,11 @@ export default function TeamInvitePage() {
     isLoading: previewLoading,
     isError: previewError,
     error: previewErrorObject,
-  } = useTeamInvitePreview(inviteToken, Boolean(user && inviteToken));
+  } = useTeamInvitePreview(inviteToken, Boolean(user && inviteToken)) as any;
 
   const [status, setStatus] = useState("idle");
   const [message, setMessage] = useState("");
-  const [resultData, setResultData] = useState(null);
+  const [resultData, setResultData] = useState<any>(null);
   const [mismatchRedirecting, setMismatchRedirecting] = useState(false);
 
   useEffect(() => {
@@ -85,12 +85,12 @@ export default function TeamInvitePage() {
           );
         }, 900);
       }
-    } catch (error) {
+    } catch (error: any) {
       setStatus("error");
       setMessage(
         error?.response?.data?.message ||
-          error?.message ||
-          "Failed to accept invite.",
+        error?.message ||
+        "Failed to accept invite.",
       );
     }
   };
@@ -103,12 +103,12 @@ export default function TeamInvitePage() {
       await declineInviteMutation.mutateAsync(inviteToken);
       setStatus("declined");
       setMessage("You declined the team invite.");
-    } catch (error) {
+    } catch (error: any) {
       setStatus("error");
       setMessage(
         error?.response?.data?.message ||
-          error?.message ||
-          "Failed to decline invite.",
+        error?.message ||
+        "Failed to decline invite.",
       );
     }
   };
@@ -236,12 +236,12 @@ export default function TeamInvitePage() {
     "Team Lead";
   const expiresAt = invitePreview?.invite?.expiresAt
     ? new Date(invitePreview.invite.expiresAt).toLocaleString("en-IN", {
-        day: "numeric",
-        month: "short",
-        year: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-      })
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    })
     : "-";
 
   return (

@@ -18,7 +18,7 @@ export const metadata = {
   description: "Event Management Platform",
 };
 
-export default function RootLayout({ children }) {
+export default function RootLayout({ children }: any) {
   return (
     <html lang="en">
       <head>
