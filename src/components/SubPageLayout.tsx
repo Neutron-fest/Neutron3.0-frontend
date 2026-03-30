@@ -17,20 +17,18 @@ interface SubPageLayoutProps {
 export default function SubPageLayout({ children, title, subtitle, showHero = true }: SubPageLayoutProps) {
   return (
     <div className="relative min-h-screen w-full bg-black text-white overflow-hidden selection:bg-orange-500/30 font-sans">
-      {/* Background Layer */}
       <div 
         className="fixed inset-0 z-0 pointer-events-none"
         style={{
           backgroundImage: "url('https://res.cloudinary.com/dpod2sj9t/image/upload/v1774685137/BG_l4fb9q.jpg')",
           backgroundSize: "cover",
           backgroundPosition: "center",
-          filter: "brightness(0.12) contrast(1.1)",
+          filter: "brightness(0.32) contrast(1.1)",
         }}
       />
 
       <Noise patternAlpha={4} className="fixed inset-0 z-1 pointer-events-none opacity-20" />
 
-      {/* Navigation */}
       <nav className="relative z-50 flex items-center justify-between px-6 py-6 md:px-12 md:py-8">
         <Link href="/" className="group flex items-center gap-3 transition-transform duration-500">
           <div className="relative w-8 h-8 md:w-10 md:h-10">
@@ -59,7 +57,6 @@ export default function SubPageLayout({ children, title, subtitle, showHero = tr
         </div>
       </nav>
 
-      {/* Main Content */}
       <main className="relative z-10 container mx-auto px-6 max-w-7xl">
         {showHero && (
           <header className="pt-12 pb-24 md:pt-24 md:pb-32">
@@ -87,7 +84,6 @@ export default function SubPageLayout({ children, title, subtitle, showHero = tr
 
       <AboutFooter />
 
-      {/* Subtle Bottom Fade */}
       <div className="fixed bottom-0 left-0 w-full h-[20vh] bg-linear-to-t from-black to-transparent pointer-events-none z-5" />
     </div>
   );
