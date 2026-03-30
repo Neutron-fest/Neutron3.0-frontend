@@ -388,12 +388,6 @@ function DashboardWidget({
     <div className={`bg-white/3 border border-white/8 rounded-3xl p-6 backdrop-blur-2xl transition-all duration-300 hover:border-white/15 h-full ${className}`}>
       <div className="flex items-center justify-between mb-6">
         <h3 className="text-xs font-bold uppercase tracking-[0.2em] text-white/40 font-mono">{title}</h3>
-        <button 
-          onClick={onManage}
-          className="text-[10px] font-bold uppercase tracking-widest text-white/20 hover:text-white transition-all hover:bg-white/5 px-2.5 py-1 rounded-full border border-transparent hover:border-white/10 active:translate-y-px"
-        >
-          Manage
-        </button>
       </div>
       {children}
     </div>
@@ -1190,10 +1184,6 @@ export default function ProfilePage() {
                 transition={{ type: "spring", damping: 20 }}
                 className="relative z-10 w-full max-w-md perspective-2000"
               >
-                <div className="absolute -top-12 left-1/2 -translate-x-1/2 flex flex-col items-center">
-                   <p className="text-[10px] font-bold text-white/40 uppercase tracking-[0.4em] font-mono">Digital Identity Explorer</p>
-                   <div className="h-4 w-px bg-white/20 mt-2"></div>
-                </div>
                 <ProfileCard
                   name={profile.name}
                   title={profile.college}
@@ -1201,7 +1191,7 @@ export default function ProfilePage() {
                   status={profile.year}
                   contactText="DOWNLOAD ID"
                   avatarUrl="https://ik.imagekit.io/YatharthKhandelwal/AVAT.jpeg"
-                  showUserInfo={true}
+                  showUserInfo={false}
                   enableTilt={true}
                   enableMobileTilt={true}
                   behindGlowColor="rgba(125, 190, 255, 0.6)"
