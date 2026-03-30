@@ -983,7 +983,6 @@ async function createScene({
     const ringRadiusX = mob ? 8.0 : 10.0;
     const ringRadiusZ = mob ? 8.0 : 10.0;
 
-    // Movement for the whole solar system on scroll
     const systemScrollY = Math.sin(cycleProgress * Math.PI) * 1.8;
     const systemScrollX = Math.cos(cycleProgress * Math.PI * 2) * 1.2 - 1.2;
     const systemScrollZ = Math.sin(cycleProgress * Math.PI * 0.5) * -1.5;

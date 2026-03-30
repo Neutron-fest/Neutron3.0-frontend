@@ -71,17 +71,29 @@ export default function AboutHero() {
         </motion.div>
       </div>
 
-      <a href="/" className="fixed top-6 left-6 z-50 transition-transform duration-300 hover:scale-110" aria-label="Neutron Home">
-        <Image
-          src="/neutron.png"
-          alt="Neutron Logo"
-          width={48}
-          height={48}
-          className="object-contain"
-          style={{ filter: "drop-shadow(0 0 14px rgba(220,140,30,0.55)) drop-shadow(0 0 4px rgba(255,200,80,0.3))" }}
-          priority
-        />
-      </a>
+      <div className="fixed top-6 left-6 z-50 flex items-center gap-5">
+        <Link href="/" className="transition-transform duration-300 hover:scale-110" aria-label="Neutron Home">
+          <Image
+            src="/neutron.png"
+            alt="Neutron Logo"
+            width={48}
+            height={48}
+            className="object-contain"
+            style={{ filter: "drop-shadow(0 0 14px rgba(220,140,30,0.55)) drop-shadow(0 0 4px rgba(255,200,80,0.3))" }}
+            priority
+          />
+        </Link>
+        <Link href="/?phase=planets">
+          <div className="flex items-center space-x-3 group cursor-pointer relative overflow-hidden backdrop-blur-xl bg-white/5 border border-white/10 px-4 py-1.5 rounded-full hover:bg-white/10 hover:border-white/30 transition-all duration-500">
+            <div className="flex items-center justify-center bg-white/10 w-6 h-6 rounded-full group-hover:bg-white transition-colors duration-500">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="text-white group-hover:text-black transition-colors duration-500">
+                <path d="M19 12H5M12 19l-7-7 7-7" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </div>
+            <span className="text-[10px] font-bold tracking-[0.2em] uppercase text-white/50 group-hover:text-white transition-colors font-mono">Back to Planets</span>
+          </div>
+        </Link>
+      </div>
 
       <Noise patternAlpha={12} patternRefreshInterval={2} />
     </section>

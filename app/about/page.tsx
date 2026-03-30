@@ -2,6 +2,7 @@
 
 import AboutHero from "@/components/AboutHero";
 import AboutStory from "@/components/AboutStory";
+import AboutCrazyText from "@/components/AboutCrazyText";
 import AboutImpact from "@/components/AboutImpact";
 import AboutGallery from "@/components/AboutGallery";
 import AboutTeam from "@/components/AboutTeam";
@@ -23,9 +24,10 @@ export default function AboutPage() {
       
       <AboutHero />
       <AboutStory />
-      <AboutImpact />
+      <AboutCrazyText />
+      {/* <AboutImpact /> */}
       <AboutGallery />
-      <AboutTeam />
+      {/* <AboutTeam /> */}
       <AboutFooter />
     </main>
   );
