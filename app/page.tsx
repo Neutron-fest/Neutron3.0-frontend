@@ -1,5 +1,5 @@
-import { redirect } from "next/navigation";
+import SpaceLanding from "@/components/space-landing";
 
 export default function HomePage() {
-  redirect("/competitions");
+  return <SpaceLanding />;
 }

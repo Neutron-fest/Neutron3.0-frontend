@@ -1,41 +1,43 @@
-import { Geist, Geist_Mono } from "next/font/google";
+import type { Metadata } from "next";
+import { Sora, Geist } from "next/font/google";
 import "./globals.css";
-import { AppProviders } from "@/src/providers/AppProviders";
-import PublicHeaderGate from "@/src/components/navigation/PublicHeaderGate";
-import NeutronBanner from "@/src/components/NeutronBanner";
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
+import { cn } from "@/lib/utils";
+import LoaderWrapper from "@/components/LoaderWrapper";
+
+import Noise from "@/components/Noise";
+import SmoothScroll from "@/components/smooth-scroll";
+
+const geist = Geist({subsets:['latin'],variable:'--font-sans'});
+
+const sora = Sora({
+  subsets: ["latin"], 
+  weight: ["100", "200", "300", "400", "500", "600", "700", "800"],
+  variable: "--font-sora",
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
-
-export const metadata = {
-  title: "Neutron 3.0",
-  description: "Event Management Platform",
+export const metadata: Metadata = {
+  title: "Neutron",
+  description: "Neutron.",
 };
 
-export default function RootLayout({ children }: any) {
+export default function RootLayout({
+  children,
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
   return (
-    <html lang="en">
-      <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link
-          href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap"
-          rel="stylesheet"
-        />
-      </head>
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
-        <NeutronBanner />
-        <AppProviders>
-          <PublicHeaderGate>{children}</PublicHeaderGate>
-        </AppProviders>
+    <html lang="en" className={cn("antialiased", sora.variable, "font-sans", geist.variable)}>
+      <body className={`${sora.className} bg-[#0d0a08] text-white selection:bg-orange-500/30 overflow-x-hidden`}>
+        <Noise patternAlpha={10} className="fixed inset-0 z-100 pointer-events-none opacity-40" />
+        <LoaderWrapper>
+          <SmoothScroll>
+            <div className="relative z-1">
+              {children}
+            </div>
+          </SmoothScroll>
+        </LoaderWrapper>
       </body>
     </html>
   );
 }
+
