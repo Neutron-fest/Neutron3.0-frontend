@@ -659,6 +659,7 @@ function LogsTab() {
               )}
             </Box>
             <Box
+            data-lenis-prevent
               sx={{
                 maxHeight: "min(62vh, 620px)",
                 overflowY: "scroll",
@@ -1179,11 +1180,12 @@ function AnomaliesTab() {
             sx={{
               borderRadius: "12px",
               border: "1px solid rgba(255,255,255,0.06)",
-              overflow: "hidden",
+     
               background: "#0c0c0c",
             }}
           >
             <Box
+       
               sx={{
                 display: "grid",
                 gridTemplateColumns:
@@ -1216,12 +1218,14 @@ function AnomaliesTab() {
               ))}
             </Box>
             <Box
+              data-lenis-prevent
               sx={{
                 maxHeight: "min(62vh, 620px)",
-                overflowY: "auto",
+                overflowY: "scroll",
                 overflowX: "hidden",
               }}
             >
+       
               <RowDivider />
 
               {anomalies.length === 0 ? (

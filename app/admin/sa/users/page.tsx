@@ -50,7 +50,7 @@ const ROLE_OPTIONS = [
   { value: "USER", label: "User" },
 ];
 
-const ROLE_COLORS = {
+const ROLE_COLORS:any = {
   SA: {
     bg: "rgba(239,68,68,0.1)",
     text: "#f87171",
@@ -103,7 +103,7 @@ const ROLE_COLORS = {
   },
 };
 
-function RolePill({ role }) {
+function RolePill({ role }:any) {
   const c = ROLE_COLORS[role] || ROLE_COLORS.USER;
   const label = ROLE_OPTIONS.find((r) => r.value === role)?.label || role;
   return (
@@ -134,7 +134,7 @@ function RolePill({ role }) {
   );
 }
 
-function StatusDot({ isSuspended, isRevoked }) {
+function StatusDot( {isSuspended, isRevoked}:any) {
   if (isRevoked)
     return (
       <Box sx={{ display: "flex", alignItems: "center", gap: 0.75 }}>
@@ -181,7 +181,7 @@ function StatusDot({ isSuspended, isRevoked }) {
   );
 }
 
-function PresenceDot({ presence }) {
+function PresenceDot({ presence }:any) {
   const isOnline = presence === "ONLINE";
 
   return (
@@ -208,7 +208,7 @@ function PresenceDot({ presence }) {
   );
 }
 
-function UserAvatar({ name }) {
+function UserAvatar({ name }:any) {
   return (
     <Box sx={{ position: "relative", width: 36, height: 36, flexShrink: 0 }}>
       <Image
@@ -252,7 +252,7 @@ function UsersPageContent() {
   const suspendMutation = useSuspendUser();
   const unsuspendMutation = useUnsuspendUser();
   const revokeMutation = useRevokeUser();
-  const inviteMutation = useInviteUser();
+  const inviteMutation = useInviteUser() as any;
   const bulkInviteMutation = useBulkInviteUsers();
   const deleteMutation = useDeleteUser();
   const { enqueueSnackbar } = useSnackbar();
@@ -262,10 +262,10 @@ function UsersPageContent() {
   const [statusFilter, setStatusFilter] = useState("all");
 
   const [anchorEl, setAnchorEl] = useState(null);
-  const [menuUser, setMenuUser] = useState(null);
+  const [menuUser, setMenuUser] = useState<any>(null);
 
   const [dialogType, setDialogType] = useState(null);
-  const [selectedUser, setSelectedUser] = useState(null);
+  const [selectedUser, setSelectedUser] = useState<any>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
@@ -279,18 +279,18 @@ function UsersPageContent() {
   const [inviteRole, setInviteRole] = useState("USER");
   const [inviteError, setInviteError] = useState("");
   const [inviteMode, setInviteMode] = useState("single");
-  const [csvParsed, setCsvParsed] = useState([]);
-  const [csvResults, setCsvResults] = useState(null);
-  const [presenceOverrides, setPresenceOverrides] = useState({});
+  const [csvParsed, setCsvParsed] = useState<any>([]);
+  const [csvResults, setCsvResults] = useState<any>(null);
+  const [presenceOverrides, setPresenceOverrides] = useState<any>({});
 
   useEffect(() => {
     const socket = getSocket();
     if (!socket) return;
 
-    const handlePresenceUpdate = (payload) => {
+    const handlePresenceUpdate = (payload:any) => {
       if (!payload?.userId || !payload?.presence) return;
 
-      setPresenceOverrides((prev) => {
+      setPresenceOverrides((prev:any) => {
         const current = prev[payload.userId];
         if (current === payload.presence) {
           return prev;
@@ -312,7 +312,7 @@ function UsersPageContent() {
 
   const usersWithPresence = useMemo(
     () =>
-      users.map((u) => ({
+      users.map((u:any) => ({
         ...u,
         presence: presenceOverrides[u.id] ?? u.presence,
       })),
@@ -345,7 +345,7 @@ function UsersPageContent() {
     [usersWithPresence, searchQuery, roleFilter, statusFilter],
   );
 
-  const handleMenuOpen = (e, u) => {
+  const handleMenuOpen = (e:any, u:any) => {
     setAnchorEl(e.currentTarget);
     setMenuUser(u);
   };
@@ -354,7 +354,7 @@ function UsersPageContent() {
     setMenuUser(null);
   };
 
-  const openDialog = (type, u) => {
+  const openDialog = (type:any, u:any) => {
     setDialogType(type);
     setSelectedUser(u);
     if (type === "delete") setDeleteDialogOpen(true);
@@ -399,7 +399,7 @@ function UsersPageContent() {
       });
       enqueueSnackbar("Invitation sent", { variant: "success" });
       closeInvite();
-    } catch (err) {
+    } catch (err:any) {
       setInviteError(
         err?.response?.data?.message ||
           err?.message ||
@@ -408,12 +408,12 @@ function UsersPageContent() {
     }
   };
 
-  const handleCsvFile = (file) => {
+  const handleCsvFile = (file:any) => {
     if (!file) return;
     const reader = new FileReader();
-    reader.onload = (e) => {
+    reader.onload = (e:any) => {
       const text = e.target.result;
-      const lines = text.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
+      const lines = text.split(/\r?\n/).map((l:any) => l.trim()).filter(Boolean);
       const validRoles = new Set(["SA", "BOARD", "DH", "CH", "JUDGE", "VOLUNTEER", "USER"]);
       const parsed = [];
       for (const line of lines) {
@@ -439,12 +439,12 @@ function UsersPageContent() {
   };
 
   const handleBulkInvite = async () => {
-    const valid = csvParsed.filter((r) => r.emailValid);
+    const valid = csvParsed.filter((r:any) => r.emailValid);
     if (!valid.length) return;
     try {
       const res = await bulkInviteMutation.mutateAsync(valid);
       setCsvResults(res.data.results);
-    } catch (err) {
+    } catch (err:any) {
       setInviteError(err?.response?.data?.message || err?.message || "Failed to send bulk invitations");
     }
   };
@@ -458,7 +458,7 @@ function UsersPageContent() {
       });
       enqueueSnackbar("Role updated", { variant: "success" });
       closeDialog();
-    } catch (err) {
+    } catch (err:any) {
       enqueueSnackbar(err.message || "Failed", { variant: "error" });
     }
   };
@@ -486,7 +486,7 @@ function UsersPageContent() {
       });
       enqueueSnackbar("User suspended", { variant: "success" });
       closeDialog();
-    } catch (err) {
+    } catch (err:any) {
       enqueueSnackbar(err.message || "Failed", { variant: "error" });
     }
   };
@@ -497,7 +497,7 @@ function UsersPageContent() {
       await unsuspendMutation.mutateAsync(selectedUser.id);
       enqueueSnackbar("User unsuspended", { variant: "success" });
       closeDialog();
-    } catch (err) {
+    } catch (err:any) {
       enqueueSnackbar(err.message || "Failed", { variant: "error" });
     }
   };
@@ -511,7 +511,7 @@ function UsersPageContent() {
       });
       enqueueSnackbar("Access revoked", { variant: "success" });
       closeDialog();
-    } catch (err) {
+    } catch (err:any) {
       enqueueSnackbar(err.message || "Failed", { variant: "error" });
     }
   };
@@ -522,7 +522,7 @@ function UsersPageContent() {
       await deleteMutation.mutateAsync(selectedUser.id);
       enqueueSnackbar("User deleted", { variant: "success" });
       closeDialog();
-    } catch (err) {
+    } catch (err:any) {
       enqueueSnackbar(
         err?.response?.data?.message || err?.message || "Failed",
         { variant: "error" },
@@ -530,7 +530,7 @@ function UsersPageContent() {
     }
   };
 
-  const fmtDate = (d) =>
+  const fmtDate = (d:any) =>
     new Date(d).toLocaleDateString("en-US", {
       year: "numeric",
       month: "short",
@@ -737,6 +737,7 @@ function UsersPageContent() {
           borderRadius: "12px",
           border: "1px solid rgba(255,255,255,0.06)",
           background: "#0c0c0c",
+          overflow: "hidden",
         }}
       >
         <Box
@@ -765,6 +766,7 @@ function UsersPageContent() {
           ))}
         </Box>
         <Box
+          data-lenis-prevent
           sx={{
             maxHeight: "min(62vh, 620px)",
             overflowY: "scroll",
@@ -1008,7 +1010,7 @@ function UsersPageContent() {
           type="number"
           min={1}
           value={suspensionDays}
-          onChange={(e) => setSuspensionDays(e.target.value)}
+          onChange={(e:any) => setSuspensionDays(e.target.value)}
           placeholder="e.g. 7"
           style={{ marginBottom: 12 }}
         />
@@ -1025,7 +1027,7 @@ function UsersPageContent() {
         <DarkTextarea
           rows={3}
           value={suspensionReason}
-          onChange={(e) => setSuspensionReason(e.target.value)}
+          onChange={(e:any) => setSuspensionReason(e.target.value)}
           placeholder="Reason for suspension…"
         />
         <BtnRow>
@@ -1086,7 +1088,7 @@ function UsersPageContent() {
         <DarkTextarea
           rows={3}
           value={revokeReason}
-          onChange={(e) => setRevokeReason(e.target.value)}
+          onChange={(e:any) => setRevokeReason(e.target.value)}
           placeholder="Reason for revoking access…"
         />
         <BtnRow>
@@ -1176,7 +1178,7 @@ function UsersPageContent() {
             <DarkInput
               type="email"
               value={inviteEmail}
-              onChange={(e) => setInviteEmail(e.target.value)}
+              onChange={(e:any) => setInviteEmail(e.target.value)}
               placeholder="Email address"
               style={{ marginBottom: 12 }}
             />
@@ -1267,7 +1269,7 @@ function UsersPageContent() {
                   mb: 1.5,
                 }}
               >
-                {csvParsed.map((row, i) => (
+                {csvParsed.map((row:any, i:any) => (
                   <Box
                     key={i}
                     sx={{
@@ -1308,7 +1310,9 @@ function UsersPageContent() {
                       {row.role}
                     </Typography>
                     {row.warning && (
-                      <AlertCircle size={12} color="rgba(251,191,36,0.7)" title={row.warning} />
+                      <span title={row.warning}>
+                        <AlertCircle size={12} color="rgba(251,191,36,0.7)" />
+                      </span>
                     )}
                   </Box>
                 ))}
@@ -1328,11 +1332,11 @@ function UsersPageContent() {
               >
                 <Box sx={{ px: 1.5, py: 1, borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
                   <Typography sx={{ fontSize: 11, fontFamily: "'Syne', sans-serif", color: "rgba(255,255,255,0.4)" }}>
-                    {csvResults.filter((r) => r.success).length} sent ·{" "}
-                    {csvResults.filter((r) => !r.success).length} failed
+                    {csvResults.filter((r:any) => r.success).length} sent ·{" "}
+                    {csvResults.filter((r:any) => !r.success).length} failed
                   </Typography>
                 </Box>
-                {csvResults.map((row, i) => (
+                {csvResults.map((row:any, i:any) => (
                   <Box
                     key={i}
                     sx={{
@@ -1389,12 +1393,12 @@ function UsersPageContent() {
               {!csvResults && (
                 <InviteBtn
                   onClick={handleBulkInvite}
-                  disabled={!csvParsed.filter((r) => r.emailValid).length}
+                  disabled={!csvParsed.filter((r:any) => r.emailValid).length}
                   loading={bulkInviteMutation.isPending}
                 >
                   {bulkInviteMutation.isPending
                     ? "Sending…"
-                    : `Send ${csvParsed.filter((r) => r.emailValid).length} Invitation(s)`}
+                    : `Send ${csvParsed.filter((r:any) => r.emailValid).length} Invitation(s)`}
                 </InviteBtn>
               )}
             </BtnRow>
@@ -1407,7 +1411,7 @@ function UsersPageContent() {
 
 /* ── Primitives ── */
 
-function DarkDialog({ open, onClose, title, children }) {
+function DarkDialog({ open, onClose, title, children }:any) {
   return (
     <Dialog
       open={open}
@@ -1447,7 +1451,7 @@ function DarkDialog({ open, onClose, title, children }) {
   );
 }
 
-function NativeSelect({ value, onChange, children, fullWidth }) {
+function NativeSelect({ value, onChange, children, fullWidth }:any) {
   return (
     <select
       value={value}
@@ -1477,7 +1481,7 @@ function DarkInput({
   placeholder,
   style = {},
   ...rest
-}) {
+}:any) {
   return (
     <input
       type={type}
@@ -1502,7 +1506,7 @@ function DarkInput({
   );
 }
 
-function DarkTextarea({ rows = 3, value, onChange, placeholder }) {
+function DarkTextarea({ rows = 3, value, onChange, placeholder }:any) {
   return (
     <textarea
       rows={rows}
@@ -1526,7 +1530,7 @@ function DarkTextarea({ rows = 3, value, onChange, placeholder }) {
   );
 }
 
-function DangerNote({ children }) {
+function DangerNote({ children }:any) {
   return (
     <Box
       sx={{
@@ -1550,7 +1554,7 @@ function DangerNote({ children }) {
   );
 }
 
-function BtnRow({ children }) {
+function BtnRow({ children }:any) {
   return (
     <Box sx={{ display: "flex", gap: 1, justifyContent: "flex-end", mt: 3 }}>
       {children}
@@ -1563,7 +1567,7 @@ function CtxItem({
   icon,
   color = "rgba(255,255,255,0.65)",
   children,
-}) {
+}:any) {
   return (
     <MenuItem
       onClick={onClick}
@@ -1582,7 +1586,7 @@ function CtxItem({
   );
 }
 
-function InlineBtn({ onClick, icon, children }) {
+function InlineBtn({ onClick, icon, children }:any) {
   return (
     <button
       onClick={onClick}
@@ -1645,7 +1649,7 @@ function BtnSpinner({ color = "currentColor" }) {
   );
 }
 
-function GhostBtn({ onClick, children, loading, disabled }) {
+function GhostBtn({ onClick, children, loading, disabled }:any) {
   const isDisabled = disabled || loading;
   return (
     <button
@@ -1675,7 +1679,7 @@ function GhostBtn({ onClick, children, loading, disabled }) {
     </button>
   );
 }
-function PrimaryBtn({ onClick, children, disabled, loading }) {
+function PrimaryBtn({ onClick, children, disabled, loading }:any) {
   const isDisabled = disabled || loading;
   return (
     <button
@@ -1702,7 +1706,7 @@ function PrimaryBtn({ onClick, children, disabled, loading }) {
     </button>
   );
 }
-function WarnBtn({ onClick, children, disabled, loading }) {
+function WarnBtn({ onClick, children, disabled, loading }:any) {
   const isDisabled = disabled || loading;
   return (
     <button
@@ -1729,7 +1733,7 @@ function WarnBtn({ onClick, children, disabled, loading }) {
     </button>
   );
 }
-function GreenBtn({ onClick, children, disabled, loading }) {
+function GreenBtn({ onClick, children, disabled, loading }:any) {
   const isDisabled = disabled || loading;
   return (
     <button
@@ -1756,7 +1760,7 @@ function GreenBtn({ onClick, children, disabled, loading }) {
     </button>
   );
 }
-function DangerBtn({ onClick, children, disabled, loading }) {
+function DangerBtn({ onClick, children, disabled, loading }:any) {
   const isDisabled = disabled || loading;
   return (
     <button
@@ -1784,7 +1788,7 @@ function DangerBtn({ onClick, children, disabled, loading }) {
   );
 }
 
-function InviteBtn({ onClick, children, disabled, loading }) {
+function InviteBtn({ onClick, children, disabled, loading }:any) {
   const isDisabled = disabled || loading;
   return (
     <button

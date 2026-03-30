@@ -18,7 +18,7 @@ import {
   getAdminNavigation,
 } from "@/src/components/navigation/Sidebar";
 
-export default function SALayout({ children }) {
+export default function SALayout({ children }:any) {
   const { user, loading, logout } = useAuth();
   const router = useRouter();
   const pathname = usePathname();

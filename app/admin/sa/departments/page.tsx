@@ -539,6 +539,7 @@ export default function DepartmentsPage() {
           ))}
         </Box>
         <Box
+        data-lenis-prevent
           sx={{
             maxHeight: "min(62vh, 620px)",
             overflowY: "auto",
