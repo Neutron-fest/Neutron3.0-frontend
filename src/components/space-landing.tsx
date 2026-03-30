@@ -816,45 +816,49 @@ async function createScene({
   const loadGLTF = (url: string) => new Promise<any>((res, rej) => gltfLoader.load(url, res, undefined, rej));
   const loadOBJ  = (url: string) => new Promise<any>((res, rej) => objLoader.load(url, res, undefined, rej));
 
-  const sunPos = new THREE.Vector3(0, -1, -5); 
+  const orbitCenterZ = -5.5;
+  const sunPos = new THREE.Vector3(0, -1, orbitCenterZ); 
+  
+  const planetsRig = new THREE.Group();
+  scene.add(planetsRig);
+
+  const sunGroup = new THREE.Group();
+  sunGroup.position.copy(sunPos);
+  planetsRig.add(sunGroup);
+
   const sunLight = new THREE.PointLight("#ff8c1a", 165, 120, 0.8);
-  sunLight.position.copy(sunPos);
-  scene.add(sunLight);
+  sunGroup.add(sunLight);
 
   const sunGLTF = await loadGLTF("/3D/planets/sun.glb");
   const sunModel = normalizeModel(sunGLTF.scene, 4.4); 
-  sunModel.position.copy(sunPos);
-  scene.add(sunModel);
+  sunGroup.add(sunModel);
 
-  const sunRuntime = { model: sunModel };
-
-  const sunGlowMat = new THREE.MeshBasicMaterial({
+  const sunGlowMat1 = new THREE.MeshBasicMaterial({
     color: "#cc5500",
     transparent: true,
     opacity: 0.12,
   });
-  const sunGlow1 = new THREE.Mesh(new THREE.SphereGeometry(3.5, 32, 32), sunGlowMat);
-  const sunGlow2 = new THREE.Mesh(new THREE.SphereGeometry(6.0, 32, 32), sunGlowMat.clone());
-  sunGlow2.material.opacity = 0.04;
-  sunGlow1.position.copy(sunPos);
-  sunGlow2.position.copy(sunPos);
-  scene.add(sunGlow1, sunGlow2);
+  const sunGlowMat2 = sunGlowMat1.clone();
+  sunGlowMat2.opacity = 0.04;
+  
+  const sunGlow1 = new THREE.Mesh(new THREE.SphereGeometry(3.5, 32, 32), sunGlowMat1);
+  const sunGlow2 = new THREE.Mesh(new THREE.SphereGeometry(6.0, 32, 32), sunGlowMat2);
+  sunGroup.add(sunGlow1, sunGlow2);
 
-  const planetsRig = new THREE.Group();
-  scene.add(planetsRig);
+  const sunRuntime = { group: sunGroup, model: sunModel, light: sunLight, glow1: sunGlow1, glow2: sunGlow2, glowMat1: sunGlowMat1, glowMat2: sunGlowMat2 };
 
   const ringA = new THREE.Mesh(
     new THREE.TorusGeometry(8.2, 0.008, 16, 128),
     new THREE.MeshBasicMaterial({ color: "#ffe0a0", transparent: true, opacity: 0.12 })
   );
-  ringA.position.set(0, -1, -5);
+  ringA.position.copy(sunPos);
   ringA.rotation.x = Math.PI / 2;
   
   const ringB = new THREE.Mesh(
     new THREE.TorusGeometry(12.5, 0.008, 16, 128),
     new THREE.MeshBasicMaterial({ color: "#ffd56e", transparent: true, opacity: 0.08 })
   );
-  ringB.position.set(0, -1, -6);
+  ringB.position.copy(sunPos);
   ringB.rotation.x = Math.PI / 2;
   ringB.rotation.y = 0.08; 
   planetsRig.add(ringA, ringB);
@@ -968,6 +972,7 @@ async function createScene({
     const scrolledPx = progressRef.current * scrollMax;
     const vh         = window.innerHeight || 800;
     const scrolledVH = (scrolledPx / vh) * 100;
+    const cycleProgress = Math.max(0, scrolledVH) / 380;
 
     const intro  = 1;
     const spread = 1;
@@ -977,25 +982,39 @@ async function createScene({
     const mob = window.innerWidth < 768;
     const ringRadiusX = mob ? 8.0 : 10.0;
     const ringRadiusZ = mob ? 8.0 : 10.0;
-    const ringCenterZ = mob ? -6  : -5;
+
+    // Movement for the whole solar system on scroll
+    const systemScrollY = Math.sin(cycleProgress * Math.PI) * 1.8;
+    const systemScrollX = Math.cos(cycleProgress * Math.PI * 2) * 1.2 - 1.2;
+    const systemScrollZ = Math.sin(cycleProgress * Math.PI * 0.5) * -1.5;
+    planetsRig.position.lerp(new THREE.Vector3(systemScrollX, systemScrollY, systemScrollZ), 0.05);
 
     planetsRig.rotation.y += delta * 0.026;
     planetsRig.rotation.x  = Math.sin(elapsed * 0.085) * 0.016;
     planetsRig.rotation.z  = Math.cos(elapsed * 0.065) * 0.007;
 
-    // --- ROTATE SUN ---
-    if (sunRuntime.model) {
+    if (sunRuntime.group) {
       sunRuntime.model.rotation.y += delta * 0.15;
+      
+      const glowPulse = Math.sin(elapsed * 2.5) * 0.5 + 0.5; // 0 to 1
+      const scale1 = 1 + glowPulse * 0.06;
+      const scale2 = 1 + glowPulse * 0.10;
+      sunRuntime.glow1.scale.lerp(new THREE.Vector3(scale1, scale1, scale1), 0.1);
+      sunRuntime.glow2.scale.lerp(new THREE.Vector3(scale2, scale2, scale2), 0.1);
+      sunRuntime.glowMat1.opacity = 0.12 + glowPulse * 0.05;
+      sunRuntime.glowMat2.opacity = 0.03 + glowPulse * 0.03;
+      sunRuntime.light.intensity = THREE.MathUtils.lerp(sunRuntime.light.intensity, 165 + glowPulse * 30, 0.1);
+
+      sunRuntime.group.position.y = -1 + Math.sin(elapsed * 1.2) * 0.15;
     }
 
     const N = PLANET_RECORDS.length;
-    const cycleProgress    = Math.max(0, scrolledVH) / 380;
     const globalAngleOffset = cycleProgress * (Math.PI * 2);
 
     const frontTargetX       = 0;
     const frontTargetY       = mob ? -1.2 : -1.8;
-    const frontTargetZ       = ringCenterZ + ringRadiusZ;
-    const idealFrontPosition = new THREE.Vector3(frontTargetX, frontTargetY, frontTargetZ);
+    const frontTargetZ       = orbitCenterZ + ringRadiusZ;
+    const idealFrontPosition = new THREE.Vector3(frontTargetX, frontTargetY, frontTargetZ).add(planetsRig.position);
 
     planetEntries.forEach((entry, index) => {
       const planet      = PLANET_RECORDS[index];
@@ -1006,7 +1025,7 @@ async function createScene({
       const isOrbitB   = index >= 2;
       const currentRadiusX = isOrbitB ? 12.5 : 8.2;
       const currentRadiusZ = isOrbitB ? 12.5 : 8.2;
-      const currentCenterZ = isOrbitB ? -6.0 : -5.0;
+      const currentCenterZ = orbitCenterZ;
 
       let currentAngle = (index * (Math.PI * 2) / N) - globalAngleOffset;
       if (currentAngle >  Math.PI) currentAngle -= Math.PI * 2;
@@ -1046,23 +1065,23 @@ async function createScene({
     });
 
     cameraOffset.set(0, mob ? 3.8 : 5.2, mob ? 8.5 : 11.0);
-    const focusLookAt = new THREE.Vector3(0, mob ? 0.0 : 0.5, ringCenterZ);
+    const focusLookAt = new THREE.Vector3(0, mob ? 0.0 : 0.5, orbitCenterZ).add(planetsRig.position);
 
     const startZ = mob ? 16.8 : 16.0;
     const endZ   = mob ? 3.2  : 2.5;
     const startY = mob ? 0.40 : 0.70;
     const endY   = mob ? 0.20 : 0.30;
 
-    targetCameraPosition.set(0, THREE.MathUtils.lerp(startY, endY, intro), THREE.MathUtils.lerp(startZ, endZ, intro));
-    targetLookAt.set(0, THREE.MathUtils.lerp(0.1, -0.3, intro), THREE.MathUtils.lerp(-1.5, -5.0, intro));
+    targetCameraPosition.set(0, THREE.MathUtils.lerp(startY, endY, intro), THREE.MathUtils.lerp(startZ, endZ, intro)).add(planetsRig.position);
+    targetLookAt.set(0, THREE.MathUtils.lerp(0.1, -0.3, intro), THREE.MathUtils.lerp(-1.5, -5.0, intro)).add(planetsRig.position);
     camera.fov = THREE.MathUtils.lerp(40, 52, intro * (1 - spread));
     camera.updateProjectionMatrix();
     if (scene.fog instanceof THREE.FogExp2) {
       (scene.fog as THREE.FogExp2).density = THREE.MathUtils.lerp(0.022, 0.010, intro * (1 - spread));
     }
 
-    targetCameraPosition.lerp(new THREE.Vector3(0, mob ? 3.0 : 4.8, mob ? 18.2 : 20.5), spread);
-    targetLookAt.lerp(new THREE.Vector3(0, 0.2, ringCenterZ), spread);
+    targetCameraPosition.lerp(new THREE.Vector3(0, mob ? 3.0 : 4.8, mob ? 18.2 : 20.5).add(planetsRig.position), spread);
+    targetLookAt.lerp(new THREE.Vector3(0, 0.2, orbitCenterZ).add(planetsRig.position), spread);
     targetCameraPosition.lerp(idealFrontPosition.clone().add(cameraOffset), focus);
     targetLookAt.lerp(focusLookAt, focus);
 
