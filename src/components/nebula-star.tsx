@@ -1,5 +1,6 @@
 "use client";
 
+import Link from 'next/link';
 import React, { useId } from 'react';
 import styled from 'styled-components';
 
@@ -17,7 +18,7 @@ const NebulaStar = ({ label, href, drift, delay, color = "#f0c060", size = 0.25 
 
   return (
     <StyledWrapper style={{ animation: drift, animationDelay: delay }} $size={size}>
-      <a href={href} className="group flex flex-col items-center gap-1">
+      <Link href={href} className="group flex flex-col items-center gap-1">
         <div className="loader">
           <svg width={100} height={100} viewBox="0 0 100 100">
             <defs>
@@ -48,7 +49,7 @@ const NebulaStar = ({ label, href, drift, delay, color = "#f0c060", size = 0.25 
         >
           {label}
         </span>
-      </a>
+      </Link>
     </StyledWrapper>
   );
 }

@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion";
 import { ArrowLeft, ArrowUp } from "lucide-react";
+import Link from "next/link";
 
 const SOCIAL_LINKS = [
   { label: "INSTAGRAM", href: "https://www.instagram.com/neutronfest/" },
@@ -60,8 +61,11 @@ export default function AboutFooter() {
         </div>
 
         <div className="flex flex-col md:flex-row justify-between items-center gap-8 pb-12 font-mono text-[0.7rem] tracking-widest text-white/40 uppercase">
-          <div className="flex gap-12">
+          <div className="flex gap-8 md:gap-12 flex-wrap justify-center">
             <span>©2026</span>
+            <Link href="/faq" className="hover:text-[#ffb84d] transition-colors duration-300">FAQ</Link>
+            <Link href="/terms" className="hover:text-[#ffb84d] transition-colors duration-300">TERMS</Link>
+            <Link href="/contact" className="hover:text-[#ffb84d] transition-colors duration-300">CONTACT</Link>
           </div>
 
           <div className="flex items-center gap-12 w-full md:w-auto justify-center md:justify-end group">

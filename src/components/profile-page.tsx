@@ -1525,7 +1525,7 @@ export default function ProfilePage() {
             {[
               { href: "/competitions", label: "Dashboard" },
               { href: "/settings", label: "Settings" },
-              { href: "/help", label: "Help Center" },
+              { href: "/contact", label: "Contact Us" },
             ].map(({ href, label }) => (
               <Link
                 key={href}
