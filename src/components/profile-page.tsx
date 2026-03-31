@@ -184,7 +184,7 @@ function Toast({
       initial={{ opacity: 0, y: 20, scale: 0.95 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       exit={{ opacity: 0, y: 20, scale: 0.95 }}
-      className="fixed bottom-8 left-1/2 -translate-x-1/2 z-1000 px-4 py-2.5 rounded-xl border border-white/10 bg-[#080808]/90 backdrop-blur-xl shadow-2xl flex items-center gap-2.5 min-w-[200px] max-w-[320px]"
+      className="fixed bottom-8 left-1/2 -translate-x-1/2 z-1000 px-4 py-2.5 rounded-xl border border-white/10 bg-[#080808]/90 backdrop-blur-xl shadow-2xl flex items-center gap-2.5 min-w-50 max-w-[320px]"
     >
       <div
         className={`w-6 h-6 rounded-lg flex items-center justify-center shrink-0 ${
@@ -1249,7 +1249,7 @@ function ProfilePanel({
           }
         >
           <div
-            className="w-full max-w-[280px] cursor-pointer active:scale-[0.98] transition-all hover:brightness-110"
+            className="w-full max-w-70 cursor-pointer active:scale-[0.98] transition-all hover:brightness-110"
             onClick={() => setExpandedID(true)}
           >
             <ProfileCard
