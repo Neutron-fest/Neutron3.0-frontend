@@ -1,19 +1,16 @@
 "use client";
 
+import React, { useRef, useEffect, useState, useMemo, use } from "react";
+import { motion, useScroll, useTransform, AnimatePresence } from "framer-motion";
 import * as THREE from 'three';
-import React, { useRef, useEffect, useState, useMemo } from "react";
-import { motion, useScroll, useTransform, AnimatePresence, useSpring, useMotionValue } from "framer-motion";
 import Link from "next/link";
 import BlurHeading from "./blur-heading";
-import { Filter, CircleDot, ArrowDownUp, ChevronDown } from "lucide-react";
-
-const playSciFiClick = () => {
-  try {
-    const audio = new Audio("https://actions.google.com/sounds/v1/science_fiction/sci_fi_beep.ogg");
-    audio.volume = 0.2;
-    audio.play().catch(() => {});
-  } catch (e) {}
-};
+import gsap from "gsap";
+import {Filter, CircleDot, ArrowDownUp, ChevronDown } from "lucide-react";
+import { useCompetition, useCompetitions } from "@/hooks/api/useCompetitions";
+import { useMotionValue } from "framer-motion";
+import { useSpring } from "framer-motion";
+import { playSciFiClick } from "./audio-controller";
 
 const ThreeStarsBackground = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -110,8 +107,11 @@ type CardProps = {
   slug: string;
   category: string;
   teamSize: string;
-  status: "open" | "closed" | "cancelled" | "postponed";
+  status: "OPEN" | "CLOSED" | "CANCELLED" | "POSTPONED";
 };
+
+
+
 
 function ParallaxCard({ title, description, image, heightClass, delay = 0, slug, category, teamSize, status }: CardProps) {
   const ref = useRef<HTMLDivElement>(null);
@@ -208,9 +208,9 @@ function ParallaxCard({ title, description, image, heightClass, delay = 0, slug,
               {teamSize}
             </span>
             <span className={`px-3 py-1.5 rounded-sm border text-[10px] uppercase tracking-wider font-mono backdrop-blur-md ${
-              status === 'open' ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400' :
-              status === 'closed' ? 'bg-rose-500/10 border-rose-500/30 text-rose-400' :
-              status === 'postponed' ? 'bg-amber-500/10 border-amber-500/30 text-amber-400' :
+              status === 'OPEN' ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400' :
+              status === 'CLOSED' ? 'bg-rose-500/10 border-rose-500/30 text-rose-400' :
+              status === 'POSTPONED' ? 'bg-amber-500/10 border-amber-500/30 text-amber-400' :
               'bg-white/5 border-white/10 text-white/30'
             }`}>
               {status}
@@ -243,6 +243,11 @@ function ParallaxCard({ title, description, image, heightClass, delay = 0, slug,
 import { COMPETITIONS_DATA } from "@/lib/competitions-data";
 
 export default function CompetitionsPage() {
+
+  const { data: competitions = [], isLoading } = useCompetitions();
+
+
+
   const { scrollYProgress } = useScroll();
   const bgY = useTransform(scrollYProgress, [0, 1], ["0%", "-10%"]);
 
@@ -251,36 +256,56 @@ export default function CompetitionsPage() {
   const [selectedStatus, setSelectedStatus] = useState("All Status");
   const [sortBy, setSortBy] = useState("Default");
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
-
+  
   const filterRef = useRef<HTMLDivElement>(null);
+
+
+
+
+
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (filterRef.current && !filterRef.current.contains(event.target as Node)) {
         setActiveDropdown(null);
       }
+
     }
     document.addEventListener("mousedown", handleClickOutside);
+  
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+
+
+
+
   const categories = useMemo(() => {
-    const cats = Array.from(new Set(COMPETITIONS_DATA.map(c => c.category)));
+    const cats = Array.from(new Set(competitions.map(c => c.category)));
     return ["All Categories", ...cats];
   }, []);
+
+
+  
 
   const statuses = ["All Status", "open", "closed", "postponed", "cancelled"];
   const sortOptions = ["Default", "Title (A-Z)", "Title (Z-A)", "Date (Newest)", "Date (Oldest)"];
 
   const filteredCompetitions = useMemo(() => {
-    let result = [...COMPETITIONS_DATA];
+    
+    let result = [...competitions];
+
+    
 
     if (searchQuery) {
+      
       const query = searchQuery.toLowerCase();
+   
       result = result.filter(c => 
+         
         c.title.toLowerCase().includes(query) || 
         c.category.toLowerCase().includes(query) ||
-        (c.description && c.description.toLowerCase().includes(query))
+        (c.shortDescription && c.shortDescription.toLowerCase().includes(query))
       );
     }
 
@@ -303,9 +328,11 @@ export default function CompetitionsPage() {
     }
 
     return result;
-  }, [searchQuery, selectedCategory, selectedStatus, sortBy]);
+  }, [searchQuery, selectedCategory, selectedStatus, sortBy,competitions]);
 
+  
   const leftColumnComps = filteredCompetitions.filter((_, i) => i % 2 === 0);
+
   const rightColumnComps = filteredCompetitions.filter((_, i) => i % 2 !== 0);
 
   const handleDropdownClick = (type: string) => {
@@ -476,9 +503,9 @@ export default function CompetitionsPage() {
                           }`}
                         >
                           <div className={`w-2 h-2 rounded-full shadow-[0_0_8px_currentColor] ${
-                             status === 'open' ? 'bg-emerald-500 text-emerald-500' : 
-                             status === 'closed' ? 'bg-rose-500 text-rose-500' : 
-                             status === 'postponed' ? 'bg-amber-500 text-amber-500' : 'bg-white/20 text-white/20'
+                             status === 'OPEN' ? 'bg-emerald-500 text-emerald-500' : 
+                             status === 'CLOSED' ? 'bg-rose-500 text-rose-500' : 
+                             status === 'POSTPONED' ? 'bg-amber-500 text-amber-500' : 'bg-white/20 text-white/20'
                           }`} />
                           <span className="font-mono text-[10px] uppercase tracking-widest">{status === "All Status" ? "All Status" : status}</span>
                         </button>
@@ -557,33 +584,36 @@ export default function CompetitionsPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 lg:gap-16 relative z-10 items-start mt-8 md:mt-0">
           <div className="flex flex-col gap-8 lg:gap-12 w-full">
             {leftColumnComps.map((comp, index) => (
+              <>
               <ParallaxCard
-                key={comp.slug}
-                slug={comp.slug}
+                key={comp.id}
+                slug={comp.id}
                 title={comp.title}
-                description={comp.description}
-                image={comp.image}
-                heightClass={comp.heightClass}
+                description={comp.shortDescription}
+                image={comp.posterPath}
+                heightClass={"h-[750px] md:h-[900px]"}
                 delay={index}
                 category={comp.category}
-                teamSize={comp.teamSize}
+                teamSize={comp.maxTeamSize}
                 status={comp.status}
               />
+            </>
+
             ))}
           </div>
 
           <div className="flex flex-col gap-8 lg:gap-12 w-full pt-0 md:pt-40 lg:pt-56">
             {rightColumnComps.map((comp, index) => (
               <ParallaxCard
-                key={comp.slug}
-                slug={comp.slug}
+                key={comp.id}
+                slug={comp.id}
                 title={comp.title}
-                description={comp.description}
-                image={comp.image}
-                heightClass={comp.heightClass}
+                description={comp.shortDescription}
+                image={comp.posterPath}
+                heightClass={"h-[750px] md:h-[900px]"}
                 delay={index}
                 category={comp.category}
-                teamSize={comp.teamSize}
+                teamSize={`${comp.minTeamSize} - ${comp.maxTeamSize} Members`}
                 status={comp.status}
               />
             ))}

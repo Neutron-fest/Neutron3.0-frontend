@@ -50,6 +50,8 @@ const PUBLIC_PATHS = [
   "/auth/password-reset/confirm",
   "/auth/invite/validate",
   "/auth/invite/accept",
+  "/competitions",
+  "/competitions/:id"
 ];
 
 const isPublicPath = (url: string = ""): boolean => {
