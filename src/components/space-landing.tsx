@@ -651,6 +651,17 @@ export default function SpaceLanding() {
               />
 
               <div className="pointer-events-none absolute inset-0" style={{ zIndex: 12 }}>
+                <motion.div
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 1.2, duration: 0.8 }}
+                  className="absolute top-6 left-24 px-3 py-1 bg-black/50 backdrop-blur-md border border-white/10 rounded-sm"
+                >
+                  <span className="text-[10px] font-mono text-white/70 uppercase tracking-widest">
+                    Click to enter the Cosmos
+                  </span>
+                </motion.div>
+
                 {[
                   { style: { top: 18, left: 18 }, borderStyle: "border-t border-l" },
                   { style: { top: 18, right: 18 }, borderStyle: "border-t border-r" },
@@ -664,7 +675,34 @@ export default function SpaceLanding() {
                   />
                 ))}
               </div>
+
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 1.6, duration: 1.0 }}
+                className="absolute inset-x-0 bottom-[8%] flex justify-center z-15 pointer-events-none"
+              >
+                <motion.div
+                  animate={{ 
+                    y: [0, -6, 0],
+                    boxShadow: [
+                      "0 0 15px rgba(255,160,40,0.1), inset 0 0 5px rgba(255,255,255,0.05)",
+                      "0 0 35px rgba(255,160,40,0.3), inset 0 0 10px rgba(255,255,255,0.1)",
+                      "0 0 15px rgba(255,160,40,0.1), inset 0 0 5px rgba(255,255,255,0.05)"
+                    ]
+                  }}
+                  transition={{
+                    duration: 5,
+                    repeat: Infinity,
+                    ease: "easeInOut"
+                  }}                >
+                  <span className="text-[10px] sm:text-[10px] font-mono tracking-[0.4em] text-[#ffb84d] font-bold uppercase">
+                    Click the black hole to enter the Cosmos
+                  </span>
+                </motion.div>
+              </motion.div>
             </motion.div>
+
           )}
         </AnimatePresence>
 
@@ -935,7 +973,7 @@ export default function SpaceLanding() {
 
                 <div
                   data-loader-scan
-                  className="pointer-events-none absolute inset-y-[-18%] left-[-24%] w-[20%] rotate-[18deg]"
+                  className="pointer-events-none absolute inset-y-[-18%] left-[-24%] w-[20%] rotate-18"
                   style={{
                     background: "linear-gradient(180deg, rgba(255,255,255,0), rgba(255,230,205,0.42), rgba(255,255,255,0))",
                     filter: "blur(8px)",
@@ -985,7 +1023,7 @@ export default function SpaceLanding() {
                           />
                           <div
                             data-loader-progress-light
-                            className="absolute inset-y-[-100%] left-[-35%] w-[35%] rounded-full"
+                            className="absolute inset-y-full left-[-35%] w-[35%] rounded-full"
                             style={{
                               background: "linear-gradient(90deg, rgba(255,255,255,0), rgba(255,240,225,0.94), rgba(255,255,255,0))",
                               filter: "blur(10px)",
