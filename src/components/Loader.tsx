@@ -12,16 +12,11 @@ const Loader: React.FC<LoaderProps> = ({ onComplete }) => {
   const [phase, setPhase] = useState<"loading" | "image-reveal">("loading");
 
   useEffect(() => {
-    const imageTimer = setTimeout(() => {
-      setPhase("image-reveal");
-    }, 3200);
-
     const completeTimer = setTimeout(() => {
       onComplete();
-    }, 4500); 
+    }, 3500); 
 
     return () => {
-      clearTimeout(imageTimer);
       clearTimeout(completeTimer);
     };
   }, [onComplete]);
@@ -72,7 +67,7 @@ const Loader: React.FC<LoaderProps> = ({ onComplete }) => {
                 className="mb-8 md:mb-12 relative w-16 h-16 md:w-24 md:h-24"
               >
                 <Image
-                  src="/neutron.png"
+                  src="https://ik.imagekit.io/yatharth/NEUT-LOGO.png"
                   alt="Neutron Logo"
                   fill
                   className="object-contain drop-shadow-[0_0_15px_rgba(255,160,40,0.6)]"
@@ -142,30 +137,6 @@ const Loader: React.FC<LoaderProps> = ({ onComplete }) => {
             </motion.div>
           )}
         </AnimatePresence>
-
-        <AnimatePresence>
-          {phase === "image-reveal" && (
-            <motion.div
-              key="image-reveal"
-              className="absolute inset-0 z-10 w-full h-full mix-blend-screen"
-              initial={{ opacity: 0, scale: 0.8, filter: "brightness(0)" }}
-              animate={{ opacity: 1, scale: 1, filter: "brightness(1) blur(0px)" }}
-              transition={{ duration: 1.2, ease: [0.76, 0, 0.24, 1] }}
-            >
-              <Image 
-                src="https://image.benq.com/is/image/benqco/T7-1200X600?$ResponsivePreset$" 
-                alt="Cosmos Background"
-                fill
-                className="object-cover"
-                style={{
-                  filter: "brightness(0.6) contrast(1.2) sepia(0.2) hue-rotate(-10deg)"
-                }}
-              />
-              <div className="absolute inset-0 bg-black/40" />
-            </motion.div>
-          )}
-        </AnimatePresence>
-
       </div>
     </motion.div>
   );

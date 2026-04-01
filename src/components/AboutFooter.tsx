@@ -29,7 +29,7 @@ export default function AboutFooter() {
           >
             
             <div className="w-16 h-16 md:w-32 md:h-32 flex items-center justify-center relative">
-              <img src="/neutron.png" alt="Logo" />
+              <img src="https://ik.imagekit.io/yatharth/NEUT-LOGO.png" alt="Logo" />
             </div>
 
             <h2 className="text-[3.5rem] md:text-[8rem] font-black tracking-tighter leading-none uppercase">

@@ -33,7 +33,7 @@ export default function SubPageLayout({ children, title, subtitle, showHero = tr
         <Link href="/" className="group flex items-center gap-3 transition-transform duration-500">
           <div className="relative w-8 h-8 md:w-10 md:h-10">
              <Image
-              src="/neutron.png"
+              src="https://ik.imagekit.io/yatharth/NEUT-LOGO.png"
               alt="Neutron Logo"
               fill
               className="object-contain"

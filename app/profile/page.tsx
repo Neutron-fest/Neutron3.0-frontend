@@ -1,4 +1,4 @@
-import ProfilePage from "@/components/profile-page";
+import ProfileSwitcher from "./ProfileSwitcher";
 
 export const metadata = {
   title: "Profile · Neutron",
@@ -6,5 +6,5 @@ export const metadata = {
 };
 
 export default function Page() {
-  return <ProfilePage />;
+  return <ProfileSwitcher />;
 }

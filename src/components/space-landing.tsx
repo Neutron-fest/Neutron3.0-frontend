@@ -651,16 +651,6 @@ export default function SpaceLanding() {
               />
 
               <div className="pointer-events-none absolute inset-0" style={{ zIndex: 12 }}>
-                <motion.div
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 1.2, duration: 0.8 }}
-                  className="absolute top-6 left-24 px-3 py-1 bg-black/50 backdrop-blur-md border border-white/10 rounded-sm"
-                >
-                  <span className="text-[10px] font-mono text-white/70 uppercase tracking-widest">
-                    Click to enter the Cosmos
-                  </span>
-                </motion.div>
 
                 {[
                   { style: { top: 18, left: 18 }, borderStyle: "border-t border-l" },
@@ -683,14 +673,6 @@ export default function SpaceLanding() {
                 className="absolute inset-x-0 bottom-[8%] flex justify-center z-15 pointer-events-none"
               >
                 <motion.div
-                  animate={{ 
-                    y: [0, -6, 0],
-                    boxShadow: [
-                      "0 0 15px rgba(255,160,40,0.1), inset 0 0 5px rgba(255,255,255,0.05)",
-                      "0 0 35px rgba(255,160,40,0.3), inset 0 0 10px rgba(255,255,255,0.1)",
-                      "0 0 15px rgba(255,160,40,0.1), inset 0 0 5px rgba(255,255,255,0.05)"
-                    ]
-                  }}
                   transition={{
                     duration: 5,
                     repeat: Infinity,
@@ -728,7 +710,7 @@ export default function SpaceLanding() {
 
         <Link href="/" className="fixed top-6 left-6 z-50 transition-transform duration-300 hover:scale-110" aria-label="Neutron Home">
           <Image
-            src="/neutron.png"
+            src="https://ik.imagekit.io/yatharth/NEUT-LOGO.png"
             alt="Neutron Logo"
             width={48}
             height={48}
@@ -1182,8 +1164,13 @@ async function createScene({
   const camera = new THREE.PerspectiveCamera(40, window.innerWidth / window.innerHeight, 0.1, 160);
   camera.position.set(0, 0.8, 15.5);
 
-  const ambientLight = new THREE.AmbientLight("#ffffff", 0.5);
+  const ambientLight = new THREE.AmbientLight("#ffffff", 2.8);
   scene.add(ambientLight);
+
+  const headlamp = new THREE.DirectionalLight("#ffffff", 1.2);
+  headlamp.position.set(0, 0, 1);
+  camera.add(headlamp);
+  scene.add(camera);
 
   const manager = new THREE.LoadingManager();
   manager.onProgress = (url, itemsLoaded, itemsTotal) => {
@@ -1202,31 +1189,6 @@ async function createScene({
   
   const planetsRig = new THREE.Group();
   scene.add(planetsRig);
-
-  const sunGroup = new THREE.Group();
-  sunGroup.position.copy(sunPos);
-  planetsRig.add(sunGroup);
-
-  const sunLight = new THREE.PointLight("#ff8c1a", 165, 120, 0.8);
-  sunGroup.add(sunLight);
-
-  const sunGLTF = await loadGLTF("/3D/planets/sun.glb");
-  const sunModel = normalizeModel(sunGLTF.scene, 4.4); 
-  sunGroup.add(sunModel);
-
-  const sunGlowMat1 = new THREE.MeshBasicMaterial({
-    color: "#cc5500",
-    transparent: true,
-    opacity: 0.12,
-  });
-  const sunGlowMat2 = sunGlowMat1.clone();
-  sunGlowMat2.opacity = 0.04;
-  
-  const sunGlow1 = new THREE.Mesh(new THREE.SphereGeometry(3.5, 32, 32), sunGlowMat1);
-  const sunGlow2 = new THREE.Mesh(new THREE.SphereGeometry(6.0, 32, 32), sunGlowMat2);
-  sunGroup.add(sunGlow1, sunGlow2);
-
-  const sunRuntime = { group: sunGroup, model: sunModel, light: sunLight, glow1: sunGlow1, glow2: sunGlow2, glowMat1: sunGlowMat1, glowMat2: sunGlowMat2 };
 
   const ringA = new THREE.Mesh(
     new THREE.TorusGeometry(8.2, 0.008, 16, 128),
@@ -1287,14 +1249,21 @@ async function createScene({
       textures.push(texture);
       obj.traverse((child: THREE.Object3D) => {
         const mesh = child as THREE.Mesh;
-        if (mesh.isMesh) mesh.material = new THREE.MeshStandardMaterial({ map: texture, roughness: 0.55, metalness: 0.1 });
+        if (mesh.isMesh) mesh.material = new THREE.MeshStandardMaterial({ map: texture, roughness: 1.0, metalness: 0.0 });
       });
       target = normalizeModel(obj, planet.size);
     }
 
     target.traverse((child: THREE.Object3D) => {
       const mesh = child as THREE.Mesh;
-      if (mesh.isMesh) { mesh.userData.planetSlug = planet.slug; interactiveTargets.push(mesh); }
+      if (mesh.isMesh) {
+        mesh.userData.planetSlug = planet.slug;
+        interactiveTargets.push(mesh);
+        if (mesh.material instanceof THREE.MeshStandardMaterial) {
+          mesh.material.roughness = 1.0;
+          mesh.material.metalness = 0.0;
+        }
+      }
     });
 
     root.add(target);
@@ -1423,21 +1392,6 @@ async function createScene({
     planetsRig.rotation.y += delta * 0.026;
     planetsRig.rotation.x  = Math.sin(elapsed * 0.085) * 0.016;
     planetsRig.rotation.z  = Math.cos(elapsed * 0.065) * 0.007;
-
-    if (sunRuntime.group) {
-      sunRuntime.model.rotation.y += delta * 0.15;
-      
-      const glowPulse = Math.sin(elapsed * 2.5) * 0.5 + 0.5; // 0 to 1
-      const scale1 = 1 + glowPulse * 0.06;
-      const scale2 = 1 + glowPulse * 0.10;
-      sunRuntime.glow1.scale.lerp(new THREE.Vector3(scale1, scale1, scale1), 0.1);
-      sunRuntime.glow2.scale.lerp(new THREE.Vector3(scale2, scale2, scale2), 0.1);
-      sunRuntime.glowMat1.opacity = 0.12 + glowPulse * 0.05;
-      sunRuntime.glowMat2.opacity = 0.03 + glowPulse * 0.03;
-      sunRuntime.light.intensity = THREE.MathUtils.lerp(sunRuntime.light.intensity, 165 + glowPulse * 30, 0.1);
-
-      sunRuntime.group.position.y = -1 + Math.sin(elapsed * 1.2) * 0.15;
-    }
 
     const N = PLANET_RECORDS.length;
     const globalAngleOffset = cycleProgress * (Math.PI * 2);

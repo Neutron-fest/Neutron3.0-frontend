@@ -46,7 +46,7 @@ export default function MobileLanding({ onMenuToggle, isMenuOpen }: MobileLandin
       <header className="fixed top-0 left-0 w-full z-100 flex items-center justify-between px-6 pt-6 pb-4">
         <a href="/" className="transition-transform hover:scale-110 active:scale-95">
           <Image 
-            src="/neutron.png" 
+            src="https://ik.imagekit.io/yatharth/NEUT-LOGO.png" 
             alt="Neutron Logo" 
             width={48} 
             height={48} 

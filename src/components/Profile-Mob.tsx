@@ -37,6 +37,8 @@ import {
   useUpdateUserProfile,
 } from "@/src/hooks/api/useUserProfile";
 
+type NavItem = "profile" | "competitions" | "events" | "inbox";
+
 const DashboardContext = React.createContext<{
   showToast: (msg: string, type?: "success" | "error" | "info") => void;
   setExpandedID: (val: boolean) => void;
@@ -136,29 +138,6 @@ function formatDisplayDate(value?: string | Date): string {
 
 const GENDER_OPTIONS = ["MALE", "FEMALE", "OTHER"] as const;
 
-function TeamPanel({ teamMembers, onViewMember }: { teamMembers: any[], onViewMember: (m: any) => void }) {
-  return (
-    <div className="space-y-4 p-4">
-      <h3 className="text-[10px] uppercase font-bold text-white/30 tracking-widest font-mono mb-6">Active Task Force</h3>
-      {teamMembers.map((m) => (
-        <div key={m.id} className="flex items-center justify-between p-3 rounded-xl bg-white/5 border border-white/5 hover:bg-white/10 transition-all cursor-pointer"
-          onClick={() => onViewMember(m)}>
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full border border-white/10 overflow-hidden bg-emerald-500/10">
-              {m.avatar ? <img src={m.avatar} className="w-full h-full object-cover" /> : null}
-            </div>
-            <div>
-              <p className="text-[11px] font-bold text-white">{m.name}</p>
-              <p className="text-[9px] text-white/40 uppercase font-mono">{m.role}</p>
-            </div>
-          </div>
-          <ChevronRight size={14} className="text-white/20" />
-        </div>
-      ))}
-    </div>
-  );
-}
-
 function normalizeGender(value: string): string {
   const normalized = value.trim().toUpperCase();
   return GENDER_OPTIONS.includes(normalized as (typeof GENDER_OPTIONS)[number])
@@ -250,39 +229,36 @@ function EditableRow({
   options?: string[];
   placeholder?: string;
 }) {
-  const [draft, setDraft] = useState(value || "");
-
-  useEffect(() => {
-    setDraft(value || "");
-  }, [value]);
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState(value);
 
   const save = () => {
-    if (draft.trim() !== value) {
-      onChange(draft.trim());
-    }
+    onChange(draft.trim() || value);
+    setEditing(false);
   };
 
   return (
     <div className="flex items-center justify-between py-3 border-b border-white/5 last:border-0 group">
-      <span className="text-[10px] uppercase tracking-widest text-white/40 font-mono w-1/3 shrink-0">
+      <span className="text-[10px] uppercase tracking-widest text-white/30 font-mono w-1/3 shrink-0">
         {label}
       </span>
 
-      <div className="flex-1 flex items-center justify-end gap-3 text-right overflow-hidden transition-all duration-300">
-        {!locked ? (
-          <div className="flex items-center gap-2 w-full max-w-[280px] animate-in fade-in slide-in-from-right-2">
+      <div className="flex-1 flex items-center justify-end gap-3 text-right">
+        {editing ? (
+          <div className="flex items-center gap-2 w-full max-w-[240px]">
             {options?.length ? (
               <select
                 value={draft}
-                onChange={(e) => {
-                  setDraft(e.target.value);
-                  onChange(e.target.value);
+                onChange={(e) => setDraft(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Escape") setEditing(false);
                 }}
-                className="w-full bg-white/5 border border-white/20 rounded-lg px-3 py-1.5 text-[11px] text-white outline-none focus:border-emerald-500/50 focus:bg-emerald-500/5 transition-all font-mono"
+                autoFocus
+                className="w-full bg-white/5 border border-white/20 rounded-md px-3 py-1.5 text-xs text-white outline-none focus:border-white/40 transition-all font-mono"
               >
-                {!draft && <option value="">Select {label}</option>}
+                {!draft && <option value="">Select</option>}
                 {options.map((option) => (
-                  <option key={option} value={option} className="bg-neutral-900">
+                  <option key={option} value={option}>
                     {option}
                   </option>
                 ))}
@@ -292,22 +268,88 @@ function EditableRow({
                 type={type}
                 value={draft}
                 onChange={(e) => setDraft(e.target.value)}
-                onBlur={save}
                 onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    save();
-                    (e.target as HTMLInputElement).blur();
-                  }
+                  if (e.key === "Enter") save();
+                  if (e.key === "Escape") setEditing(false);
                 }}
-                placeholder={placeholder}
-                className="w-full bg-white/5 border border-white/20 rounded-lg px-3 py-1.5 text-[11px] text-white outline-none focus:border-emerald-500/50 focus:bg-emerald-500/5 transition-all font-mono placeholder:text-white/10"
+                autoFocus
+                className="w-full bg-white/5 border border-white/20 rounded-md px-3 py-1.5 text-xs text-white outline-none focus:border-white/40 transition-all font-mono"
               />
             )}
+            <button
+              onClick={save}
+              className="text-emerald-400 hover:text-emerald-300 transition-colors"
+            >
+              <svg
+                width="14"
+                height="14"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  d="M20 6L9 17l-5-5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </button>
+            <button
+              onClick={() => setEditing(false)}
+              className="text-white/30 hover:text-white/60 transition-colors"
+            >
+              <svg
+                width="14"
+                height="14"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  d="M18 6L6 18M6 6l12 12"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </button>
           </div>
         ) : (
-          <span className="text-[11px] font-medium text-white/70 font-mono truncate max-w-[300px]">
-            {value || <span className="text-white/10 italic">Unspecified</span>}
-          </span>
+          <div className="flex items-center gap-3">
+            <span
+              className={`text-[12px] font-medium leading-none ${locked ? "text-white/40" : "text-white/80"}`}
+            >
+              {value || placeholder || "—"}
+            </span>
+            {!locked && (
+              <button
+                onClick={() => {
+                  setDraft(value);
+                  setEditing(true);
+                }}
+                className="opacity-0 group-hover:opacity-100 transition-opacity text-white/20 hover:text-white/50"
+              >
+                <svg
+                  width="12"
+                  height="12"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"
+                    strokeLinecap="round"
+                  />
+                  <path
+                    d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"
+                    strokeLinecap="round"
+                  />
+                </svg>
+              </button>
+            )}
+          </div>
         )}
       </div>
     </div>
@@ -1043,7 +1085,6 @@ function ProfilePanel({
   ) => void;
 }) {
   const { showToast, setExpandedID } = useDashboard();
-  const [isEditing, setIsEditing] = useState(false);
 
   const isPersonalDataComplete = Boolean(
     (profile.name || profile.email) &&
@@ -1081,101 +1122,252 @@ function ProfilePanel({
   const score = Math.round((completedCount / totalChecks) * 100);
 
   return (
-    <div className="flex flex-col gap-6 w-full" data-lenis-prevent>
-      <DashboardWidget
-        title="Personal Status"
-        onManage={() =>
-          showToast(
-            "Profile archival and history logs are currently restricted.",
-            "info",
-          )
-        }
-      >
-        <div className="flex flex-col">
-          <div className="flex items-center justify-between mb-4 px-1">
-            <h4 className="text-[10px] uppercase tracking-[0.2em] font-bold text-white/40 font-mono">
-              User Details
-            </h4>
-            <button
-              onClick={() => {
-                if (isEditing) {
-                  setIsEditing(false);
-                  showToast("Profile settings saved.", "info");
-                } else {
-                  setIsEditing(true);
-                  showToast("Edit mode enabled.", "success");
+    <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 w-full">
+      {/* Top Row */}
+      <div className="lg:col-span-8">
+        <DashboardWidget
+          title="Personal information"
+          onManage={() =>
+            showToast(
+              "Profile archival and history logs are currently restricted.",
+              "info",
+            )
+          }
+        >
+          <div className="flex flex-col">
+            <EditableRow
+              label="Full Name"
+              value={profile.name}
+              onChange={set("name")}
+              locked
+            />
+            <EditableRow
+              label="Gender"
+              value={profile.gender}
+              onChange={set("gender")}
+              options={["MALE", "FEMALE", "OTHER"]}
+              placeholder="Select gender"
+            />
+            <EditableRow
+              label="Phone"
+              value={profile.whatsapp}
+              onChange={set("whatsapp")}
+              placeholder="+91 XXXXX XXXXX"
+            />
+            <EditableRow
+              label="College"
+              value={profile.college}
+              onChange={set("college")}
+              placeholder="Your college"
+            />
+            <EditableRow
+              label="Year of study"
+              value={profile.year}
+              onChange={set("year")}
+              placeholder="e.g. 3rd Year"
+            />
+            <EditableRow
+              label="Email"
+              value={profile.email}
+              onChange={set("email")}
+              locked
+            />
+            <EditableRow
+              label="Address"
+              value={`${profile.city}${profile.city && profile.state ? ", " : ""}${profile.state}`}
+              onChange={async (value: string) => {
+                const [cityPart, ...rest] = value
+                  .split(",")
+                  .map((s) => s.trim());
+                const city = cityPart || "";
+                const state = rest.join(", ") || "";
+
+                if (profile.city === city && profile.state === state) return;
+
+                const previousCity = profile.city;
+                const previousState = profile.state;
+                setProfile((p) => ({ ...p, city, state }));
+
+                if (!userId) return;
+
+                try {
+                  await updateProfileMutation.mutateAsync({
+                    userId,
+                    city,
+                    state,
+                  });
+                  showToast("Profile updated successfully.", "success");
+                } catch {
+                  setProfile((p) => ({
+                    ...p,
+                    city: previousCity,
+                    state: previousState,
+                  }));
+                  showToast("Failed to update profile.", "error");
                 }
               }}
-              className={`px-3 py-1.5 rounded-lg border text-[9px] font-bold uppercase tracking-widest transition-all ${
-                isEditing
-                  ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20"
-                  : "bg-white/5 border-white/10 text-white/60 hover:bg-white/10 hover:text-white"
-              }`}
-            >
-              {isEditing ? "Save Profile" : "Edit Profile"}
-            </button>
+            />
           </div>
+        </DashboardWidget>
+      </div>
 
-          <EditableRow
-            label="Full Name"
-            value={profile.name}
-            onChange={set("name")}
-            locked={!isEditing} 
-          />
-          <EditableRow
-            label="Gender"
-            value={profile.gender}
-            onChange={set("gender")}
-            options={["MALE", "FEMALE", "OTHER"]}
-            placeholder="Select gender"
-            locked={!isEditing}
-          />
-          <EditableRow
-            label="Phone"
-            value={profile.whatsapp}
-            onChange={set("whatsapp")}
-            placeholder="+91 XXXXX XXXXX"
-            locked={!isEditing}
-          />
-          <EditableRow
-            label="College"
-            value={profile.college}
-            onChange={set("college")}
-            placeholder="Your college"
-            locked={!isEditing}
-          />
-          <EditableRow
-            label="Year of study"
-            value={profile.year}
-            onChange={set("year")}
-            placeholder="e.g. 3rd Year"
-            locked={!isEditing}
-          />
-          <EditableRow
-            label="Email"
-            value={profile.email}
-            onChange={set("email")}
-            locked
-          />
-          <EditableRow
-            label="Address"
-            value={`${profile.city}${profile.city && profile.state ? ", " : ""}${profile.state}`}
-            locked={!isEditing}
-            onChange={async (value: string) => {
-              const [cityPart, ...rest] = value.split(",").map((s) => s.trim());
-              const city = cityPart || "";
-              const state = rest.join(", ") || "";
-              if (profile.city === city && profile.state === state) return;
-              setProfile((p) => ({ ...p, city, state }));
-              if (!userId) return;
-              try {
-                await updateProfileMutation.mutateAsync({ userId, city, state });
-                showToast("Profile updated.", "success");
-              } catch { showToast("Failed.", "error"); }
-            }}
-          />
-        </div>
-      </DashboardWidget>
+      <div className="lg:col-span-4">
+        <DashboardWidget
+          title="Documents"
+          onManage={() =>
+            showToast(
+              "Document verification engine is running in the background.",
+              "info",
+            )
+          }
+        >
+          <div className="grid grid-cols-2 gap-4">
+            <DocumentCard
+              label="College ID"
+              type="Card"
+              date="Mar 2026"
+              onUpload={uploadFile("collegeIdPic")}
+              existingUrl={profile.collegeIdPic}
+            />
+            <DocumentCard
+              label="Aadhaar"
+              type="Card"
+              date="Mar 2026"
+              onUpload={uploadFile("govtIdPic")}
+              existingUrl={profile.govtIdPic}
+            />
+          </div>
+        </DashboardWidget>
+      </div>
+
+      <div className="lg:col-span-4">
+        <DashboardWidget
+          title="Identity Card"
+          className="flex flex-col justify-center items-center py-10"
+          onManage={() =>
+            showToast("ID Customization coming soon in v4.0.", "info")
+          }
+        >
+          <div
+            className="w-full max-w-70 cursor-pointer active:scale-[0.98] transition-all hover:brightness-110"
+            onClick={() => setExpandedID(true)}
+          >
+            <ProfileCard
+              name={profile.name}
+              title={profile.college}
+              handle={(profile.email || "").split("@")[0] || ""}
+              status={profile.year}
+              contactText="VIEW FULL ID"
+              avatarUrl="/images/bg.jpeg"
+              showUserInfo={false}
+              enableTilt={true}
+              enableMobileTilt={false}
+              behindGlowColor="rgba(125, 190, 255, 0.4)"
+              iconUrl="https://static.vecteezy.com/system/resources/thumbnails/010/332/153/small_2x/code-flat-color-outline-icon-free-png.png"
+              behindGlowEnabled
+              innerGradient="linear-gradient(145deg,#2e106510 0%,#1e3a8a20 100%)"
+            />
+          </div>
+        </DashboardWidget>
+      </div>
+
+      <div className="lg:col-span-4">
+        <DashboardWidget
+          title="Team structure"
+          onManage={() =>
+            showToast("Synchronizing team roles with global registry.", "info")
+          }
+        >
+          <div className="space-y-4">
+            {teamMembers.map((member) => (
+              <div
+                key={member.name}
+                className={`flex items-center gap-3 p-3 rounded-2xl border transition-all cursor-pointer ${member.isMe ? "bg-white/10 border-white/20" : "bg-white/5 border-white/5 hover:bg-white/8 hover:scale-[1.02]"}`}
+                onClick={() => onViewMember(member)}
+              >
+                <img
+                  src="/images/bg.jpeg"
+                  alt={member.name}
+                  className="w-10 h-10 rounded-xl object-cover border border-white/10"
+                />
+                <div>
+                  <p className="text-[12px] font-bold text-white leading-tight">
+                    {member.name}
+                  </p>
+                  <p className="text-[10px] text-white/30 font-mono mt-0.5">
+                    {member.role}
+                  </p>
+                </div>
+                {member.isMe && (
+                  <div className="ml-auto w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]"></div>
+                )}
+              </div>
+            ))}
+          </div>
+        </DashboardWidget>
+      </div>
+
+      <div className="lg:col-span-4">
+        <DashboardWidget
+          title={`Data completion ${completedCount}/${totalChecks}`}
+          onManage={() =>
+            showToast(
+              "Analysis complete. You are in the top 5% of verified users.",
+              "info",
+            )
+          }
+        >
+          <div className="space-y-4">
+            {[
+              {
+                label: "Personal data",
+                done: isPersonalDataComplete,
+              },
+              {
+                label: "Education",
+                done: Boolean(profile.college && profile.year),
+              },
+              { label: "Email address", done: Boolean(profile.email) },
+              { label: "Phone number", done: Boolean(profile.whatsapp) },
+              { label: "College ID", done: Boolean(profile.collegeIdPic) },
+              { label: "Government ID", done: Boolean(profile.govtIdPic) },
+            ].map((item) => (
+              <div
+                key={item.label}
+                className="flex items-center gap-3 group cursor-pointer"
+                onClick={() =>
+                  showToast(
+                    `Requirement: ${item.label} (${item.done ? "Fulfilled" : "Pending"})`,
+                    "info",
+                  )
+                }
+              >
+                <div
+                  className={`w-5 h-5 rounded-full border flex items-center justify-center transition-colors ${item.done ? "bg-emerald-500/20 border-emerald-500 text-emerald-500" : "bg-white/5 border-white/10 text-white/5 group-hover:border-white/20"}`}
+                >
+                  {item.done && <CheckCircle2 size={12} strokeWidth={3} />}
+                </div>
+                <span
+                  className={`text-[11px] font-medium transition-colors ${item.done ? "text-white/60" : "text-white/30 group-hover:text-white/50"}`}
+                >
+                  {item.label}
+                </span>
+              </div>
+            ))}
+          </div>
+          <div className="mt-8 pt-6 border-t border-white/5 flex items-center justify-between">
+            <div>
+              <p className="text-[10px] uppercase font-bold text-white/20 tracking-widest font-mono">
+                Profile Score
+              </p>
+              <p className="text-xl font-bold text-white mt-1">{score}%</p>
+            </div>
+            <div className="w-12 h-12 rounded-full border-4 border-emerald-500/20 border-t-emerald-500 flex items-center justify-center text-[10px] text-white font-bold">
+              {score}%
+            </div>
+          </div>
+        </DashboardWidget>
+      </div>
     </div>
   );
 }
@@ -1183,7 +1375,7 @@ function ProfilePanel({
 function CompetitionsPanel({ competitions }: { competitions: EnrolledItem[] }) {
   const { showToast } = useDashboard();
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 w-full" data-lenis-prevent>
+    <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 w-full">
       <div className="lg:col-span-12">
         <DashboardWidget
           title="My Competitions"
@@ -1225,7 +1417,7 @@ function CompetitionsPanel({ competitions }: { competitions: EnrolledItem[] }) {
 function EventsPanel({ events }: { events: EnrolledItem[] }) {
   const { showToast } = useDashboard();
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 w-full" data-lenis-prevent>
+    <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 w-full">
       <div className="lg:col-span-12">
         <DashboardWidget
           title="Enrolled Events"
@@ -1273,7 +1465,7 @@ function CalendarPanel({
 }) {
   const { showToast } = useDashboard();
   const [viewMode, setViewMode] = useState<"schedule" | "month">("schedule");
-  const [currentDate, setCurrentDate] = useState(new Date()); 
+  const [currentDate, setCurrentDate] = useState(new Date(2026, 2, 1)); // March 2026
 
   const generateGoogleCalLink = (title: string, dateStr: string) => {
     const baseUrl = "https://www.google.com/calendar/render?action=TEMPLATE";
@@ -1297,9 +1489,8 @@ function CalendarPanel({
 
   const groupedSchedule = schedule.reduce(
     (acc, item) => {
-      const dateKey = new Date(item.date).toDateString();
-      if (!acc[dateKey]) acc[dateKey] = [];
-      acc[dateKey].push(item);
+      if (!acc[item.date]) acc[item.date] = [];
+      acc[item.date].push(item);
       return acc;
     },
     {} as Record<string, typeof schedule>,
@@ -1326,7 +1517,11 @@ function CalendarPanel({
       days.push({ day: null, full: null });
     }
     for (let i = 1; i <= totalDays; i++) {
-      const fullDate = new Date(year, month, i).toDateString();
+      const fullDate = new Date(year, month, i).toLocaleString("en-US", {
+        month: "long",
+        day: "numeric",
+        year: "numeric",
+      });
       days.push({ day: i, full: fullDate });
     }
     while (days.length < 42) {
@@ -1475,7 +1670,7 @@ function CalendarPanel({
                               >
                                 <div className="absolute -left-[37px] md:-left-[53px] top-5 w-4 h-4 rounded-full border-4 border-[#000000] bg-white/10 group-hover/item:bg-emerald-500 group-hover/item:scale-125 transition-all duration-300 z-10 shadow-[0_0_15px_rgba(16,185,129,0)] group-hover/item:shadow-[0_0_15px_rgba(16,185,129,0.5)]"></div>
 
-                                <div className="bg-black/60 backdrop-blur-xl border border-white/10 rounded-3xl p-6 md:p-8 hover:border-emerald-500/50 hover:bg-black/80 transition-all duration-500 flex flex-col lg:flex-row lg:items-center justify-between gap-8 group/card overflow-hidden relative shadow-2xl">
+                                <div className="bg-white/2 border border-white/8 rounded-3xl p-6 md:p-8 hover:border-white/20 hover:bg-white/4 transition-all duration-500 flex flex-col lg:flex-row lg:items-center justify-between gap-8 group/card overflow-hidden relative">
                                   <div className="absolute inset-0 bg-linear-to-br from-white/2 to-transparent opacity-0 group-hover/card:opacity-100 transition-opacity"></div>
                                   <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6 relative z-10">
                                     <div className="w-20 h-20 md:w-24 md:h-24 rounded-2xl overflow-hidden border border-white/10 shrink-0 group-hover/card:scale-105 transition-transform duration-500">
@@ -1702,247 +1897,60 @@ function InboxPanel({
   );
 }
 
-// ─── Retro Desktop Components ───────────────────────────────────────────
-
-interface WinState {
-  id: string;
-  x: number;
-  y: number;
-  w: number;
-  h: number;
-  minimized: boolean;
-  zIndex: number;
-}
-
-function RetroWindow({
-  id, title, icon, children, winState, onClose, onMinimize, onFocus,
-  onDrag,
+function SidebarNav({
+  active,
+  setActive,
 }: {
-  id: string; title: string; icon: string; children: React.ReactNode;
-  winState: WinState; onClose: () => void; onMinimize: () => void;
-  onFocus: () => void; onDrag: (id: string, dx: number, dy: number) => void;
+  active: any;
+  setActive: (v: any) => void;
 }) {
-  const drag = useRef<{ startX: number; startY: number } | null>(null);
-
-  const handleMouseDown = (e: React.MouseEvent) => {
-    onFocus();
-    drag.current = { startX: e.clientX, startY: e.clientY };
-    const onMove = (ev: MouseEvent) => {
-      if (!drag.current) return;
-      onDrag(id, ev.clientX - drag.current.startX, ev.clientY - drag.current.startY);
-      drag.current = { startX: ev.clientX, startY: ev.clientY };
-    };
-    const onUp = () => {
-      drag.current = null;
-      window.removeEventListener("mousemove", onMove);
-      window.removeEventListener("mouseup", onUp);
-    };
-    window.addEventListener("mousemove", onMove);
-    window.addEventListener("mouseup", onUp);
-  };
-
-  if (winState.minimized) return null;
+  const items = [
+    { id: "profile", label: "Profile", icon: User },
+    { id: "competitions", label: "Competitions", icon: Award },
+    { id: "events", label: "Events", icon: Zap },
+    { id: "inbox", label: "Inbox", icon: Mail },
+  ];
 
   return (
-    <div
-      onClick={onFocus}
-      style={{
-        position: "absolute",
-        left: winState.x,
-        top: winState.y,
-        width: winState.w,
-        height: winState.h,
-        zIndex: winState.zIndex,
-        display: "flex",
-        flexDirection: "column",
-        border: "1px solid rgba(138,122,90,0.3)",
-        borderRadius: 8,
-        boxShadow: "0 20px 50px rgba(0,0,0,0.5), inset 0 0 0 1px rgba(255,255,255,0.05)",
-        background: "rgba(26,18,8,0.85)",
-        backdropFilter: "blur(16px)",
-        userSelect: "none",
-        overflow: "hidden",
-      }}
-    >
-      {/* Title Bar */}
-      <div
-        onMouseDown={handleMouseDown}
-        style={{
-          background: "linear-gradient(180deg,rgba(90,128,64,0.9) 0%,rgba(58,88,40,0.9) 100%)",
-          backdropFilter: "blur(12px)",
-          padding: "4px 8px",
-          display: "flex",
-          alignItems: "center",
-          gap: 6,
-          cursor: "grab",
-          borderBottom: "1px solid rgba(42,64,24,0.5)",
-          flexShrink: 0,
-          borderTopLeftRadius: 4,
-          borderTopRightRadius: 4,
-        }}
-      >
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 14, height: 14 }}>
-          {icon.startsWith("http") || icon.startsWith("/") ? (
-            <img src={icon} alt={title} style={{ width: 14, height: 14, imageRendering: "pixelated" }} />
-          ) : (
-            <span style={{ fontSize: 11 }}>{icon}</span>
+    <nav className="flex flex-col gap-1.5">
+      {items.map((item) => (
+        <button
+          key={item.id}
+          onClick={() => setActive(item.id)}
+          className={`w-full text-left px-4 py-3 rounded-xl transition-all duration-300 relative group overflow-hidden ${
+            active === item.id
+              ? "text-white"
+              : "text-white/30 hover:text-white/60"
+          }`}
+        >
+          {active === item.id && (
+            <motion.div
+              layoutId="sidebar-active-pill"
+              className="absolute inset-0 bg-white/5 border border-white/10 rounded-xl"
+              transition={{ type: "spring", stiffness: 400, damping: 30 }}
+            />
           )}
-        </div>
-        <span style={{ flex: 1, color: "#d4e8b0", fontSize: 10, fontFamily: "Courier New,monospace", fontWeight: "bold", textTransform: "uppercase", letterSpacing: 1 }}>
-          {title}
-        </span>
-        <button
-          onMouseDown={(e) => e.stopPropagation()}
-          onClick={onMinimize}
-          style={{ width: 14, height: 14, background: "#a8c870", border: "1px solid #5a7830", borderRadius: 2, fontSize: 8, cursor: "pointer", color: "#2a4010", lineHeight: 1, marginRight: 2 }}
-        >_</button>
-        <button
-          onMouseDown={(e) => e.stopPropagation()}
-          onClick={onClose}
-          style={{ width: 14, height: 14, background: "#c86040", border: "1px solid #8a3020", borderRadius: 2, fontSize: 8, cursor: "pointer", color: "#fff", lineHeight: 1 }}
-        >✕</button>
-      </div>
-      {/* Content */}
-      <div style={{ flex: 1, overflow: "auto", padding: 0 }} data-lenis-prevent>
-        {children}
-      </div>
-    </div>
+          <div className="relative z-10 flex items-center justify-between">
+            <div className="flex-1 min-w-0">
+              <p
+                className={`text-[12px] font-extrabold uppercase tracking-widest ${active === item.id ? "text-white" : "text-white/40 group-hover:text-white/80"}`}
+              >
+                {item.label}
+              </p>
+            </div>
+            {active === item.id && (
+              <div className="w-1.5 h-1.5 rounded-full bg-white shadow-[0_0_10px_rgba(255,255,255,0.5)]"></div>
+            )}
+          </div>
+        </button>
+      ))}
+    </nav>
   );
 }
 
-function DesktopIcon({ id, icon, label, x, y, onClick, onDrag }: { 
-  id: string; icon: string; label: string; x: number; y: number; onClick: () => void; onDrag: (id: string, dx: number, dy: number) => void;
-}) {
-  const [hover, setHover] = useState(false);
-  const drag = useRef<{ startX: number; startY: number } | null>(null);
-
-  const handleMouseDown = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    drag.current = { startX: e.clientX, startY: e.clientY };
-    
-    const onMove = (ev: MouseEvent) => {
-      if (!drag.current) return;
-      onDrag(id, ev.clientX - drag.current.startX, ev.clientY - drag.current.startY);
-      drag.current = { startX: ev.clientX, startY: ev.clientY };
-    };
-    
-    const onUp = () => {
-      drag.current = null;
-      window.removeEventListener("mousemove", onMove);
-      window.removeEventListener("mouseup", onUp);
-    };
-    
-    window.addEventListener("mousemove", onMove);
-    window.addEventListener("mouseup", onUp);
-  };
-
-  return (
-    <div
-      onClick={(e) => {
-        // Only trigger click if it wasn't a drag
-        if (drag.current === null) onClick();
-      }}
-      onMouseDown={handleMouseDown}
-      onMouseEnter={() => setHover(true)}
-      onMouseLeave={() => setHover(false)}
-      style={{
-        position: "absolute",
-        left: x,
-        top: y,
-        display: "flex", flexDirection: "column", alignItems: "center", gap: 4,
-        padding: "8px 6px", borderRadius: 4, cursor: "grab", width: 72,
-        background: hover ? "rgba(90,160,64,0.25)" : "transparent",
-        border: hover ? "1px dashed #4a8030" : "1px dashed transparent",
-        transition: "background 0.15s, border 0.15s",
-        zIndex: 5,
-        userSelect: "none",
-      }}
-    >
-      {icon.startsWith("http") || icon.startsWith("/") ? (
-        <img src={icon} alt={label} style={{ width:32, height:32, imageRendering:"pixelated", filter: hover ? "brightness(1.2) drop-shadow(0 0 8px rgba(160,255,80,0.4))" : "brightness(0.9)" }} />
-      ) : (
-        <span style={{ fontSize: 32, lineHeight: 1, filter: hover ? "brightness(1.2) drop-shadow(0 0 8px rgba(160,255,80,0.4))" : "brightness(0.9)" }}>{icon}</span>
-      )}
-      <span style={{
-        fontSize: 9, fontFamily: "Courier New,monospace", color: "#c8d8a0", textAlign: "center",
-        textShadow: "1px 1px 0 #000", lineHeight: 1.2, maxWidth: 68, wordBreak: "break-word",
-        textTransform: "uppercase", letterSpacing: 0.5,
-        background: hover ? "#1a3010" : "transparent", padding: "1px 3px", borderRadius: 2,
-      }}>{label}</span>
-    </div>
-  );
-}
-
-function RetroTaskbar({
-  windows, wins, onRestore, profileName, onLogout, isLoggingOut,
-}: {
-  windows: { id: string; title: string; icon: string }[];
-  wins: WinState[];
-  onRestore: (id: string) => void;
-  profileName: string;
-  onLogout: () => void;
-  isLoggingOut: boolean;
-}) {
-  const [time, setTime] = useState(() => new Date().toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: true }));
-  useEffect(() => {
-    const t = setInterval(() => setTime(new Date().toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: true })), 30000);
-    return () => clearInterval(t);
-  }, []);
-
-  const tbStyle: React.CSSProperties = {
-    height: 30, background: "linear-gradient(180deg,#3a2808 0%,#1e1404 100%)",
-    borderTop: "2px solid #5a4020", display: "flex", alignItems: "center",
-    gap: 4, padding: "0 8px", flexShrink: 0,
-  };
-  const btnBase: React.CSSProperties = {
-    padding: "2px 8px", fontSize: 9, fontFamily: "Courier New,monospace", cursor: "pointer",
-    border: "1px solid #5a4020", borderRadius: 2, color: "#c8b880", textTransform: "uppercase",
-    letterSpacing: 0.5, height: 20,
-  };
-
-  return (
-    <div style={tbStyle}>
-      <div style={{ ...btnBase, background: "linear-gradient(180deg,#5a4a2a,#3a2a0a)", fontWeight: "bold", color: "#e8d8a0", marginRight: 4 }}>
-        ◈ NEUTRON
-      </div>
-      <div style={{ display: "flex", gap: 3, flex: 1, overflow: "hidden" }}>
-        {windows.map((w) => {
-          const ws = wins.find((s) => s.id === w.id);
-          const isMin = ws?.minimized;
-          return (
-            <button key={w.id} onClick={() => onRestore(w.id)} style={{
-              ...btnBase,
-              background: isMin ? "transparent" : "linear-gradient(180deg,#3a5020,#2a3818)",
-              opacity: isMin ? 0.6 : 1,
-              display: "flex", alignItems: "center", gap: 4,
-            }}>
-              {w.icon.startsWith("http") || w.icon.startsWith("/") ? (
-                <img src={w.icon} alt={w.title} style={{ width: 12, height: 12, imageRendering: "pixelated" }} />
-              ) : (
-                <span>{w.icon}</span>
-              )}
-              {w.title}
-            </button>
-          );
-        })}
-      </div>
-      <button onClick={onLogout} disabled={isLoggingOut} style={{ ...btnBase, background: "transparent", color: "#a88860", marginRight: 4 }}>
-        {isLoggingOut ? "..." : "⏻ EXIT"}
-      </button>
-      <div style={{ ...btnBase, background: "linear-gradient(180deg,#2a2010,#1a1408)", borderColor: "#3a2810", color: "#a8c870", minWidth: 60, textAlign: "center" }}>
-        {time}
-      </div>
-    </div>
-  );
-}
-
-// ─── Main Export ───────────────────────────────────────────────────────
-
-export default function ProfilePage() {
+export default function ProfileMobPage() {
   const router = useRouter();
   const { logout } = useAuth();
-  const [isIntroComplete, setIsIntroComplete] = useState(false);
-
   const authMeQuery = useAuthMe();
   const updateProfileMutation = useUpdateUserProfile();
   const myRegistrationsQuery = useMyRegistrations(Boolean(authMeQuery.data));
@@ -1950,544 +1958,566 @@ export default function ProfilePage() {
   const acceptInviteMutation = useAcceptTeamInvite();
   const declineInviteMutation = useDeclineTeamInvite();
 
+  const [active, setActive] = useState<NavItem>("profile");
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
-  const [toast, setToast] = useState<{ message: string; type: "success"|"error"|"info" } | null>(null);
-  const showToast = (message: string, type: "success"|"error"|"info" = "success") => {
+
+  // Toast System
+  const [toast, setToast] = useState<{
+    message: string;
+    type: "success" | "error" | "info";
+  } | null>(null);
+  const showToast = (
+    message: string,
+    type: "success" | "error" | "info" = "success",
+  ) => {
     setToast(null);
     setTimeout(() => setToast({ message, type }), 10);
   };
 
   const [profile, setProfile] = useState<ProfileState>(EMPTY_PROFILE);
-  const authUser = ((authMeQuery.data as any)?.data?.user || (authMeQuery.data as any)?.user || authMeQuery.data) as Record<string,any>|undefined;
+
+  const authUser = ((authMeQuery.data as any)?.data?.user ||
+    (authMeQuery.data as any)?.user ||
+    authMeQuery.data) as Record<string, any> | undefined;
   const userId = (authUser?.id || authUser?._id || "") as string;
 
   useEffect(() => {
     if (!authUser) return;
+
     setProfile({
-      name: authUser.name||"", email: authUser.email||"", bio: authUser.bio||"",
-      college: authUser.collegeName||"", year: authUser.yearOfStudy||"",
-      gender: authUser.gender||"", city: authUser.city||"", state: authUser.state||"",
-      whatsapp: authUser.whatsappNumber||"", image: authUser.image||"",
-      collegeIdPic: authUser.collegeIdPic||"", govtIdPic: authUser.govtIdPic||"",
+      name: authUser.name || "",
+      email: authUser.email || "",
+      bio: authUser.bio || "",
+      college: authUser.collegeName || "",
+      year: authUser.yearOfStudy || "",
+      gender: authUser.gender || "",
+      city: authUser.city || "",
+      state: authUser.state || "",
+      whatsapp: authUser.whatsappNumber || "",
+      image: authUser.image || "",
+      collegeIdPic: authUser.collegeIdPic || "",
+      govtIdPic: authUser.govtIdPic || "",
     });
   }, [authUser]);
 
   const set = (key: keyof ProfileState) => async (val: string) => {
-    let normalized = key === "gender" ? normalizeGender(val??"") : (val??"").trim();
+    let normalized =
+      key === "gender" ? normalizeGender(val ?? "") : (val ?? "").trim();
+
     if (key === "whatsapp") {
-      const d = normalized.replace(/\D/g,"");
-      if (d.length < 10 || d.length > 15) { showToast("Phone must be 10–15 digits.","error"); return; }
+      const digitsOnly = normalized.replace(/\D/g, "");
+      if (digitsOnly.length < 10 || digitsOnly.length > 15) {
+        showToast("Phone number must be between 10 and 15 digits.", "error");
+        return;
+      }
     }
+
     if (profile[key] === normalized) return;
+
     const previous = profile[key];
     setProfile((p) => ({ ...p, [key]: normalized }));
+
     if (!userId) return;
-    const fieldMap: Partial<Record<keyof ProfileState, Record<string,string>>> = {
-      city:{city:normalized}, state:{state:normalized}, college:{collegeName:normalized},
-      gender:{gender:normalized}, whatsapp:{whatsappNumber:normalized}, year:{yearOfStudy:normalized},
+
+    const payloadByField: Partial<
+      Record<keyof ProfileState, Record<string, string>>
+    > = {
+      city: { city: normalized },
+      state: { state: normalized },
+      college: { collegeName: normalized },
+      gender: { gender: normalized },
+      whatsapp: { whatsappNumber: normalized },
+      year: { yearOfStudy: normalized },
     };
-    const payload = fieldMap[key];
+
+    const payload = payloadByField[key];
     if (!payload) return;
     if (key === "gender" && !normalized) return;
+
     try {
       await updateProfileMutation.mutateAsync({ userId, ...payload });
-      showToast("Profile updated.","success");
+      showToast("Profile updated successfully.", "success");
     } catch {
       setProfile((p) => ({ ...p, [key]: previous }));
-      showToast("Failed to update.","error");
+      showToast("Failed to update profile.", "error");
     }
   };
 
   const [expandedID, setExpandedID] = useState(false);
-  const [selectedMember, setSelectedMember] = useState<any|null>(null);
+  const [selectedMember, setSelectedMember] = useState<any | null>(null);
 
-  const isPersonalDataComplete = Boolean((profile.name||profile.email) && profile.gender && (profile.city||profile.state));
-  const isIdentityComplete = Boolean(isPersonalDataComplete && profile.college && profile.year && profile.email && profile.whatsapp && profile.collegeIdPic && profile.govtIdPic);
-  
-  const completedCount = [
-    isPersonalDataComplete, Boolean(profile.college && profile.year),
-    Boolean(profile.email), Boolean(profile.whatsapp),
-    Boolean(profile.collegeIdPic), Boolean(profile.govtIdPic)
-  ].filter(Boolean).length;
-  const totalChecks = 6;
-  const score = Math.round((completedCount / totalChecks) * 100);
-
+  const isPersonalDataComplete = Boolean(
+    (profile.name || profile.email) &&
+    profile.gender &&
+    (profile.city || profile.state),
+  );
+  const isIdentityComplete = Boolean(
+    isPersonalDataComplete &&
+    profile.college &&
+    profile.year &&
+    profile.email &&
+    profile.whatsapp &&
+    profile.collegeIdPic &&
+    profile.govtIdPic,
+  );
   const myQRCodeQuery = useMyQRCode(expandedID && isIdentityComplete);
-  const qrCodeUrl = myQRCodeQuery.data;
-  const shouldFlipToQR = isIdentityComplete && Boolean(qrCodeUrl);
+  const shouldFlipToQR = isIdentityComplete && Boolean(myQRCodeQuery.data);
 
-  const registrations = Array.isArray(myRegistrationsQuery.data) ? myRegistrationsQuery.data : [];
-  const enrolledItems: EnrolledItem[] = registrations.map((entry: any) => {
-    const comp = entry?.competition || {};
-    const kind: EnrolledItem["kind"] = String(comp?.eventType||comp?.type||"").toUpperCase().includes("EVENT") ? "event" : "competition";
-    const id = String(comp?.id||"");
-    if (!id) return null;
-    return {
-      kind, id, slug: id, title: comp?.title||"", image: comp?.posterPath||"",
-      category: comp?.category||comp?.type||"",
-      date: formatDisplayDate(comp?.startTime||comp?.createdAt),
-      status: toDashboardStatus(comp?.status),
-      teamSize: formatTeamSize(comp?.minTeamSize, comp?.maxTeamSize),
-      team: [],
-    };
-  }).filter(Boolean) as EnrolledItem[];
+  const registrations = Array.isArray(myRegistrationsQuery.data)
+    ? myRegistrationsQuery.data
+    : [];
+  const enrolledItems: EnrolledItem[] = registrations
+    .map((entry: any) => {
+      const competition = entry?.competition || {};
+      const competitionType = String(
+        competition?.eventType || competition?.type || "",
+      ).toUpperCase();
+      const kind: EnrolledItem["kind"] = competitionType.includes("EVENT")
+        ? "event"
+        : "competition";
 
-  const competitionItems = enrolledItems.filter((i) => i.kind === "competition");
-  const eventItems = enrolledItems.filter((i) => i.kind === "event");
-  const teamMembers = [{ id: userId||"me", name: profile.name||"", role:"You", avatar: profile.image||"", isMe:true }];
-  const pendingInvites = Array.isArray(pendingInvitesQuery.data) ? pendingInvitesQuery.data : [];
-  const inboxInvites = pendingInvites.map((item: any) => ({
-    id: item?.invite?.id||item?.invite?.inviteToken,
-    inviteToken: item?.invite?.inviteToken,
-    title: item?.competition?.title||"",
-    user: item?.inviter?.name||item?.inviter?.email||"",
-    avatar: item?.inviter?.image||"",
-    time: timeAgo(item?.invite?.createdAt),
-    role: item?.team?.name||"Team Invite",
-  }));
+      const id = String(competition?.id || "");
+      if (!id) return null;
 
-  const isLoadingData = authMeQuery.isLoading || myRegistrationsQuery.isLoading || pendingInvitesQuery.isLoading;
+      return {
+        kind,
+        id,
+        slug: id,
+        title: competition?.title || "",
+        image: competition?.posterPath || "",
+        category: competition?.category || competition?.type || "",
+        date: formatDisplayDate(
+          competition?.startTime || competition?.createdAt,
+        ),
+        status: toDashboardStatus(competition?.status),
+        teamSize: formatTeamSize(
+          competition?.minTeamSize,
+          competition?.maxTeamSize,
+        ),
+        team: [],
+      };
+    })
+    .filter(Boolean) as EnrolledItem[];
 
-  // ── Desktop window state ───────────────────────────────────────────────
-  const DEFS = [
-    { id:"profile", title:"Profile", icon:"https://win98icons.alexmeub.com/icons/png/user_world-0.png" },
-    { id:"identity", title:"ID Card", icon:"https://win98icons.alexmeub.com/icons/png/cardfile-0.png" },
-    { id:"team", title:"Team", icon:"https://win98icons.alexmeub.com/icons/png/users-0.png" },
-    { id:"data", title:"Audit Data", icon:"https://win98icons.alexmeub.com/icons/png/server_window.png" },
-    { id:"documents", title:"Vault", icon:"https://win98icons.alexmeub.com/icons/png/directory_closed-0.png" },
-    { id:"competitions", title:"Competitions", icon:"https://win98icons.alexmeub.com/icons/png/spider-0.png" },
-    { id:"events", title:"Events", icon:"https://win98icons.alexmeub.com/icons/png/calendar-0.png" },
-    { id:"inbox", title:"Inbox", icon:"https://win98icons.alexmeub.com/icons/png/help_book_cool-3.png" },
-    { id:"calendar", title:"Calendar", icon:"https://win98icons.alexmeub.com/icons/png/address_book_pad.png" },
-    { id:"recycle", title:"Trash", icon:"https://win98icons.alexmeub.com/icons/png/recycle_bin_empty-0.png" },
+  const competitionItems = enrolledItems.filter(
+    (item) => item.kind === "competition",
+  );
+  const eventItems = enrolledItems.filter((item) => item.kind === "event");
+
+  const teamMembers = [
+    {
+      id: userId || "me",
+      name: profile.name || "",
+      role: "You",
+      avatar: profile.image || "",
+      isMe: true,
+    },
   ];
 
-  const [iconPositions, setIconPositions] = useState(() => {
-    const defaults = DEFS.reduce((acc, d, i) => {
-      const col = Math.floor(i / 5);
-      const row = i % 5;
-      acc[d.id] = { x: 12 + col * 95, y: 12 + row * 78 };
-      return acc;
-    }, {} as Record<string, { x: number; y: number }>);
+  const pendingInvites = Array.isArray(pendingInvitesQuery.data)
+    ? pendingInvitesQuery.data
+    : [];
+  const inboxInvites = pendingInvites.map((item: any) => ({
+    id: item?.invite?.id || item?.invite?.inviteToken,
+    inviteToken: item?.invite?.inviteToken,
+    title: item?.competition?.title || "",
+    user: item?.inviter?.name || item?.inviter?.email || "",
+    avatar: item?.inviter?.image || "",
+    time: timeAgo(item?.invite?.createdAt),
+    role: item?.team?.name || "Team Invite",
+  }));
 
-    if (typeof window !== "undefined") {
-      const saved = localStorage.getItem("neutron_icon_positions_v2");
-      if (saved) {
-        try {
-          const parsed = JSON.parse(saved);
-          // Merge: use saved if exists, else default
-          return { ...defaults, ...parsed };
-        } catch { return defaults; }
-      }
-    }
-    return defaults;
-  });
+  const isLoadingData =
+    authMeQuery.isLoading ||
+    myRegistrationsQuery.isLoading ||
+    pendingInvitesQuery.isLoading;
 
-  useEffect(() => {
-    localStorage.setItem("neutron_icon_positions_v2", JSON.stringify(iconPositions));
-  }, [iconPositions]);
-
-  const dragIcon = (id: string, dx: number, dy: number) => {
-    setIconPositions((prev: any) => {
-      const pos = prev[id] || { x: 12, y: 12 };
-      return {
-        ...prev,
-        [id]: { x: pos.x + dx, y: pos.y + dy }
-      };
-    });
-  };
-
-  const [topZ, setTopZ] = useState(10);
-  const [openWins, setOpenWins] = useState<string[]>([]);
-  const [wins, setWins] = useState<WinState[]>([]);
-
-  const openWindow = (id: string) => {
-    setTopZ((z) => z + 1);
-    if (openWins.includes(id)) {
-      setWins((ws) => ws.map((w) => w.id === id ? { ...w, minimized: false, zIndex: topZ + 1 } : w));
-      return;
-    }
-    const offset = openWins.length * 28;
-    const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
-    setOpenWins((p) => [...p, id]);
-    setWins((p) => [...p, {
-      id, x: isMobile ? 8 : 60 + offset, y: isMobile ? 8 : 40 + offset,
-      w: isMobile ? Math.min(360, window.innerWidth - 16) : 560,
-      h: isMobile ? Math.min(480, window.innerHeight - 80) : 420,
-      minimized: false, zIndex: topZ + 1,
-    }]);
-  };
-
-  const closeWindow = (id: string) => {
-    setOpenWins((p) => p.filter((x) => x !== id));
-    setWins((p) => p.filter((w) => w.id !== id));
-  };
-
-  const minimizeWindow = (id: string) =>
-    setWins((p) => p.map((w) => w.id === id ? { ...w, minimized: true } : w));
-
-  const focusWindow = (id: string) => {
-    setTopZ((z) => z + 1);
-    setWins((p) => p.map((w) => w.id === id ? { ...w, zIndex: topZ + 1 } : w));
-  };
-
-  const dragWindow = (id: string, dx: number, dy: number) =>
-    setWins((p) => p.map((w) => w.id === id ? { ...w, x: w.x + dx, y: w.y + dy } : w));
-
-  const desktopRef = useRef<HTMLDivElement>(null);
-
-  const renderWindowContent = (id: string) => {
-    const inner: React.CSSProperties = { padding: 12, color:"#a0c878", fontFamily:"Courier New,monospace", fontSize:11, minHeight:"100%" };
-    if (id === "profile") return (
-      <div style={inner} data-lenis-prevent>
-        <DashboardContext.Provider value={{ showToast, setExpandedID }}>
-          <ProfilePanel profile={profile} set={set} onViewMember={(m) => setSelectedMember(m)}
-            teamMembers={teamMembers} userId={userId} updateProfileMutation={updateProfileMutation} setProfile={setProfile} />
-        </DashboardContext.Provider>
-      </div>
-    );
-    if (id === "documents") return (
-      <div style={inner} data-lenis-prevent>
-        <DashboardContext.Provider value={{ showToast, setExpandedID }}>
-          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
-            <DocumentCard label="College ID" type="Card" date="Mar 2026"
-              onUpload={async (f) => { if (!userId) return; await updateProfileMutation.mutateAsync({ userId, collegeIdPic: f }); setProfile((p) => ({ ...p, collegeIdPic: URL.createObjectURL(f) })); showToast("Uploaded.","success"); }}
-              existingUrl={profile.collegeIdPic} />
-            <DocumentCard label="Aadhaar" type="Card" date="Mar 2026"
-              onUpload={async (f) => { if (!userId) return; await updateProfileMutation.mutateAsync({ userId, govtIdPic: f }); setProfile((p) => ({ ...p, govtIdPic: URL.createObjectURL(f) })); showToast("Uploaded.","success"); }}
-              existingUrl={profile.govtIdPic} />
-          </div>
-        </DashboardContext.Provider>
-      </div>
-    );
-    if (id === "competitions") return (
-      <div style={inner} data-lenis-prevent>
-        <DashboardContext.Provider value={{ showToast, setExpandedID }}>
-          <CompetitionsPanel competitions={competitionItems} />
-        </DashboardContext.Provider>
-      </div>
-    );
-    if (id === "events") return (
-      <div style={inner} data-lenis-prevent>
-        <DashboardContext.Provider value={{ showToast, setExpandedID }}>
-          <EventsPanel events={eventItems} />
-        </DashboardContext.Provider>
-      </div>
-    );
-    if (id === "inbox") return (
-      <div style={inner} data-lenis-prevent>
-        <DashboardContext.Provider value={{ showToast, setExpandedID }}>
-          <InboxPanel invites={inboxInvites}
-            onAccept={async (tok) => {
-              try {
-                const data = await acceptInviteMutation.mutateAsync({ inviteToken: tok });
-                const cid = data?.competition?.id; const tid = data?.team?.id;
-                showToast("Invite accepted.","success");
-                if (cid && tid) router.push(`/competitions/${cid}/register?mode=member&teamId=${tid}`);
-              } catch { showToast("Failed.","error"); }
-            }}
-            onDecline={(tok) => declineInviteMutation.mutate({ inviteToken: tok }, { onSuccess: () => showToast("Declined.","info"), onError: () => showToast("Failed.","error") })}
-            isMutating={acceptInviteMutation.isPending || declineInviteMutation.isPending} />
-        </DashboardContext.Provider>
-      </div>
-    );
-    if (id === "recycle") return (
-      <div style={{ ...inner, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", height:"100%", gap:8, opacity:0.5 }}>
-        <span style={{ fontSize:48 }}>🗑️</span>
-        <span style={{ textTransform:"uppercase", letterSpacing:2 }}>Recycle Bin (Empty)</span>
-      </div>
-    );
-    if (id === "calendar") return (
-      <div style={inner} data-lenis-prevent>
-        <DashboardContext.Provider value={{ showToast, setExpandedID }}>
-          <CalendarPanel competitions={competitionItems} events={eventItems} />
-        </DashboardContext.Provider>
-      </div>
-    );
-    if (id === "identity") return (
-      <div style={{ ...inner, display:"flex", alignItems:"center", justifyContent:"center", overflow:"visible", fontSize:"12px" }}>
-        <div style={{ width: 340, height: 210, position: "relative" }}>
-          <ProfileCard 
-            name={profile.name}
-            title={profile.college || "B.Tech Student"}
-            handle={profile.email.split("@")[0]}
-            avatarUrl={profile.image || "https://ik.imagekit.io/yatharth/AVAT.jpeg"}
-            miniAvatarUrl={profile.image || "https://ik.imagekit.io/yatharth/AVAT.jpeg"}
-            showUserInfo={false}
-            behindGlowEnabled={true}
-            enableTilt={true}
-          />
+  if (isLoadingData) {
+    return (
+      <div className="min-h-screen bg-black text-white flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-8 h-8 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+          <p className="text-xs uppercase tracking-[0.2em] text-white/50 font-mono">
+            Loading profile data...
+          </p>
         </div>
       </div>
     );
-    if (id === "team") return (
-      <div style={inner} data-lenis-prevent>
-        <DashboardContext.Provider value={{ showToast, setExpandedID }}>
-          <TeamPanel teamMembers={teamMembers} onViewMember={(m) => setSelectedMember(m)} />
-        </DashboardContext.Provider>
-      </div>
-    );
-    if (id === "data") return (
-      <div style={inner} data-lenis-prevent>
-        <DashboardContext.Provider value={{ showToast, setExpandedID }}>
-          <div className="lg:col-span-12">
-            <DashboardWidget title="Data Audit Report" onManage={() => showToast("Systems nominal.","info")}>
-              <div className="space-y-4">
-                {[
-                  { label: "Personal data", done: isPersonalDataComplete },
-                  { label: "Education", done: Boolean(profile.college && profile.year) },
-                  { label: "Email address", done: Boolean(profile.email) },
-                  { label: "Phone number", done: Boolean(profile.whatsapp) },
-                  { label: "College ID", done: Boolean(profile.collegeIdPic) },
-                  { label: "Government ID", done: Boolean(profile.govtIdPic) },
-                ].map((item) => (
-                  <div key={item.label} className="flex items-center gap-3">
-                    <div className={`w-4 h-4 rounded-full border flex items-center justify-center ${item.done ? "bg-emerald-500/20 border-emerald-500 text-emerald-500" : "bg-white/5 border-white/10 text-white/5"}`}>
-                      {item.done && <CheckCircle2 size={10} strokeWidth={3} />}
-                    </div>
-                    <span className={`text-[10px] font-mono ${item.done ? "text-white/60" : "text-white/20"}`}>
-                      {item.label} — {item.done ? "VERIFIED" : "PENDING"}
-                    </span>
-                  </div>
-                ))}
-                <div className="mt-8 pt-4 border-t border-white/5">
-                  <p className="text-[10px] font-mono text-white/30 uppercase tracking-widest">Trust Score: {score}%</p>
-                  <div className="mt-2 h-1 w-full bg-white/5 rounded-full overflow-hidden">
-                    <div className="h-full bg-emerald-500/50" style={{ width: `${score}%` }} />
-                  </div>
-                </div>
-              </div>
-            </DashboardWidget>
-          </div>
-        </DashboardContext.Provider>
-      </div>
-    );
-    return null;
-  };
+  }
 
-  const scanlineStyle: React.CSSProperties = {
-    position:"absolute", inset:0, pointerEvents:"none", zIndex:50,
-    backgroundImage:"repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.18) 2px,rgba(0,0,0,0.18) 4px)",
-    borderRadius:"inherit",
-  };
   return (
     <DashboardContext.Provider value={{ showToast, setExpandedID }}>
-      <style>{`
-        @keyframes retro-flicker { 0%,100%{opacity:1} 92%{opacity:0.97} 93%{opacity:0.93} 94%{opacity:0.97} }
-        @keyframes scanline { 0% { transform: translateY(-100%); } 100% { transform: translateY(100%); } }
-        @keyframes glitch {
-          0% { clip-path: inset(41% 0 11% 0); transform: skew(0.5deg); }
-          10% { clip-path: inset(14% 0 71% 0); transform: skew(-0.5deg); }
-          20% { clip-path: inset(57% 0 22% 0); transform: skew(0.8deg); }
-          30% { clip-path: inset(21% 0 66% 0); transform: skew(-0.2deg); }
-          40% { clip-path: inset(11% 0 81% 0); transform: skew(0.5deg); }
-          50% { clip-path: inset(72% 0 11% 0); transform: skew(-0.8deg); }
-          60% { clip-path: inset(33% 0 44% 0); transform: skew(0.2deg); }
-          70% { clip-path: inset(88% 0 1% 0); transform: skew(-0.5deg); }
-          80% { clip-path: inset(9% 0 66% 0); transform: skew(0.8deg); }
-          90% { clip-path: inset(55% 0 22% 0); transform: skew(-0.2deg); }
-          100% { clip-path: inset(41% 0 11% 0); transform: skew(0.5deg); }
-        }
-        .retro-screen { animation: retro-flicker 8s infinite; }
-        .retro-screen:hover::after {
-          content: ""; position: absolute; inset: 0; background: inherit; animation: glitch 0.3s steps(10) infinite; opacity: 0.1; mix-blend-mode: hard-light; pointer-events: none;
-        }
-        .crt-overlay { 
-          position: absolute; inset: 0; pointer-events: none;
-          background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
-          background-size: 100% 4px, 3px 100%;
-          z-index: 10;
-        }
-        .scanline {
-          position: absolute; inset: 0; height: 100%; width: 100%;
-          background: linear-gradient(transparent, rgba(160,255,80,0.05) 50%, transparent);
-          animation: scanline 10s linear infinite;
-          z-index: 11; pointer-events: none;
-        }
-        ::-webkit-scrollbar{width:6px;height:6px;} ::-webkit-scrollbar-track{background:#0a0a04;} ::-webkit-scrollbar-thumb{background:#3a5020;border-radius:0;}
-      `}</style>
-
-      <div style={{ 
-        minHeight: "100vh", 
-        // backgroundImage: "url('https://res.cloudinary.com/dpod2sj9t/image/upload/v1774685137/BG_l4fb9q.jpg')", 
-        backgroundSize: "cover", 
-        backgroundPosition: "center", 
-        display: "flex", 
-        flexDirection: "column",
-        alignItems: "center", 
-        padding: "60px 16px", 
-        position: "relative",
-        boxShadow: "inset 0 0 200px rgba(0,0,0,0.4)",
-        overflowY: "auto"
-      }}>
-      <video
-        autoPlay
-        loop
-        muted
-        playsInline
-        style={{
-          position: "absolute",
-          inset: 0,
-          width: "100%",
-          height: "100%",
-          objectFit: "cover",
-        }}
-      >
-        <source src="https://res.cloudinary.com/dpod2sj9t/video/upload/v1774807451/4K_Space_Star_scene_-_Free_M.G_Stock_Footage_2160p_1_mzc4g7.mp4" type="video/mp4" />
-      </video>
-        <div style={{ position:"absolute", inset:0, backgroundImage:"repeating-linear-gradient(45deg,rgba(255,200,100,0.015) 0px,rgba(255,200,100,0.015) 1px,transparent 1px,transparent 12px)", pointerEvents:"none" }} />
-
-        <div style={{ position:"relative", zIndex: 1, display:"flex", flexDirection:"column", alignItems:"center", maxWidth:"100%", width:"min(1100px,100%)", margin: "auto 0" }}>
-          <div style={{
-            background:"linear-gradient(145deg,#d4c4a0 0%,#b8a880 25%,#c8b890 50%,#a89870 75%,#98886a 100%)",
-            borderRadius:"28px 28px 8px 8px", padding:"28px 32px 20px",
-            boxShadow:"0 0 0 2px #786850, 0 8px 40px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,255,255,0.3), inset 0 -2px 4px rgba(0,0,0,0.2)",
-            width:"100%", position:"relative",
-          }}>
-            <div style={{ position:"absolute", top:10, left:"50%", transform:"translateX(-50%)", fontSize:9, fontFamily:"Courier New,monospace", color:"#786840", letterSpacing:4, textTransform:"uppercase" }}>NEUTRON OS — v3.0</div>
-            <div style={{ position:"absolute", top:10, right:40, width:8, height:8, borderRadius:"50%", background:"#5a9040", boxShadow:"0 0 8px #5a9040" }} />
-
-            <div style={{ background:"#0a0a04", borderRadius:8, padding:6, boxShadow:"inset 0 0 20px rgba(0,0,0,0.9), inset 0 2px 4px rgba(0,0,0,0.5)", border:"3px solid #1a1408" }}>
-              <div
-                ref={desktopRef}
-                className="retro-screen"
-                style={{
-                  borderRadius: 4, height: "65vh", minHeight: 460, position: "relative", overflow: "hidden",
-                  boxShadow: "inset 0 0 100px rgba(0,0,0,0.8)",
-                  background: "url('https://4kwallpapers.com/images/wallpapers/gargantua-black-2880x1800-11451.jpg')",
-                  backgroundSize: "cover", backgroundPosition: "center"
-                }}
+      <div className="min-h-screen bg-black text-white selection:bg-white/20 relative">
+        <AnimatePresence>
+          {toast && (
+            <Toast
+              message={toast.message}
+              type={toast.type}
+              onClose={() => setToast(null)}
+            />
+          )}
+          {selectedMember && (
+            <MemberProfileModal
+              member={selectedMember}
+              onClose={() => setSelectedMember(null)}
+            />
+          )}
+          {expandedID && (
+            <div className="fixed inset-0 z-200 flex items-center justify-center p-6">
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                onClick={() => setExpandedID(false)}
+                className="absolute inset-0 bg-black/95 backdrop-blur-2xl"
+              />
+              <motion.div
+                initial={{ opacity: 0, scale: 0.8, rotateY: 30 }}
+                animate={{ opacity: 1, scale: 1, rotateY: 0 }}
+                exit={{ opacity: 0, scale: 0.8, rotateY: 30 }}
+                transition={{ type: "spring", damping: 20 }}
+                className="relative z-10 w-full max-w-md perspective-2000"
               >
-
-                <div className="crt-overlay" />
-                <div className="scanline" />
-                <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.3)", backdropFilter: "blur(0.5px)", zIndex: 0 }} />
-                <div style={scanlineStyle} />
-                <div style={{ position:"absolute", inset:0, background:"radial-gradient(ellipse at 50% 40%,rgba(60,120,30,0.08) 0%,transparent 70%)", pointerEvents:"none", zIndex:1 }} />
-                <div style={{ position:"absolute", inset:0, display:"flex", alignItems:"center", justifyContent:"center", pointerEvents:"none", zIndex:0, opacity:0.03 }}>
-                  <span style={{ fontSize:160, color:"#80c040", fontFamily:"Courier New,monospace", fontWeight:"bold" }}>N</span>
-                </div>
-
-                <div style={{ position:"absolute", inset:0, zIndex:5 }}>
-                  {DEFS.map((d) => (
-                    <DesktopIcon 
-                      key={d.id} 
-                      id={d.id}
-                      icon={d.icon} 
-                      label={d.title} 
-                      x={iconPositions[d.id]?.x || 12}
-                      y={iconPositions[d.id]?.y || 12}
-                      onClick={() => openWindow(d.id)} 
-                      onDrag={dragIcon}
+                <motion.div
+                  animate={{ rotateY: shouldFlipToQR ? 180 : 0 }}
+                  transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+                  style={{ transformStyle: "preserve-3d" }}
+                  className="relative w-full"
+                >
+                  <div style={{ backfaceVisibility: "hidden" }}>
+                    <ProfileCard
+                      name={profile.name}
+                      title={profile.college}
+                      handle={(profile.email || "").split("@")[0] || ""}
+                      status={profile.year}
+                      contactText={
+                        isIdentityComplete
+                          ? "SCANNABLE ID READY"
+                          : "DOWNLOAD ID"
+                      }
+                      avatarUrl="/images/bg.jpeg"
+                      showUserInfo={false}
+                      enableTilt={true}
+                      enableMobileTilt={true}
+                      behindGlowColor="rgba(125, 190, 255, 0.6)"
+                      iconUrl="https://static.vecteezy.com/system/resources/thumbnails/010/332/153/small_2x/code-flat-color-outline-icon-free-png.png"
+                      behindGlowEnabled
+                      innerGradient="linear-gradient(145deg,#2e106520 0%,#1e3a8a40 100%)"
                     />
-                  ))}
-                </div>
+                  </div>
 
-                <div style={{ position:"absolute", top:10, right:14, zIndex:5, textAlign:"right" }}>
-                  <div style={{ fontSize:9, fontFamily:"Courier New,monospace", color:"#5a8040", textTransform:"uppercase", letterSpacing:2 }}>{profile.name || "USER"}</div>
-                  <div style={{ fontSize:8, fontFamily:"Courier New,monospace", color:"#3a5028", marginTop:2 }}>{profile.email}</div>
-                </div>
+                  <div
+                    style={{
+                      backfaceVisibility: "hidden",
+                      transform: "rotateY(180deg)",
+                    }}
+                    className="absolute inset-0 rounded-[30px] border border-white/10 bg-[#0a0a0a] p-6 flex flex-col items-center justify-center"
+                  >
+                    <p className="text-[10px] uppercase tracking-widest text-white/40 font-mono mb-4">
+                      Entry QR
+                    </p>
+                    {myQRCodeQuery.data ? (
+                      <img
+                        src={myQRCodeQuery.data}
+                        alt="Identity QR"
+                        className="w-44 h-44 rounded-xl bg-white p-2"
+                      />
+                    ) : (
+                      <div className="w-44 h-44 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center">
+                        <div className="w-6 h-6 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+                      </div>
+                    )}
+                    <p className="text-[10px] text-white/40 mt-4 font-mono uppercase tracking-widest">
+                      {isIdentityComplete
+                        ? "Auto-flips at 100% completion"
+                        : "Complete profile to unlock QR"}
+                    </p>
+                  </div>
+                </motion.div>
+                <button
+                  onClick={() => setExpandedID(false)}
+                  className="mt-12 mx-auto flex items-center gap-2 text-[10px] font-bold text-white/20 hover:text-rose-400 uppercase tracking-widest transition-all group"
+                >
+                  <X
+                    size={14}
+                    className="group-hover:rotate-90 transition-transform"
+                  />
+                  Close Identity Viewer
+                </button>
+              </motion.div>
+            </div>
+          )}
+        </AnimatePresence>
 
-                {openWins.map((id) => {
-                  const ws = wins.find((w) => w.id === id);
-                  const def = DEFS.find((d) => d.id === id);
-                  if (!ws || !def) return null;
-                  return (
-                    <RetroWindow key={id} id={id} title={def.title} icon={def.icon}
-                      winState={ws}
-                      onClose={() => closeWindow(id)}
-                      onMinimize={() => minimizeWindow(id)}
-                      onFocus={() => focusWindow(id)}
-                      onDrag={dragWindow}
-                    >
-                      {renderWindowContent(id)}
-                    </RetroWindow>
-                  );
-                })}
+        <div className="pointer-events-none fixed inset-0 z-0 bg-[#000000]">
+          <div
+            className="absolute inset-0 opacity-20"
+            style={{
+              backgroundImage:
+                "radial-gradient(1px 1px at 20% 30%,white,transparent),radial-gradient(1px 1px at 80% 10%,white,transparent),radial-gradient(1px 1px at 50% 70%,white,transparent),radial-gradient(1px 1px at 10% 80%,white,transparent),radial-gradient(1px 1px at 90% 60%,white,transparent),radial-gradient(1px 1px at 65% 25%,white,transparent),radial-gradient(1px 1px at 75% 85%,white,transparent)",
+            }}
+          />
+        </div>
+
+        <header className="fixed top-0 left-0 right-0 z-50 h-14 border-b border-white/6 backdrop-blur-xl bg-[#030303]/70 flex items-center px-6 gap-4">
+          <Link href="/" className="shrink-0 flex items-center gap-2">
+            <img
+              src="https://ik.imagekit.io/yatharth/NEUT-LOGO.png"
+              alt="Neutron"
+              className="h-8 w-8 opacity-90"
+            />
+            <span className="font-bold text-white tracking-wide hidden sm:block">
+              Neutron
+            </span>
+          </Link>
+          <div className="flex-1" />
+
+          <button
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            className="md:hidden p-2 -mr-2 text-white/70 hover:text-white rounded-lg active:bg-white/10 transition-colors"
+          >
+            {mobileMenuOpen ? (
+              <svg
+                width="24"
+                height="24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                viewBox="0 0 24 24"
+              >
+                <path d="M18 6L6 18M6 6l12 12" strokeLinecap="round" />
+              </svg>
+            ) : (
+              <svg
+                width="24"
+                height="24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                viewBox="0 0 24 24"
+              >
+                <path d="M4 6h16M4 12h16M4 18h16" strokeLinecap="round" />
+              </svg>
+            )}
+          </button>
+
+          <div className="hidden md:flex items-center gap-2.5">
+            <div className="w-7 h-7 rounded-lg overflow-hidden border border-white/15">
+              <img
+                src="/images/bg.jpeg"
+                alt={profile.name}
+                className="w-full h-full object-cover"
+              />
+            </div>
+            <span className="text-sm text-white/60 hidden sm:block">
+              {profile.name}
+            </span>
+          </div>
+        </header>
+
+        <AnimatePresence>
+          {mobileMenuOpen && (
+            <motion.div
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              className="fixed inset-0 top-14 z-40 bg-[#0c0c0c] flex flex-col p-6 overflow-y-auto md:hidden"
+            >
+              <SidebarNav
+                active={active}
+                setActive={(v: any) => {
+                  setActive(v);
+                  setMobileMenuOpen(false);
+                }}
+              />
+
+              <div className="mt-8 pt-6 border-t border-white/10 flex flex-col gap-3">
+                <Link
+                  href="/competitions"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="flex items-center justify-between p-4 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-colors"
+                >
+                  <span className="text-sm font-medium text-white/80">
+                    All Competitions
+                  </span>
+                  <span className="text-white/40">→</span>
+                </Link>
+                <Link
+                  href="/events"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="flex items-center justify-between p-4 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-colors"
+                >
+                  <span className="text-sm font-medium text-white/80">
+                    All Events
+                  </span>
+                  <span className="text-white/40">→</span>
+                </Link>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        <div className="flex pt-14 relative z-10 w-full min-h-[calc(100vh-3.5rem)]">
+          <aside className="w-64 shrink-0 h-[calc(100vh-3.5rem)] border-r border-white/6 bg-[#030303]/40 backdrop-blur-3xl hidden md:flex flex-col px-4 py-8 sticky top-14">
+            <div className="flex items-center gap-3 px-3 pb-8 mb-6 border-b border-white/6">
+              <div className="w-10 h-10 rounded-2xl overflow-hidden border border-white/10 shrink-0">
+                <img
+                  src="/images/bg.jpeg"
+                  alt={profile.name}
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              <div className="min-w-0">
+                <p className="text-sm font-bold text-white truncate">
+                  {profile.name}
+                </p>
+                <div className="flex items-center gap-1.5 mt-0.5">
+                  <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]"></div>
+                  <p className="text-[9px] uppercase tracking-widest text-white/30 font-mono">
+                    Verified
+                  </p>
+                </div>
               </div>
             </div>
 
-            <div style={{ display:"flex", justifyContent:"center", gap:12, marginTop:14 }}>
-              <div style={{ width:48, height:6, background:"linear-gradient(180deg,#786840,#5a5030)", borderRadius:3 }} />
-              <div style={{ width:8, height:8, background:"#5a9040", borderRadius:"50%", boxShadow:"0 0 6px #4a7830", marginTop:-1 }} />
-              <div style={{ width:48, height:6, background:"linear-gradient(180deg,#786840,#5a5030)", borderRadius:3 }} />
+            <SidebarNav active={active} setActive={setActive} />
+
+            <div className="mt-auto flex flex-col gap-1.5 pt-6 border-t border-white/6">
+              <button
+                onClick={async () => {
+                  if (isLoggingOut) return;
+                  setIsLoggingOut(true);
+                  try {
+                    await logout();
+                  } finally {
+                    setIsLoggingOut(false);
+                  }
+                }}
+                disabled={isLoggingOut}
+                className="flex items-center justify-between px-4 py-2.5 rounded-xl text-[10px] uppercase tracking-widest font-mono text-white/20 hover:text-rose-400 transition-all duration-300 disabled:opacity-50"
+              >
+                {isLoggingOut ? "Logging out..." : "Logout"}
+                <svg
+                  width="10"
+                  height="10"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    d="M9 5H5a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h4"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                  <path
+                    d="M16 17l5-5-5-5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                  <path
+                    d="M21 12H9"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </button>
             </div>
-          </div>
+          </aside>
 
-          <div style={{ width:80, height:24, background:"linear-gradient(180deg,#a89870,#988860)", boxShadow:"inset 0 0 8px rgba(0,0,0,0.3)" }} />
-          <div style={{ width:220, height:14, background:"linear-gradient(180deg,#b8a880,#a09070)", borderRadius:"0 0 8px 8px", boxShadow:"0 4px 12px rgba(0,0,0,0.4)" }} />
+          <main className="flex-1 w-full overflow-x-hidden min-h-screen bg-[#030303]/20">
+            <div className="max-w-[1400px] mx-auto px-6 lg:px-12 py-10 w-full">
+              <div className="flex items-center justify-between mb-10">
+                <div>
+                  <h1 className="text-3xl font-bold tracking-tight text-white capitalize">
+                    {active}
+                  </h1>
+                  <p className="text-xs text-white/30 mt-1.5 font-mono uppercase tracking-widest">
+                    Dashboard &bull; {active}
+                  </p>
+                </div>
+              </div>
 
-          <div style={{ width:"100%", marginTop:8, borderRadius:4, overflow:"hidden", border:"1px solid #3a2810" }}>
-            <RetroTaskbar
-              windows={openWins.map((id) => DEFS.find((d) => d.id === id)!).filter(Boolean)}
-              wins={wins}
-              onRestore={(id) => {
-                focusWindow(id);
-                setWins((p) => p.map((w) => w.id === id ? { ...w, minimized:false } : w));
-              }}
-              profileName={profile.name}
-              onLogout={async () => { if (isLoggingOut) return; setIsLoggingOut(true); try { await logout(); } finally { setIsLoggingOut(false); } }}
-              isLoggingOut={isLoggingOut}
-            />
-          </div>
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={active}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+                  className="w-full"
+                >
+                  {active === "profile" && (
+                    <ProfilePanel
+                      profile={profile}
+                      set={set}
+                      onViewMember={(m) => setSelectedMember(m)}
+                      teamMembers={teamMembers}
+                      userId={userId}
+                      updateProfileMutation={updateProfileMutation}
+                      setProfile={setProfile}
+                    />
+                  )}
+                  {active === "competitions" && (
+                    <CompetitionsPanel competitions={competitionItems} />
+                  )}
+                  {active === "events" && <EventsPanel events={eventItems} />}
+                  {active === "inbox" && (
+                    <InboxPanel
+                      invites={inboxInvites}
+                      onAccept={async (inviteToken) => {
+                        if (!inviteToken) {
+                          showToast("Invalid invite token.", "error");
+                          return;
+                        }
+
+                        try {
+                          const data = await acceptInviteMutation.mutateAsync({
+                            inviteToken,
+                          });
+                          const competitionId = data?.competition?.id;
+                          const teamId = data?.team?.id;
+
+                          showToast("Invite accepted.", "success");
+
+                          if (competitionId && teamId) {
+                            router.push(
+                              `/competitions/${competitionId}/register?mode=member&teamId=${teamId}`,
+                            );
+                          }
+                        } catch {
+                          showToast("Failed to accept invite.", "error");
+                        }
+                      }}
+                      onDecline={(inviteToken) => {
+                        if (!inviteToken) {
+                          showToast("Invalid invite token.", "error");
+                          return;
+                        }
+
+                        declineInviteMutation.mutate(
+                          { inviteToken },
+                          {
+                            onSuccess: () =>
+                              showToast("Invite declined.", "info"),
+                            onError: () =>
+                              showToast("Failed to decline invite.", "error"),
+                          },
+                        );
+                      }}
+                      isMutating={
+                        acceptInviteMutation.isPending ||
+                        declineInviteMutation.isPending
+                      }
+                    />
+                  )}
+                </motion.div>
+              </AnimatePresence>
+            </div>
+          </main>
         </div>
       </div>
-
-      <div className="fixed top-6 left-6 z-50 pointer-events-auto flex flex-row items-center gap-4">
-        <img
-          src="https://ik.imagekit.io/yatharth/NEUT-LOGO.png"
-          alt="Logo"
-          className="h-12 w-12 opacity-90 transition-transform duration-300 hover:scale-110 drop-shadow-[0_0_15px_rgba(255,200,80,0.4)]"
-        />
-      <Link
-        href="/?phase=planets"
-        className="group flex items-center gap-2 px-3 py-2 bg-white/5 border border-white/10 rounded-full backdrop-blur-md transition-all hover:bg-white/15 hover:border-white/30 hover:shadow-[0_0_20px_rgba(255,255,255,0.1)]"
-      >
-        <svg
-          width="16"
-          height="16"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          className="group-hover:-translate-x-1 transition-transform duration-300"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M10 19l-7-7m0 0l7-7m-7 7h18"
-          />
-        </svg>
-        <span className="text-[10px] font-mono uppercase tracking-widest text-white/70 group-hover:text-white transition-colors">
-          Planets
-        </span>
-      </Link>
-    </div>
-
-      {/* Overlays */}
-      <AnimatePresence>
-        {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
-        {selectedMember && <MemberProfileModal member={selectedMember} onClose={() => setSelectedMember(null)} />}
-        {expandedID && (
-          <div className="fixed inset-0 z-200 flex items-center justify-center p-6">
-            <motion.div initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} onClick={() => setExpandedID(false)} className="absolute inset-0 bg-black/95 backdrop-blur-2xl" />
-            <motion.div initial={{opacity:0,scale:0.8}} animate={{opacity:1,scale:1}} exit={{opacity:0,scale:0.8}} transition={{type:"spring",damping:20}} className="relative z-10 w-full max-w-md">
-              <motion.div animate={{rotateY: shouldFlipToQR ? 180 : 0}} transition={{duration:0.8}} style={{transformStyle:"preserve-3d"}} className="relative w-full">
-                <div style={{backfaceVisibility:"hidden"}}>
-                  <ProfileCard name={profile.name} title={profile.college} handle={(profile.email||"").split("@")[0]||""} status={profile.year} contactText={isIdentityComplete?"SCANNABLE ID READY":"DOWNLOAD ID"} avatarUrl="/images/bg.jpeg" showUserInfo={false} enableTilt enableMobileTilt behindGlowColor="rgba(125,190,255,0.6)" iconUrl="🪪" behindGlowEnabled innerGradient="linear-gradient(145deg,#2e106520 0%,#1e3a8a40 100%)" />
-                </div>
-                <div style={{backfaceVisibility:"hidden",transform:"rotateY(180deg)"}} className="absolute inset-0 rounded-[30px] border border-white/10 bg-[#0a0a0a] p-6 flex flex-col items-center justify-center">
-                  <p className="text-[10px] uppercase tracking-widest text-white/40 font-mono mb-4">Entry QR</p>
-                  {myQRCodeQuery.data ? <img src={myQRCodeQuery.data} alt="QR" className="w-44 h-44 rounded-xl bg-white p-2" /> : <div className="w-44 h-44 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center"><div className="w-6 h-6 border-2 border-white/20 border-t-white rounded-full animate-spin" /></div>}
-                </div>
-              </motion.div>
-              <button onClick={() => setExpandedID(false)} className="mt-12 mx-auto flex items-center gap-2 text-[10px] font-bold text-white/20 hover:text-rose-400 uppercase tracking-widest transition-all group">
-                <X size={14} className="group-hover:rotate-90 transition-transform" /> Close Identity Viewer
-              </button>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
     </DashboardContext.Provider>
   );
 }

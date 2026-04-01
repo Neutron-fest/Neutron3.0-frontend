@@ -52,7 +52,7 @@ export default function AuthLayout({ children, title, subtitle }: AuthLayoutProp
         >
           <div className="mb-8 flex justify-center">
             <Image
-              src="/neutron.png"
+              src="https://ik.imagekit.io/yatharth/NEUT-LOGO.png"
               alt="Neutron Logo"
               width={80}
               height={80}
