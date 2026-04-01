@@ -2048,222 +2048,10 @@ export default function ProfilePage() {
 
   const isLoadingData = authMeQuery.isLoading || myRegistrationsQuery.isLoading || pendingInvitesQuery.isLoading;
 
-  // ── Desktop window state ───────────────────────────────────────────────
-  const DEFS = [
-    { id:"profile", title:"Profile", icon:"https://win98icons.alexmeub.com/icons/png/user_world-0.png" },
-    { id:"identity", title:"ID Card", icon:"https://win98icons.alexmeub.com/icons/png/cardfile-0.png" },
-    { id:"team", title:"Team", icon:"https://win98icons.alexmeub.com/icons/png/users-0.png" },
-    { id:"data", title:"Audit Data", icon:"https://win98icons.alexmeub.com/icons/png/server_window.png" },
-    { id:"documents", title:"Vault", icon:"https://win98icons.alexmeub.com/icons/png/directory_closed-0.png" },
-    { id:"competitions", title:"Competitions", icon:"https://win98icons.alexmeub.com/icons/png/spider-0.png" },
-    { id:"events", title:"Events", icon:"https://win98icons.alexmeub.com/icons/png/calendar-0.png" },
-    { id:"inbox", title:"Inbox", icon:"https://win98icons.alexmeub.com/icons/png/help_book_cool-3.png" },
-    { id:"calendar", title:"Calendar", icon:"https://win98icons.alexmeub.com/icons/png/address_book_pad.png" },
-    { id:"recycle", title:"Trash", icon:"https://win98icons.alexmeub.com/icons/png/recycle_bin_empty-0.png" },
-  ];
-
-  const [iconPositions, setIconPositions] = useState(() => {
-    const defaults = DEFS.reduce((acc, d, i) => {
-      const col = Math.floor(i / 5);
-      const row = i % 5;
-      acc[d.id] = { x: 12 + col * 95, y: 12 + row * 78 };
-      return acc;
-    }, {} as Record<string, { x: number; y: number }>);
-
-    if (typeof window !== "undefined") {
-      const saved = localStorage.getItem("neutron_icon_positions_v2");
-      if (saved) {
-        try {
-          const parsed = JSON.parse(saved);
-          // Merge: use saved if exists, else default
-          return { ...defaults, ...parsed };
-        } catch { return defaults; }
-      }
-    }
-    return defaults;
-  });
-
-  useEffect(() => {
-    localStorage.setItem("neutron_icon_positions_v2", JSON.stringify(iconPositions));
-  }, [iconPositions]);
-
-  const dragIcon = (id: string, dx: number, dy: number) => {
-    setIconPositions((prev: any) => {
-      const pos = prev[id] || { x: 12, y: 12 };
-      return {
-        ...prev,
-        [id]: { x: pos.x + dx, y: pos.y + dy }
-      };
-    });
-  };
-
-  const [topZ, setTopZ] = useState(10);
-  const [openWins, setOpenWins] = useState<string[]>([]);
-  const [wins, setWins] = useState<WinState[]>([]);
-
-  const openWindow = (id: string) => {
-    setTopZ((z) => z + 1);
-    if (openWins.includes(id)) {
-      setWins((ws) => ws.map((w) => w.id === id ? { ...w, minimized: false, zIndex: topZ + 1 } : w));
-      return;
-    }
-    const offset = openWins.length * 28;
-    const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
-    setOpenWins((p) => [...p, id]);
-    setWins((p) => [...p, {
-      id, x: isMobile ? 8 : 60 + offset, y: isMobile ? 8 : 40 + offset,
-      w: isMobile ? Math.min(360, window.innerWidth - 16) : 560,
-      h: isMobile ? Math.min(480, window.innerHeight - 80) : 420,
-      minimized: false, zIndex: topZ + 1,
-    }]);
-  };
-
-  const closeWindow = (id: string) => {
-    setOpenWins((p) => p.filter((x) => x !== id));
-    setWins((p) => p.filter((w) => w.id !== id));
-  };
-
-  const minimizeWindow = (id: string) =>
-    setWins((p) => p.map((w) => w.id === id ? { ...w, minimized: true } : w));
-
-  const focusWindow = (id: string) => {
-    setTopZ((z) => z + 1);
-    setWins((p) => p.map((w) => w.id === id ? { ...w, zIndex: topZ + 1 } : w));
-  };
-
-  const dragWindow = (id: string, dx: number, dy: number) =>
-    setWins((p) => p.map((w) => w.id === id ? { ...w, x: w.x + dx, y: w.y + dy } : w));
-
   const desktopRef = useRef<HTMLDivElement>(null);
 
-  const renderWindowContent = (id: string) => {
-    const inner: React.CSSProperties = { padding: 12, color:"#a0c878", fontFamily:"Courier New,monospace", fontSize:11, minHeight:"100%" };
-    if (id === "profile") return (
-      <div style={inner} data-lenis-prevent>
-        <DashboardContext.Provider value={{ showToast, setExpandedID }}>
-          <ProfilePanel profile={profile} set={set} onViewMember={(m) => setSelectedMember(m)}
-            teamMembers={teamMembers} userId={userId} updateProfileMutation={updateProfileMutation} setProfile={setProfile} />
-        </DashboardContext.Provider>
-      </div>
-    );
-    if (id === "documents") return (
-      <div style={inner} data-lenis-prevent>
-        <DashboardContext.Provider value={{ showToast, setExpandedID }}>
-          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
-            <DocumentCard label="College ID" type="Card" date="Mar 2026"
-              onUpload={async (f) => { if (!userId) return; await updateProfileMutation.mutateAsync({ userId, collegeIdPic: f }); setProfile((p) => ({ ...p, collegeIdPic: URL.createObjectURL(f) })); showToast("Uploaded.","success"); }}
-              existingUrl={profile.collegeIdPic} />
-            <DocumentCard label="Aadhaar" type="Card" date="Mar 2026"
-              onUpload={async (f) => { if (!userId) return; await updateProfileMutation.mutateAsync({ userId, govtIdPic: f }); setProfile((p) => ({ ...p, govtIdPic: URL.createObjectURL(f) })); showToast("Uploaded.","success"); }}
-              existingUrl={profile.govtIdPic} />
-          </div>
-        </DashboardContext.Provider>
-      </div>
-    );
-    if (id === "competitions") return (
-      <div style={inner} data-lenis-prevent>
-        <DashboardContext.Provider value={{ showToast, setExpandedID }}>
-          <CompetitionsPanel competitions={competitionItems} />
-        </DashboardContext.Provider>
-      </div>
-    );
-    if (id === "events") return (
-      <div style={inner} data-lenis-prevent>
-        <DashboardContext.Provider value={{ showToast, setExpandedID }}>
-          <EventsPanel events={eventItems} />
-        </DashboardContext.Provider>
-      </div>
-    );
-    if (id === "inbox") return (
-      <div style={inner} data-lenis-prevent>
-        <DashboardContext.Provider value={{ showToast, setExpandedID }}>
-          <InboxPanel invites={inboxInvites}
-            onAccept={async (tok) => {
-              try {
-                const data = await acceptInviteMutation.mutateAsync({ inviteToken: tok });
-                const cid = data?.competition?.id; const tid = data?.team?.id;
-                showToast("Invite accepted.","success");
-                if (cid && tid) router.push(`/competitions/${cid}/register?mode=member&teamId=${tid}`);
-              } catch { showToast("Failed.","error"); }
-            }}
-            onDecline={(tok) => declineInviteMutation.mutate({ inviteToken: tok }, { onSuccess: () => showToast("Declined.","info"), onError: () => showToast("Failed.","error") })}
-            isMutating={acceptInviteMutation.isPending || declineInviteMutation.isPending} />
-        </DashboardContext.Provider>
-      </div>
-    );
-    if (id === "recycle") return (
-      <div style={{ ...inner, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", height:"100%", gap:8, opacity:0.5 }}>
-        <span style={{ fontSize:48 }}>🗑️</span>
-        <span style={{ textTransform:"uppercase", letterSpacing:2 }}>Recycle Bin (Empty)</span>
-      </div>
-    );
-    if (id === "calendar") return (
-      <div style={inner} data-lenis-prevent>
-        <DashboardContext.Provider value={{ showToast, setExpandedID }}>
-          <CalendarPanel competitions={competitionItems} events={eventItems} />
-        </DashboardContext.Provider>
-      </div>
-    );
-    if (id === "identity") return (
-      <div style={{ ...inner, display:"flex", alignItems:"center", justifyContent:"center", overflow:"visible", fontSize:"12px" }}>
-        <div style={{ width: 340, height: 210, position: "relative" }}>
-          <ProfileCard 
-            name={profile.name}
-            title={profile.college || "B.Tech Student"}
-            handle={profile.email.split("@")[0]}
-            avatarUrl={profile.image || "https://ik.imagekit.io/yatharth/AVAT.jpeg"}
-            miniAvatarUrl={profile.image || "https://ik.imagekit.io/yatharth/AVAT.jpeg"}
-            showUserInfo={false}
-            behindGlowEnabled={true}
-            enableTilt={true}
-          />
-        </div>
-      </div>
-    );
-    if (id === "team") return (
-      <div style={inner} data-lenis-prevent>
-        <DashboardContext.Provider value={{ showToast, setExpandedID }}>
-          <TeamPanel teamMembers={teamMembers} onViewMember={(m) => setSelectedMember(m)} />
-        </DashboardContext.Provider>
-      </div>
-    );
-    if (id === "data") return (
-      <div style={inner} data-lenis-prevent>
-        <DashboardContext.Provider value={{ showToast, setExpandedID }}>
-          <div className="lg:col-span-12">
-            <DashboardWidget title="Data Audit Report" onManage={() => showToast("Systems nominal.","info")}>
-              <div className="space-y-4">
-                {[
-                  { label: "Personal data", done: isPersonalDataComplete },
-                  { label: "Education", done: Boolean(profile.college && profile.year) },
-                  { label: "Email address", done: Boolean(profile.email) },
-                  { label: "Phone number", done: Boolean(profile.whatsapp) },
-                  { label: "College ID", done: Boolean(profile.collegeIdPic) },
-                  { label: "Government ID", done: Boolean(profile.govtIdPic) },
-                ].map((item) => (
-                  <div key={item.label} className="flex items-center gap-3">
-                    <div className={`w-4 h-4 rounded-full border flex items-center justify-center ${item.done ? "bg-emerald-500/20 border-emerald-500 text-emerald-500" : "bg-white/5 border-white/10 text-white/5"}`}>
-                      {item.done && <CheckCircle2 size={10} strokeWidth={3} />}
-                    </div>
-                    <span className={`text-[10px] font-mono ${item.done ? "text-white/60" : "text-white/20"}`}>
-                      {item.label} — {item.done ? "VERIFIED" : "PENDING"}
-                    </span>
-                  </div>
-                ))}
-                <div className="mt-8 pt-4 border-t border-white/5">
-                  <p className="text-[10px] font-mono text-white/30 uppercase tracking-widest">Trust Score: {score}%</p>
-                  <div className="mt-2 h-1 w-full bg-white/5 rounded-full overflow-hidden">
-                    <div className="h-full bg-emerald-500/50" style={{ width: `${score}%` }} />
-                  </div>
-                </div>
-              </div>
-            </DashboardWidget>
-          </div>
-        </DashboardContext.Provider>
-      </div>
-    );
-    return null;
-  };
+  const [activeCompTab, setActiveCompTab] = useState<"competitions" | "events" | "calendar">("competitions");
+  const [isProfileEditing, setIsProfileEditing] = useState(false);
 
   const scanlineStyle: React.CSSProperties = {
     position:"absolute", inset:0, pointerEvents:"none", zIndex:50,
@@ -2273,216 +2061,162 @@ export default function ProfilePage() {
   return (
     <DashboardContext.Provider value={{ showToast, setExpandedID }}>
       <style>{`
-        @keyframes retro-flicker { 0%,100%{opacity:1} 92%{opacity:0.97} 93%{opacity:0.93} 94%{opacity:0.97} }
-        @keyframes scanline { 0% { transform: translateY(-100%); } 100% { transform: translateY(100%); } }
-        @keyframes glitch {
-          0% { clip-path: inset(41% 0 11% 0); transform: skew(0.5deg); }
-          10% { clip-path: inset(14% 0 71% 0); transform: skew(-0.5deg); }
-          20% { clip-path: inset(57% 0 22% 0); transform: skew(0.8deg); }
-          30% { clip-path: inset(21% 0 66% 0); transform: skew(-0.2deg); }
-          40% { clip-path: inset(11% 0 81% 0); transform: skew(0.5deg); }
-          50% { clip-path: inset(72% 0 11% 0); transform: skew(-0.8deg); }
-          60% { clip-path: inset(33% 0 44% 0); transform: skew(0.2deg); }
-          70% { clip-path: inset(88% 0 1% 0); transform: skew(-0.5deg); }
-          80% { clip-path: inset(9% 0 66% 0); transform: skew(0.8deg); }
-          90% { clip-path: inset(55% 0 22% 0); transform: skew(-0.2deg); }
-          100% { clip-path: inset(41% 0 11% 0); transform: skew(0.5deg); }
+        @keyframes cockpitPulse { 0%,100%{opacity:0.3} 50%{opacity:0.8} }
+        @keyframes bgDistort {
+          0%,100% { transform: scale(1.08) translate3d(0,0,0); filter: contrast(1.1) saturate(0.85) sepia(0.35) hue-rotate(-12deg); }
+          25% { transform: scale(1.085) translate3d(-0.6%,0.4%,0); filter: contrast(1.18) saturate(0.95) sepia(0.42) hue-rotate(-18deg); }
+          50% { transform: scale(1.09) translate3d(0.4%,-0.5%,0); filter: contrast(1.24) saturate(1) sepia(0.5) hue-rotate(-22deg); }
+          75% { transform: scale(1.085) translate3d(-0.3%,0.2%,0); filter: contrast(1.18) saturate(0.9) sepia(0.42) hue-rotate(-16deg); }
         }
-        .retro-screen { animation: retro-flicker 8s infinite; }
-        .retro-screen:hover::after {
-          content: ""; position: absolute; inset: 0; background: inherit; animation: glitch 0.3s steps(10) infinite; opacity: 0.1; mix-blend-mode: hard-light; pointer-events: none;
-        }
-        .crt-overlay { 
-          position: absolute; inset: 0; pointer-events: none;
-          background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
-          background-size: 100% 4px, 3px 100%;
-          z-index: 10;
-        }
-        .scanline {
-          position: absolute; inset: 0; height: 100%; width: 100%;
-          background: linear-gradient(transparent, rgba(160,255,80,0.05) 50%, transparent);
-          animation: scanline 10s linear infinite;
-          z-index: 11; pointer-events: none;
-        }
-        ::-webkit-scrollbar{width:6px;height:6px;} ::-webkit-scrollbar-track{background:#0a0a04;} ::-webkit-scrollbar-thumb{background:#3a5020;border-radius:0;}
+        .panel-scroll::-webkit-scrollbar{width:4px;}
+        .panel-scroll::-webkit-scrollbar-track{background:#060f1e;}
+        .panel-scroll::-webkit-scrollbar-thumb{background:#1a5a86;}
       `}</style>
 
-      <div style={{ 
-        minHeight: "100vh", 
-        // backgroundImage: "url('https://res.cloudinary.com/dpod2sj9t/image/upload/v1774685137/BG_l4fb9q.jpg')", 
-        backgroundSize: "cover", 
-        backgroundPosition: "center", 
-        display: "flex", 
-        flexDirection: "column",
-        alignItems: "center", 
-        padding: "60px 16px", 
-        position: "relative",
-        boxShadow: "inset 0 0 200px rgba(0,0,0,0.4)",
-        overflowY: "auto"
-      }}>
-      <video
-        autoPlay
-        loop
-        muted
-        playsInline
-        style={{
-          position: "absolute",
-          inset: 0,
-          width: "100%",
-          height: "100%",
-          objectFit: "cover",
-        }}
-      >
-        <source src="https://res.cloudinary.com/dpod2sj9t/video/upload/v1774807451/4K_Space_Star_scene_-_Free_M.G_Stock_Footage_2160p_1_mzc4g7.mp4" type="video/mp4" />
-      </video>
-        <div style={{ position:"absolute", inset:0, backgroundImage:"repeating-linear-gradient(45deg,rgba(255,200,100,0.015) 0px,rgba(255,200,100,0.015) 1px,transparent 1px,transparent 12px)", pointerEvents:"none" }} />
+      <div style={{minHeight:"100vh",padding:"28px 12px",position:"relative",overflow:"hidden",background:"#0e0906",color:"#f6ddc2",fontFamily:"'Courier New',monospace"}}>
+        <video autoPlay loop muted playsInline style={{position:"absolute",inset:0,width:"100%",height:"100%",objectFit:"cover",zIndex:0,opacity:0.3,animation:"bgDistort 9s ease-in-out infinite alternate",transformOrigin:"center"}}>
+          <source src="https://res.cloudinary.com/dpod2sj9t/video/upload/v1774807451/4K_Space_Star_scene_-_Free_M.G_Stock_Footage_2160p_1_mzc4g7.mp4" type="video/mp4" />
+        </video>
+        <div style={{position:"absolute",inset:0,zIndex:1,background:"radial-gradient(circle at 50% 8%, rgba(255,186,112,0.2), transparent 42%), radial-gradient(circle at 50% 88%, rgba(170,92,38,0.24), transparent 54%), linear-gradient(180deg, rgba(19,12,8,0.42), rgba(8,10,18,0.92))"}} />
+        <div style={{position:"absolute",inset:0,zIndex:1,pointerEvents:"none",mixBlendMode:"screen",background:"repeating-linear-gradient(120deg, rgba(255,210,160,0.02) 0px, rgba(255,210,160,0.02) 2px, transparent 2px, transparent 10px)"}} />
 
-        <div style={{ position:"relative", zIndex: 1, display:"flex", flexDirection:"column", alignItems:"center", maxWidth:"100%", width:"min(1100px,100%)", margin: "auto 0" }}>
-          <div style={{
-            background:"linear-gradient(145deg,#d4c4a0 0%,#b8a880 25%,#c8b890 50%,#a89870 75%,#98886a 100%)",
-            borderRadius:"28px 28px 8px 8px", padding:"28px 32px 20px",
-            boxShadow:"0 0 0 2px #786850, 0 8px 40px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,255,255,0.3), inset 0 -2px 4px rgba(0,0,0,0.2)",
-            width:"100%", position:"relative",
-          }}>
-            <div style={{ position:"absolute", top:10, left:"50%", transform:"translateX(-50%)", fontSize:9, fontFamily:"Courier New,monospace", color:"#786840", letterSpacing:4, textTransform:"uppercase" }}>NEUTRON OS — v3.0</div>
-            <div style={{ position:"absolute", top:10, right:40, width:8, height:8, borderRadius:"50%", background:"#5a9040", boxShadow:"0 0 8px #5a9040" }} />
+        <motion.div initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.55 }} style={{position:"relative",zIndex:2,maxWidth:1480,margin:"0 auto"}}>
+          <div style={{textAlign:"center",marginBottom:10,fontSize:11,letterSpacing:4,color:"#f1b579",textTransform:"uppercase"}}>Neutron Rocket Cockpit Console</div>
 
-            <div style={{ background:"#0a0a04", borderRadius:8, padding:6, boxShadow:"inset 0 0 20px rgba(0,0,0,0.9), inset 0 2px 4px rgba(0,0,0,0.5)", border:"3px solid #1a1408" }}>
-              <div
-                ref={desktopRef}
-                className="retro-screen"
-                style={{
-                  borderRadius: 4, height: "65vh", minHeight: 460, position: "relative", overflow: "hidden",
-                  boxShadow: "inset 0 0 100px rgba(0,0,0,0.8)",
-                  background: "url('https://4kwallpapers.com/images/wallpapers/gargantua-black-2880x1800-11451.jpg')",
-                  backgroundSize: "cover", backgroundPosition: "center"
-                }}
-              >
+          <motion.div whileHover={{ y: -2 }} transition={{ duration: 0.25 }} style={{position:"relative",padding:"44px 18px 24px",borderRadius:"32px 32px 22px 22px",background:"linear-gradient(180deg,#2a170f 0%, #1a100b 58%, #0f0906 100%)",boxShadow:"0 0 0 2px #533424, 0 24px 60px rgba(0,0,0,0.65), inset 0 1px 0 rgba(255,211,168,0.25)"}}>
+            <div style={{position:"absolute",left:"12%",right:"12%",top:-88,height:180,borderRadius:"0 0 220px 220px",border:"8px solid rgba(97,64,40,0.95)",borderTop:"14px solid rgba(76,49,30,0.95)",boxShadow:"0 10px 30px rgba(0,0,0,0.45), inset 0 0 35px rgba(229,151,94,0.2)",pointerEvents:"none"}} />
+            <div style={{position:"absolute",left:-48,top:96,width:110,height:"70%",transform:"skewY(-12deg)",borderRadius:"22px 0 0 22px",background:"linear-gradient(180deg,#2e1b12,#120a07)",boxShadow:"inset -1px 0 0 #70472f"}} />
+            <div style={{position:"absolute",right:-48,top:96,width:110,height:"70%",transform:"skewY(12deg)",borderRadius:"0 22px 22px 0",background:"linear-gradient(180deg,#2e1b12,#120a07)",boxShadow:"inset 1px 0 0 #70472f"}} />
 
-                <div className="crt-overlay" />
-                <div className="scanline" />
-                <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.3)", backdropFilter: "blur(0.5px)", zIndex: 0 }} />
-                <div style={scanlineStyle} />
-                <div style={{ position:"absolute", inset:0, background:"radial-gradient(ellipse at 50% 40%,rgba(60,120,30,0.08) 0%,transparent 70%)", pointerEvents:"none", zIndex:1 }} />
-                <div style={{ position:"absolute", inset:0, display:"flex", alignItems:"center", justifyContent:"center", pointerEvents:"none", zIndex:0, opacity:0.03 }}>
-                  <span style={{ fontSize:160, color:"#80c040", fontFamily:"Courier New,monospace", fontWeight:"bold" }}>N</span>
-                </div>
+            <div style={{margin:"0 auto 12px",width:"min(460px,86%)",padding:"8px 14px",borderRadius:12,background:"linear-gradient(180deg,#27170f,#321d12)",border:"1px solid #825332",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+              <span style={{fontSize:10,letterSpacing:2,color:"#f4c893"}}>MISSION CONTROL // PROFILE STATION</span>
+              <span style={{fontSize:10,color:"#ffd08e"}}>{new Date().toLocaleTimeString()}</span>
+            </div>
+            <div style={{display:"flex",justifyContent:"center",gap:8,marginBottom:12}}>
+              {[{label:"Signal",value:"99%"},{label:"Hull",value:"Stable"},{label:"Sync",value:`${score}%`}].map((chip) => (
+                <motion.div key={chip.label} whileHover={{ scale: 1.03 }} style={{padding:"6px 10px",borderRadius:8,border:"1px solid #8c5d3c",background:"rgba(62,36,20,0.45)",minWidth:96,textAlign:"center"}}>
+                  <div style={{fontSize:9,color:"#dfa66d",letterSpacing:1,textTransform:"uppercase"}}>{chip.label}</div>
+                  <div style={{fontSize:10,color:"#ffe2be",marginTop:2,fontWeight:700}}>{chip.value}</div>
+                </motion.div>
+              ))}
+            </div>
 
-                <div style={{ position:"absolute", inset:0, zIndex:5 }}>
-                  {DEFS.map((d) => (
-                    <DesktopIcon 
-                      key={d.id} 
-                      id={d.id}
-                      icon={d.icon} 
-                      label={d.title} 
-                      x={iconPositions[d.id]?.x || 12}
-                      y={iconPositions[d.id]?.y || 12}
-                      onClick={() => openWindow(d.id)} 
-                      onDrag={dragIcon}
-                    />
-                  ))}
-                </div>
+            <div ref={desktopRef} style={{position:"relative",borderRadius:18,padding:14,border:"1px solid #70482f",background:"linear-gradient(180deg,#1a110c 0%, #0f0a06 100%)",boxShadow:"inset 0 0 35px rgba(191,117,61,0.2)"}}>
+              <div style={scanlineStyle} />
+              <div style={{position:"absolute",inset:0,pointerEvents:"none",borderRadius:16,background:"repeating-linear-gradient(0deg, rgba(255,255,255,0.015), rgba(255,255,255,0.015) 1px, transparent 1px, transparent 3px)"}} />
+              <div style={{position:"absolute",left:12,right:12,top:8,height:38,borderRadius:10,border:"1px solid rgba(188,126,79,0.45)",background:"linear-gradient(180deg,rgba(72,44,25,0.42),rgba(30,18,12,0.15))",pointerEvents:"none"}} />
 
-                <div style={{ position:"absolute", top:10, right:14, zIndex:5, textAlign:"right" }}>
-                  <div style={{ fontSize:9, fontFamily:"Courier New,monospace", color:"#5a8040", textTransform:"uppercase", letterSpacing:2 }}>{profile.name || "USER"}</div>
-                  <div style={{ fontSize:8, fontFamily:"Courier New,monospace", color:"#3a5028", marginTop:2 }}>{profile.email}</div>
-                </div>
+              <div style={{display:"grid",gridTemplateColumns:"1fr 1.4fr 1fr",gap:14,minHeight:560,marginTop:26}}>
+                <motion.div whileHover={{ y: -3, boxShadow:"0 0 24px rgba(201,126,68,0.25)" }} style={{border:"1px solid #5b3a26",borderRadius:12,padding:12,background:"linear-gradient(180deg,#1e130d,#120b07)",display:"flex",flexDirection:"column",minHeight:0}}>
+                  <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
+                    <h3 style={{margin:0,fontSize:11,letterSpacing:2,textTransform:"uppercase",color:"#e7b47f"}}>Competitions</h3>
+                    <div style={{display:"flex",gap:6}}>
+                      <button onClick={()=>showToast("Competition controls are available in modules view.","info")} style={{fontSize:9,letterSpacing:1,padding:"4px 8px",borderRadius:6,border:"1px solid #8f633f",background:"rgba(142,96,56,0.2)",color:"#f6cd9d",cursor:"pointer"}}>EDIT</button>
+                      <button onClick={()=>setActiveCompTab("competitions")} style={{fontSize:9,letterSpacing:1,padding:"4px 8px",borderRadius:6,border:"1px solid #8f633f",background:activeCompTab==="competitions"?"#5e3922":"transparent",color:"#f3c692",cursor:"pointer"}}>COMPS</button>
+                      <button onClick={()=>setActiveCompTab("events")} style={{fontSize:9,letterSpacing:1,padding:"4px 8px",borderRadius:6,border:"1px solid #8f633f",background:activeCompTab==="events"?"#5e3922":"transparent",color:"#f3c692",cursor:"pointer"}}>EVENTS</button>
+                    </div>
+                  </div>
+                  <div className="panel-scroll" style={{overflowY:"auto",paddingRight:4}}>
+                    {(activeCompTab==="events"?eventItems:competitionItems).length===0?(
+                      <div style={{fontSize:11,color:"#5e87aa",padding:"18px 8px",border:"1px dashed #224562",borderRadius:8}}>No {activeCompTab} yet.</div>
+                    ):(
+                      (activeCompTab==="events"?eventItems:competitionItems).map((item) => (
+                        <motion.div key={`${item.kind}-${item.id}`} whileHover={{ x: 3, scale: 1.01 }} style={{padding:"10px 8px",marginBottom:8,borderRadius:8,border:"1px solid #674229",background:"rgba(57,33,18,0.4)"}}>
+                          <div style={{fontSize:11,color:"#ffe1bf",fontWeight:700}}>{item.title || "Untitled"}</div>
+                          <div style={{fontSize:10,color:"#d9a36f",marginTop:4}}>{item.category || item.kind.toUpperCase()}</div>
+                          <div style={{fontSize:10,color:"#bb8554",marginTop:2}}>{item.date || "Date TBD"}  |  {item.status || "PENDING"}</div>
+                        </motion.div>
+                      ))
+                    )}
+                  </div>
+                </motion.div>
 
-                {openWins.map((id) => {
-                  const ws = wins.find((w) => w.id === id);
-                  const def = DEFS.find((d) => d.id === id);
-                  if (!ws || !def) return null;
-                  return (
-                    <RetroWindow key={id} id={id} title={def.title} icon={def.icon}
-                      winState={ws}
-                      onClose={() => closeWindow(id)}
-                      onMinimize={() => minimizeWindow(id)}
-                      onFocus={() => focusWindow(id)}
-                      onDrag={dragWindow}
-                    >
-                      {renderWindowContent(id)}
-                    </RetroWindow>
-                  );
-                })}
+                <motion.div whileHover={{ y: -3, boxShadow:"0 0 30px rgba(214,139,76,0.3)" }} style={{border:"1px solid #764c31",borderRadius:14,padding:14,background:"radial-gradient(circle at 50% 0%, rgba(152,86,43,0.22), rgba(26,16,10,0.95) 56%)",display:"flex",flexDirection:"column",position:"relative"}}>
+                  <div style={{position:"absolute",top:8,right:10,fontSize:9,letterSpacing:2,color:"#ffc480",textTransform:"uppercase",animation:"cockpitPulse 1.8s ease-in-out infinite"}}>{isLoadingData ? "Syncing..." : "Online"}</div>
+                  <button
+                    onClick={() => {
+                      setIsProfileEditing((prev) => !prev);
+                      showToast(isProfileEditing ? "Profile view locked." : "Profile edit mode enabled.", "info");
+                    }}
+                    style={{position:"absolute",top:8,left:10,fontSize:9,letterSpacing:1,padding:"4px 8px",borderRadius:6,border:"1px solid #8f633f",background:isProfileEditing?"rgba(142,96,56,0.36)":"rgba(142,96,56,0.2)",color:"#f6cd9d",cursor:"pointer"}}
+                  >
+                    {isProfileEditing ? "SAVE" : "EDIT"}
+                  </button>
+                  <div style={{display:"flex",justifyContent:"center",marginBottom:12}}>
+                    <motion.div animate={{ boxShadow:["0 0 18px rgba(217,133,74,0.25)","0 0 30px rgba(217,133,74,0.48)","0 0 18px rgba(217,133,74,0.25)"] }} transition={{ duration: 3, repeat: Infinity }} style={{height:124,width:124,borderRadius:"50%",padding:4,border:"2px solid #b26b3b"}}>
+                      <img src={profile.image||"/images/bg.jpeg"} alt={profile.name||"Profile"} style={{height:"100%",width:"100%",borderRadius:"50%",objectFit:"cover"}} />
+                    </motion.div>
+                  </div>
+                  <div style={{textAlign:"center",marginBottom:10}}>
+                    {isProfileEditing ? (
+                      <input value={profile.name} onChange={(e)=>setProfile((p)=>({ ...p, name:e.target.value }))} style={{fontSize:16,color:"#ffe7cb",fontWeight:700,letterSpacing:1,textAlign:"center",width:"100%",background:"rgba(36,21,12,0.8)",border:"1px solid #9d633b",borderRadius:8,padding:"6px 8px"}} />
+                    ) : (
+                      <div style={{fontSize:18,color:"#ffe7cb",fontWeight:700,letterSpacing:1}}>{profile.name || "User"}</div>
+                    )}
+                    <div style={{fontSize:11,color:"#f0b77f",marginTop:3}}>{profile.email || "No email configured"}</div>
+                  </div>
+                  <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginTop:4}}>
+                    <div style={{border:"1px solid #6a452c",borderRadius:8,padding:"8px 10px"}}><div style={{fontSize:9,color:"#d89f69"}}>COLLEGE</div>{isProfileEditing ? <input value={profile.college} onChange={(e)=>setProfile((p)=>({ ...p, college:e.target.value }))} style={{marginTop:4,width:"100%",fontSize:11,color:"#ffe2bf",background:"rgba(36,21,12,0.8)",border:"1px solid #9d633b",borderRadius:6,padding:"4px 6px"}} /> : <div style={{fontSize:11,color:"#ffe2bf",marginTop:4}}>{profile.college || "N/A"}</div>}</div>
+                    <div style={{border:"1px solid #6a452c",borderRadius:8,padding:"8px 10px"}}><div style={{fontSize:9,color:"#d89f69"}}>YEAR</div>{isProfileEditing ? <input value={profile.year} onChange={(e)=>setProfile((p)=>({ ...p, year:e.target.value }))} style={{marginTop:4,width:"100%",fontSize:11,color:"#ffe2bf",background:"rgba(36,21,12,0.8)",border:"1px solid #9d633b",borderRadius:6,padding:"4px 6px"}} /> : <div style={{fontSize:11,color:"#ffe2bf",marginTop:4}}>{profile.year || "N/A"}</div>}</div>
+                    <div style={{border:"1px solid #6a452c",borderRadius:8,padding:"8px 10px"}}><div style={{fontSize:9,color:"#d89f69"}}>LOCATION</div>{isProfileEditing ? <input value={[profile.city, profile.state].filter(Boolean).join(", ")} onChange={(e)=>{ const [cityPart, ...rest] = e.target.value.split(",").map((s) => s.trim()); setProfile((p)=>({ ...p, city: cityPart || "", state: rest.join(", ") || "" })); }} style={{marginTop:4,width:"100%",fontSize:11,color:"#ffe2bf",background:"rgba(36,21,12,0.8)",border:"1px solid #9d633b",borderRadius:6,padding:"4px 6px"}} /> : <div style={{fontSize:11,color:"#ffe2bf",marginTop:4}}>{[profile.city, profile.state].filter(Boolean).join(", ") || "N/A"}</div>}</div>
+                    <div style={{border:"1px solid #6a452c",borderRadius:8,padding:"8px 10px"}}><div style={{fontSize:9,color:"#d89f69"}}>TEAM</div><div style={{fontSize:11,color:"#ffe2bf",marginTop:4}}>{teamMembers.length} Member</div></div>
+                  </div>
+                  <div style={{marginTop:10,border:"1px dashed #80553a",borderRadius:8,padding:"8px 10px",fontSize:10,color:"#e7af79"}}>
+                    {isProfileEditing ? (
+                      <textarea value={profile.bio} onChange={(e)=>setProfile((p)=>({ ...p, bio:e.target.value }))} rows={3} style={{width:"100%",fontSize:10,color:"#ffe2bf",background:"rgba(36,21,12,0.8)",border:"1px solid #9d633b",borderRadius:6,padding:"6px 8px",resize:"vertical"}} />
+                    ) : (
+                      profile.bio || "Add your bio to complete the mission profile."
+                    )}
+                  </div>
+                </motion.div>
+
+                <motion.div whileHover={{ y: -3, boxShadow:"0 0 24px rgba(201,126,68,0.25)" }} style={{border:"1px solid #5b3a26",borderRadius:12,padding:12,background:"linear-gradient(180deg,#1e130d,#120b07)",display:"flex",flexDirection:"column",minHeight:0}}>
+                  <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
+                    <h3 style={{margin:0,fontSize:11,letterSpacing:2,textTransform:"uppercase",color:"#e7b47f"}}>Inbox</h3>
+                    <button onClick={()=>showToast("Inbox actions open from message cards.","info")} style={{fontSize:9,letterSpacing:1,padding:"4px 8px",borderRadius:6,border:"1px solid #8f633f",background:"rgba(142,96,56,0.2)",color:"#f6cd9d",cursor:"pointer"}}>EDIT</button>
+                  </div>
+                  <div className="panel-scroll" style={{overflowY:"auto",paddingRight:4}}>
+                    {inboxInvites.length===0?(
+                      <div style={{fontSize:11,color:"#5e87aa",padding:"18px 8px",border:"1px dashed #224562",borderRadius:8}}>No messages in your inbox.</div>
+                    ):(
+                      inboxInvites.map((invite) => (
+                        <motion.div key={invite.id} whileHover={{ x: 3, scale: 1.01 }} style={{padding:"10px 8px",marginBottom:8,borderRadius:8,border:"1px solid #674229",background:"rgba(57,33,18,0.4)"}}>
+                          <div style={{fontSize:11,color:"#ffe1bf",fontWeight:700}}>{invite.title || "Team Invite"}</div>
+                          <div style={{fontSize:10,color:"#d9a36f",marginTop:4}}>From: {invite.user || "Unknown user"}</div>
+                          <div style={{fontSize:10,color:"#bb8554",marginTop:2}}>{invite.time || "Just now"}  |  {invite.role || "Invite"}</div>
+                        </motion.div>
+                      ))
+                    )}
+                  </div>
+                </motion.div>
               </div>
             </div>
 
-            <div style={{ display:"flex", justifyContent:"center", gap:12, marginTop:14 }}>
-              <div style={{ width:48, height:6, background:"linear-gradient(180deg,#786840,#5a5030)", borderRadius:3 }} />
-              <div style={{ width:8, height:8, background:"#5a9040", borderRadius:"50%", boxShadow:"0 0 6px #4a7830", marginTop:-1 }} />
-              <div style={{ width:48, height:6, background:"linear-gradient(180deg,#786840,#5a5030)", borderRadius:3 }} />
+            <div style={{display:"flex",justifyContent:"center",gap:14,marginTop:14}}>
+              <motion.button whileHover={{ y: -2, scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={logout} style={{background:"transparent",border:"1px solid #8f633f",color:"#f6cb9a",padding:"9px 22px",cursor:"pointer",letterSpacing:2,fontSize:10,borderRadius:8,textTransform:"uppercase"}}>Logout</motion.button>
+              <motion.button whileHover={{ y: -2, scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={()=>setExpandedID(true)} style={{background:"linear-gradient(180deg,#f2b371,#d28342)",color:"#221309",border:"none",padding:"9px 22px",cursor:"pointer",letterSpacing:2,fontWeight:700,fontSize:10,borderRadius:8,textTransform:"uppercase"}}>Open Identity</motion.button>
             </div>
-          </div>
-
-          <div style={{ width:80, height:24, background:"linear-gradient(180deg,#a89870,#988860)", boxShadow:"inset 0 0 8px rgba(0,0,0,0.3)" }} />
-          <div style={{ width:220, height:14, background:"linear-gradient(180deg,#b8a880,#a09070)", borderRadius:"0 0 8px 8px", boxShadow:"0 4px 12px rgba(0,0,0,0.4)" }} />
-
-          <div style={{ width:"100%", marginTop:8, borderRadius:4, overflow:"hidden", border:"1px solid #3a2810" }}>
-            <RetroTaskbar
-              windows={openWins.map((id) => DEFS.find((d) => d.id === id)!).filter(Boolean)}
-              wins={wins}
-              onRestore={(id) => {
-                focusWindow(id);
-                setWins((p) => p.map((w) => w.id === id ? { ...w, minimized:false } : w));
-              }}
-              profileName={profile.name}
-              onLogout={async () => { if (isLoggingOut) return; setIsLoggingOut(true); try { await logout(); } finally { setIsLoggingOut(false); } }}
-              isLoggingOut={isLoggingOut}
-            />
-          </div>
-        </div>
+            <div style={{width:210,height:70,margin:"12px auto 0",clipPath:"polygon(10% 0%, 90% 0%, 100% 100%, 0% 100%)",background:"linear-gradient(180deg,#3a2418,#22140d)",border:"1px solid #7f5436",boxShadow:"inset 0 0 18px rgba(183,119,68,0.25)"}} />
+          </motion.div>
+        </motion.div>
       </div>
 
-      <div className="fixed top-6 left-6 z-50 pointer-events-auto flex flex-row items-center gap-4">
-        <img
-          src="https://ik.imagekit.io/yatharth/NEUT-LOGO.png"
-          alt="Logo"
-          className="h-12 w-12 opacity-90 transition-transform duration-300 hover:scale-110 drop-shadow-[0_0_15px_rgba(255,200,80,0.4)]"
-        />
-      <Link
-        href="/?phase=planets"
-        className="group flex items-center gap-2 px-3 py-2 bg-white/5 border border-white/10 rounded-full backdrop-blur-md transition-all hover:bg-white/15 hover:border-white/30 hover:shadow-[0_0_20px_rgba(255,255,255,0.1)]"
-      >
-        <svg
-          width="16"
-          height="16"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          className="group-hover:-translate-x-1 transition-transform duration-300"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M10 19l-7-7m0 0l7-7m-7 7h18"
-          />
-        </svg>
-        <span className="text-[10px] font-mono uppercase tracking-widest text-white/70 group-hover:text-white transition-colors">
-          Planets
-        </span>
-      </Link>
-    </div>
-
-      {/* Overlays */}
       <AnimatePresence>
-        {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
-        {selectedMember && <MemberProfileModal member={selectedMember} onClose={() => setSelectedMember(null)} />}
-        {expandedID && (
+        {toast&&<Toast message={toast.message} type={toast.type} onClose={()=>setToast(null)}/>}
+        {selectedMember&&<MemberProfileModal member={selectedMember} onClose={()=>setSelectedMember(null)}/>}
+        {expandedID&&(
           <div className="fixed inset-0 z-200 flex items-center justify-center p-6">
-            <motion.div initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} onClick={() => setExpandedID(false)} className="absolute inset-0 bg-black/95 backdrop-blur-2xl" />
+            <motion.div initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} onClick={()=>setExpandedID(false)} className="absolute inset-0 bg-black/95 backdrop-blur-2xl"/>
             <motion.div initial={{opacity:0,scale:0.8}} animate={{opacity:1,scale:1}} exit={{opacity:0,scale:0.8}} transition={{type:"spring",damping:20}} className="relative z-10 w-full max-w-md">
-              <motion.div animate={{rotateY: shouldFlipToQR ? 180 : 0}} transition={{duration:0.8}} style={{transformStyle:"preserve-3d"}} className="relative w-full">
-                <div style={{backfaceVisibility:"hidden"}}>
-                  <ProfileCard name={profile.name} title={profile.college} handle={(profile.email||"").split("@")[0]||""} status={profile.year} contactText={isIdentityComplete?"SCANNABLE ID READY":"DOWNLOAD ID"} avatarUrl="/images/bg.jpeg" showUserInfo={false} enableTilt enableMobileTilt behindGlowColor="rgba(125,190,255,0.6)" iconUrl="🪪" behindGlowEnabled innerGradient="linear-gradient(145deg,#2e106520 0%,#1e3a8a40 100%)" />
-                </div>
+              <motion.div animate={{rotateY:shouldFlipToQR?180:0}} transition={{duration:0.8}} style={{transformStyle:"preserve-3d"}} className="relative w-full">
+                <div style={{backfaceVisibility:"hidden"}}><ProfileCard name={profile.name} title={profile.college} handle={(profile.email||"").split("@")[0]||""} status={profile.year} contactText={isIdentityComplete?"SCANNABLE ID READY":"DOWNLOAD ID"} avatarUrl="/images/bg.jpeg" showUserInfo={false} enableTilt enableMobileTilt behindGlowColor="rgba(125,190,255,0.6)" iconUrl="🪪" behindGlowEnabled innerGradient="linear-gradient(145deg,#2e106520 0%,#1e3a8a40 100%)"/></div>
                 <div style={{backfaceVisibility:"hidden",transform:"rotateY(180deg)"}} className="absolute inset-0 rounded-[30px] border border-white/10 bg-[#0a0a0a] p-6 flex flex-col items-center justify-center">
                   <p className="text-[10px] uppercase tracking-widest text-white/40 font-mono mb-4">Entry QR</p>
-                  {myQRCodeQuery.data ? <img src={myQRCodeQuery.data} alt="QR" className="w-44 h-44 rounded-xl bg-white p-2" /> : <div className="w-44 h-44 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center"><div className="w-6 h-6 border-2 border-white/20 border-t-white rounded-full animate-spin" /></div>}
+                  {myQRCodeQuery.data?<img src={myQRCodeQuery.data} alt="QR" className="w-44 h-44 rounded-xl bg-white p-2"/>:<div className="w-44 h-44 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center"><div className="w-6 h-6 border-2 border-white/20 border-t-white rounded-full animate-spin"/></div>}
                 </div>
               </motion.div>
-              <button onClick={() => setExpandedID(false)} className="mt-12 mx-auto flex items-center gap-2 text-[10px] font-bold text-white/20 hover:text-rose-400 uppercase tracking-widest transition-all group">
-                <X size={14} className="group-hover:rotate-90 transition-transform" /> Close Identity Viewer
+              <button onClick={()=>setExpandedID(false)} className="mt-12 mx-auto flex items-center gap-2 text-[10px] font-bold text-white/20 hover:text-rose-400 uppercase tracking-widest transition-all group">
+                <X size={14} className="group-hover:rotate-90 transition-transform"/> Close Identity Viewer
               </button>
             </motion.div>
           </div>
