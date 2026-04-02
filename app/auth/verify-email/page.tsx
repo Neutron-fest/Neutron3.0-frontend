@@ -15,11 +15,36 @@ function VerifyEmailContent() {
   const [verificationAttempted, setVerificationAttempted] = useState(false);
   const [verificationSuccess, setVerificationSuccess] = useState(false);
   const [verificationError, setVerificationError] = useState("");
+  const [verificationErrorKind, setVerificationErrorKind] = useState<
+    "generic" | "missing-token" | "invalid-token" | "expired-token"
+  >("generic");
 
   const verifyMutation = useVerifyEmail();
 
+  const classifyVerificationError = (message: string) => {
+    const normalized = message.toLowerCase();
+
+    if (
+      normalized.includes("expired") ||
+      normalized.includes("no longer valid")
+    ) {
+      return "expired-token" as const;
+    }
+
+    if (
+      normalized.includes("invalid verification token") ||
+      normalized.includes("invalid token") ||
+      normalized.includes("required")
+    ) {
+      return "invalid-token" as const;
+    }
+
+    return "generic" as const;
+  };
+
   useEffect(() => {
     if (!token) {
+      setVerificationErrorKind("missing-token");
       setVerificationError(
         "No verification token provided. Please check your email link.",
       );
@@ -40,15 +65,30 @@ function VerifyEmailContent() {
             router.push("/auth/signin");
           }, 2000);
         } else {
+          setVerificationErrorKind(classifyVerificationError(response.message || ""));
           setVerificationError(
             response.message || "Verification failed. Please try again.",
           );
         }
       } catch (error: any) {
+        const apiError = error?.response?.data?.error;
         const message =
           error?.response?.data?.message ||
           error?.message ||
           "An error occurred during verification. Please try again.";
+
+        if (
+          apiError === "EMAIL_ALREADY_VERIFIED" ||
+          message.toLowerCase().includes("already verified")
+        ) {
+          setVerificationSuccess(true);
+          setTimeout(() => {
+            router.push("/auth/signin");
+          }, 2000);
+          return;
+        setVerificationErrorKind(classifyVerificationError(message));
+        }
+
         setVerificationError(message);
       }
     };
@@ -61,6 +101,7 @@ function VerifyEmailContent() {
     setVerificationAttempted(false);
     setVerificationError("");
     setVerificationSuccess(false);
+    setVerificationErrorKind("generic");
   };
 
   return (
@@ -158,19 +199,43 @@ function VerifyEmailContent() {
               </svg>
             </div>
             <div>
-              <h2 className="text-3xl font-bold mb-2">Verification Failed</h2>
+              <h2 className="text-3xl font-bold mb-2">
+                {verificationErrorKind === "expired-token"
+                  ? "Link Expired"
+                  : verificationErrorKind === "invalid-token" ||
+                      verificationErrorKind === "missing-token"
+                    ? "Invalid Verification Link"
+                    : "Verification Failed"}
+              </h2>
               <p className="text-white/60 leading-relaxed font-light mb-4">
+                {verificationErrorKind === "expired-token"
+                  ? "This verification link has expired. Request a new one from sign up."
+                  : verificationErrorKind === "invalid-token"
+                    ? "This verification link is not valid anymore. It may have already been used or was copied incorrectly."
+                    : verificationErrorKind === "missing-token"
+                      ? "The verification link is missing its token. Please open the email link again."
+                      : null}
                 {verificationError}
               </p>
             </div>
             <div className="pt-4 space-y-3">
-              <AuthButton
-                onClick={handleRetry}
-                variant="primary"
-                disabled={verifyMutation.isPending}
-              >
-                Try Again
-              </AuthButton>
+              {verificationErrorKind === "generic" && (
+                <AuthButton
+                  onClick={handleRetry}
+                  variant="primary"
+                  disabled={verifyMutation.isPending}
+                >
+                  Try Again
+                </AuthButton>
+              )}
+              {verificationErrorKind !== "generic" && (
+                <AuthButton
+                  onClick={() => router.push("/auth/signup")}
+                  variant="primary"
+                >
+                  Back to Sign Up
+                </AuthButton>
+              )}
               <button
                 onClick={() => router.push("/auth/signup")}
                 className="text-white/40 hover:text-white text-sm transition-colors cursor-pointer w-full"

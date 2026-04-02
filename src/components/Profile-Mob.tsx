@@ -1354,22 +1354,12 @@ function MemberProfileModal({
 function ProfilePanel({
   profile,
   set,
-  onViewMember,
-  teamMembers,
   userId,
   updateProfileMutation,
   setProfile,
 }: {
   profile: ProfileState;
   set: (key: keyof ProfileState) => (val: string) => void;
-  onViewMember: (m: any) => void;
-  teamMembers: Array<{
-    id: string;
-    name: string;
-    role: string;
-    avatar: string;
-    isMe?: boolean;
-  }>;
   userId: string;
   updateProfileMutation: any;
   setProfile: (
@@ -1532,7 +1522,7 @@ function ProfilePanel({
         </DashboardWidget>
       </div>
 
-      <div className="lg:col-span-4">
+      <div className="lg:col-span-6">
         <DashboardWidget
           title="Identity Card"
           className="flex flex-col justify-center items-center py-10"
@@ -1563,43 +1553,7 @@ function ProfilePanel({
         </DashboardWidget>
       </div>
 
-      <div className="lg:col-span-4">
-        <DashboardWidget
-          title="Team structure"
-          onManage={() =>
-            showToast("Synchronizing team roles with global registry.", "info")
-          }
-        >
-          <div className="space-y-4">
-            {teamMembers.map((member) => (
-              <div
-                key={member.name}
-                className={`flex items-center gap-3 p-3 rounded-2xl border transition-all cursor-pointer ${member.isMe ? "bg-white/10 border-white/20" : "bg-white/5 border-white/5 hover:bg-white/8 hover:scale-[1.02]"}`}
-                onClick={() => onViewMember(member)}
-              >
-                <img
-                  src="/images/bg.jpeg"
-                  alt={member.name}
-                  className="w-10 h-10 rounded-xl object-cover border border-white/10"
-                />
-                <div>
-                  <p className="text-[12px] font-bold text-white leading-tight">
-                    {member.name}
-                  </p>
-                  <p className="text-[10px] text-white/30 font-mono mt-0.5">
-                    {member.role}
-                  </p>
-                </div>
-                {member.isMe && (
-                  <div className="ml-auto w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]"></div>
-                )}
-              </div>
-            ))}
-          </div>
-        </DashboardWidget>
-      </div>
-
-      <div className="lg:col-span-4">
+      <div className="lg:col-span-6">
         <DashboardWidget
           title={`Data completion ${completedCount}/${totalChecks}`}
           onManage={() =>
@@ -2415,16 +2369,6 @@ export default function ProfileMobPage() {
   );
   const eventItems = enrolledItems.filter((item) => item.kind === "event");
 
-  const teamMembers = [
-    {
-      id: userId || "me",
-      name: profile.name || "",
-      role: "You",
-      avatar: profile.image || "",
-      isMe: true,
-    },
-  ];
-
   const pendingInvites = Array.isArray(pendingInvitesQuery.data)
     ? pendingInvitesQuery.data
     : [];
@@ -2737,7 +2681,7 @@ export default function ProfileMobPage() {
           </aside>
 
           <main className="flex-1 w-full overflow-x-hidden min-h-screen bg-[#030303]/20">
-            <div className="max-w-[1400px] mx-auto px-6 lg:px-12 py-10 w-full">
+            <div className="max-w-400 mx-auto px-6 lg:px-12 py-10 w-full">
               <div className="flex items-center justify-between mb-10">
                 <div>
                   <h1 className="text-3xl font-bold tracking-tight text-white capitalize">
@@ -2762,8 +2706,6 @@ export default function ProfileMobPage() {
                     <ProfilePanel
                       profile={profile}
                       set={set}
-                      onViewMember={(m) => setSelectedMember(m)}
-                      teamMembers={teamMembers}
                       userId={userId}
                       updateProfileMutation={updateProfileMutation}
                       setProfile={setProfile}
