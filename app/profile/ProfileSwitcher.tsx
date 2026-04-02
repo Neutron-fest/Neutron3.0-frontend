@@ -14,10 +14,23 @@ export default function ProfileSwitcher() {
   const [isMobile, setIsMobile] = useState<boolean | null>(null);
 
   useEffect(() => {
+    console.info("[profile/switcher] state", {
+      pathname,
+      loading,
+      hasUser: Boolean(user),
+      isMobile,
+      query: searchParams.toString(),
+    });
+  }, [pathname, loading, user, isMobile, searchParams]);
+
+  useEffect(() => {
     if (loading || user) return;
 
     const query = searchParams.toString();
     const callbackUrl = query ? `${pathname}?${query}` : pathname;
+    console.warn("[profile/switcher] missing user, redirecting to signin", {
+      callbackUrl,
+    });
     router.replace(
       `/auth/signin?callbackUrl=${encodeURIComponent(callbackUrl)}`,
     );
