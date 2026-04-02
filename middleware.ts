@@ -6,21 +6,16 @@ const API_BASE_URL =
 export async function middleware(request: NextRequest) {
   const { pathname, search } = request.nextUrl;
 
-  const accessToken = request.cookies.get("accessToken")?.value;
-  const refreshToken = request.cookies.get("refreshToken")?.value;
-
-  if (!accessToken && !refreshToken) {
-    const callbackUrl = `${pathname}${search || ""}`;
-    const signinUrl = new URL("/auth/signin", request.url);
-    signinUrl.searchParams.set("callbackUrl", callbackUrl);
-    return NextResponse.redirect(signinUrl);
-  }
+  // 1. Extract cookies from the incoming request
+  const cookieHeader = request.headers.get("cookie") || "";
 
   try {
     const response = await fetch(`${API_BASE_URL}/api/v1/auth/me`, {
       method: "GET",
       headers: {
-        cookie: request.headers.get("cookie") || "",
+        // 2. Pass the cookies to your backend API
+        Cookie: cookieHeader,
+        "Content-Type": "application/json",
       },
       cache: "no-store",
     });
@@ -30,17 +25,24 @@ export async function middleware(request: NextRequest) {
     }
 
     const payload = await response.json();
+
+    // 3. Validate user data
     if (!payload?.success || !payload?.data?.user) {
       throw new Error("SESSION_INVALID");
     }
-  } catch {
-    const callbackUrl = `${pathname}${search || ""}`;
-    const signinUrl = new URL("/auth/signin", request.url);
-    signinUrl.searchParams.set("callbackUrl", callbackUrl);
+
+    // Auth success - continue to the requested page
+    return NextResponse.next();
+  } catch (error) {
+    // 4. Redirect to sign-in on any auth failure
+    const callbackUrl = encodeURIComponent(`${pathname}${search || ""}`);
+    const signinUrl = new URL(
+      `/auth/signin?callbackUrl=${callbackUrl}`,
+      request.url,
+    );
+
     return NextResponse.redirect(signinUrl);
   }
-
-  return NextResponse.next();
 }
 
 export const config = {
