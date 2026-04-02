@@ -1085,6 +1085,34 @@ function TeamModal({
 function EnrolledCard({ item, href }: { item: EnrolledItem; href: string }) {
   const [showTeam, setShowTeam] = useState(false);
   const hasTeam = Boolean(item.teamId);
+  const teamDetailsQuery = useTeamDetails(item.teamId || "", hasTeam);
+
+  const cardTeamMembers: TeamMember[] = hasTeam
+    ? Array.isArray(teamDetailsQuery.data?.members)
+      ? teamDetailsQuery.data.members.map((entry: any) => {
+          const memberUser = entry?.user || {};
+          const teamMember = entry?.teamMember || {};
+          const isLeader =
+            Boolean(teamMember?.isLeader) ||
+            String(memberUser?.id || "") ===
+              String(teamDetailsQuery.data?.leaderId || "");
+
+          return {
+            id: String(memberUser?.id || teamMember?.userId || ""),
+            name: memberUser?.name || memberUser?.email || "Member",
+            email: memberUser?.email || "",
+            role: isLeader ? "leader" : "member",
+            status: "confirmed",
+            avatar: memberUser?.image || "",
+          };
+        })
+      : []
+    : [];
+
+  const fallbackTeamMembers = Array.isArray(item.team) ? item.team : [];
+  const visibleTeamMembers =
+    cardTeamMembers.length > 0 ? cardTeamMembers : fallbackTeamMembers;
+  const visibleTeamCount = visibleTeamMembers.length;
 
   const statusColor: Record<string, string> = {
     open: "bg-emerald-500/10 border-emerald-500/20 text-emerald-400",
@@ -1130,7 +1158,7 @@ function EnrolledCard({ item, href }: { item: EnrolledItem; href: string }) {
               <div className="flex items-center gap-2">
                 {/* Avatar stack */}
                 <div className="flex -space-x-2">
-                  {(item.team || []).slice(0, 4).map((m) => (
+                  {visibleTeamMembers.slice(0, 4).map((m) => (
                     <div
                       key={m.id || m.name}
                       className="w-6 h-6 rounded-full ring-1 ring-black/50 overflow-hidden bg-white/10"
@@ -1143,15 +1171,15 @@ function EnrolledCard({ item, href }: { item: EnrolledItem; href: string }) {
                       />
                     </div>
                   ))}
-                  {(item.team || []).length > 4 && (
+                  {visibleTeamCount > 4 && (
                     <span className="w-6 h-6 rounded-full bg-white/10 border border-white/20 text-[10px] text-white/70 grid place-items-center font-mono">
-                      +{(item.team || []).length - 4}
+                      +{visibleTeamCount - 4}
                     </span>
                   )}
                 </div>
                 <span className="text-[11px] text-white/45 font-mono">
-                  {(item.team || []).length} member
-                  {(item.team || []).length === 1 ? "" : "s"}
+                  {visibleTeamCount} member
+                  {visibleTeamCount === 1 ? "" : "s"}
                 </span>
               </div>
               <button
