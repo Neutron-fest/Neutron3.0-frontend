@@ -801,7 +801,7 @@ export default function CompetitionsPage() {
                   slug={String(comp.id || comp._id || "")}
                   title={comp.title || comp.name || "Untitled Competition"}
                   description={comp.shortDescription || comp.description || ""}
-                  image={comp.posterPath || comp.bannerMediaPath || ""}
+                  image={comp.posterPath  || ""}
                   heightClass={"h-[750px] md:h-[900px]"}
                   delay={index}
                   category={comp.category || "Uncategorized"}
@@ -832,7 +832,7 @@ export default function CompetitionsPage() {
                   slug={String(comp.id || comp._id || "")}
                   title={comp.title || comp.name || "Untitled Competition"}
                   description={comp.shortDescription || comp.description || ""}
-                  image={comp.posterPath || comp.bannerMediaPath || ""}
+                  image={comp.posterPath || ""}
                   heightClass={"h-[750px] md:h-[900px]"}
                   delay={index}
                   category={comp.category || "Uncategorized"}

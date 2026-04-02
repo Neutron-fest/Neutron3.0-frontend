@@ -167,7 +167,6 @@ export default function CompetitionSlugPage({
   const normalizedCompetition = {
     ...competition,
     image:
-      competition.posterPath ||
       competition.bannerPath ||
       competition.bannerMediaPath ||
       "",
