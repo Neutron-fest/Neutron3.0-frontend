@@ -238,6 +238,8 @@ const toDateTimeLocal = (value: any) => toDateTimeLocalInput(value);
 
 const toIsoOrNull = (value: any) => toIsoFromDateTimeLocal(value);
 
+const getFormId = (form: any) => form?.id || form?._id || null;
+
 const createEmptyField = (index = 0): any => ({
   tempId: `new-${Date.now()}-${index}`,
   id: null,
@@ -1462,7 +1464,7 @@ export default function CompetitionFormsPage() {
       const existingForm = forms.find(
         (form) => form?.competitionId === preselectedCompetitionId,
       );
-      setActiveFormId(existingForm?.id || null);
+      setActiveFormId(getFormId(existingForm));
     }
 
     setBuilderOpen(true);
@@ -1569,7 +1571,7 @@ export default function CompetitionFormsPage() {
       ) : (
         <Box sx={{ display: "grid", gap: 2 }}>
           {forms.map((form) => (
-            <Box key={form.id} sx={boxPanelSx}>
+            <Box key={getFormId(form)} sx={boxPanelSx}>
               <Box
                 sx={{
                   display: "flex",
@@ -1610,14 +1612,17 @@ export default function CompetitionFormsPage() {
                 </Box>
 
                 <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
-                  <GhostBtn small onClick={() => setPreviewFormId(form.id)}>
+                  <GhostBtn
+                    small
+                    onClick={() => setPreviewFormId(getFormId(form))}
+                  >
                     <Eye size={14} />
                     Preview
                   </GhostBtn>
                   <GhostBtn
                     small
                     onClick={() => {
-                      setActiveFormId(form.id);
+                      setActiveFormId(getFormId(form));
                       setBuilderOpen(true);
                     }}
                   >
@@ -1661,18 +1666,32 @@ export default function CompetitionFormsPage() {
         open={Boolean(deleteTarget)}
         onClose={() => setDeleteTarget(null)}
         onConfirm={async () => {
-          if (!deleteTarget?.id) return;
-          const response = await deleteFormMutation.mutateAsync(
-            deleteTarget.id,
-          );
-          if (response?.pendingApproval) {
+          const formId = getFormId(deleteTarget);
+          if (!formId) {
+            enqueueSnackbar("Unable to delete form: missing form ID.", {
+              variant: "error",
+            });
+            return;
+          }
+
+          try {
+            const response = await deleteFormMutation.mutateAsync(formId);
             enqueueSnackbar(
               response?.message ||
-                "Form deletion submitted for SA approval successfully.",
-              { variant: "info" },
+                (response?.pendingApproval
+                  ? "Form deletion submitted for SA approval successfully."
+                  : "Form deleted successfully."),
+              { variant: response?.pendingApproval ? "info" : "success" },
+            );
+            setDeleteTarget(null);
+          } catch (error: any) {
+            enqueueSnackbar(
+              error?.response?.data?.message ||
+                error?.message ||
+                "Failed to delete form.",
+              { variant: "error" },
             );
           }
-          setDeleteTarget(null);
         }}
         loading={deleteFormMutation.isPending}
         title="Delete form?"

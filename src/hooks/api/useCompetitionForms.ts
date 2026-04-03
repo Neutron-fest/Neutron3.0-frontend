@@ -7,6 +7,7 @@ import { queryKeys } from "@/src/lib/queryKeys";
  */
 
 export interface FormField {
+  id?: string;
   _id: string;
   label: string;
   type: string;
@@ -16,6 +17,7 @@ export interface FormField {
 }
 
 export interface CompetitionForm {
+  id?: string;
   _id: string;
   title: string;
   fields?: FormField[];
@@ -38,8 +40,20 @@ const normalizeList = <T>(data: any): T[] =>
   (Array.isArray(data?.data) ? data.data : []) ||
   (Array.isArray(data) ? data : []);
 
-const normalizeOne = <T>(data: any): T | null =>
-  data?.data || data || null;
+const normalizeOne = <T>(data: any): T | null => data?.data || data || null;
+
+const normalizeField = (field: any): FormField => ({
+  ...(field || {}),
+  id: field?.id || field?._id,
+});
+
+const normalizeForm = (form: any): CompetitionForm => ({
+  ...(form || {}),
+  id: form?.id || form?._id,
+  fields: Array.isArray(form?.fields)
+    ? form.fields.map(normalizeField)
+    : form?.fields,
+});
 
 /**
  * Get all forms
@@ -49,7 +63,7 @@ export function useCompetitionForms(enabled: boolean = true) {
     queryKey: queryKeys.forms.list(),
     queryFn: async () => {
       const { data } = await apiClient.get<any>("/forms");
-      return normalizeList<CompetitionForm>(data);
+      return normalizeList<any>(data).map(normalizeForm);
     },
     enabled,
   });
@@ -58,15 +72,13 @@ export function useCompetitionForms(enabled: boolean = true) {
 /**
  * Get single form
  */
-export function useCompetitionForm(
-  formId?: string,
-  enabled: boolean = true
-) {
+export function useCompetitionForm(formId?: string, enabled: boolean = true) {
   return useQuery<CompetitionForm | null>({
     queryKey: queryKeys.forms.detail(formId ?? ""),
     queryFn: async () => {
       const { data } = await apiClient.get<any>(`/forms/${formId ?? ""}`);
-      return normalizeOne<CompetitionForm>(data);
+      const normalized = normalizeOne<any>(data);
+      return normalized ? normalizeForm(normalized) : null;
     },
     enabled: !!formId && enabled,
   });
@@ -85,10 +97,10 @@ export function useCreateCompetitionForm() {
   >({
     mutationFn: async (payload) => {
       const { data } = await apiClient.post("/forms", payload);
-      const normalized = normalizeOne<CompetitionForm>(data);
+      const normalized = normalizeOne<any>(data);
 
       return {
-        data: normalized as CompetitionForm,
+        data: normalizeForm(normalized) as CompetitionForm,
         pendingApproval: Boolean(data?.pendingApproval),
         message: data?.message,
       };
@@ -114,15 +126,12 @@ export function useUpdateCompetitionForm() {
     { formId: string } & Partial<CompetitionForm>
   >({
     mutationFn: async ({ formId, ...payload }) => {
-      const { data } = await apiClient.put(
-        `/forms/${formId}`,
-        payload
-      );
+      const { data } = await apiClient.put(`/forms/${formId}`, payload);
 
-      const normalized = normalizeOne<CompetitionForm>(data);
+      const normalized = normalizeOne<any>(data);
 
       return {
-        data: normalized as CompetitionForm,
+        data: normalizeForm(normalized) as CompetitionForm,
         pendingApproval: Boolean(data?.pendingApproval),
         message: data?.message,
       };
@@ -142,15 +151,9 @@ export function useUpdateCompetitionForm() {
 export function useDeleteCompetitionForm() {
   const queryClient = useQueryClient();
 
-  return useMutation<
-    FormResponseMeta<null>,
-    Error,
-    string
-  >({
+  return useMutation<FormResponseMeta<null>, Error, string>({
     mutationFn: async (formId) => {
-      const { data } = await apiClient.delete(
-        `/forms/${formId}`
-      );
+      const { data } = await apiClient.delete(`/forms/${formId}`);
 
       const normalized = normalizeOne<any>(data);
 
@@ -175,25 +178,23 @@ export function useDeleteCompetitionForm() {
 export function useCreateCompetitionFormField() {
   const queryClient = useQueryClient();
 
-  return useMutation<
-    FormField,
-    Error,
-    { formId: string } & Partial<FormField>
-  >({
-    mutationFn: async ({ formId, ...payload }) => {
-      const { data } = await apiClient.post(
-        `/forms/${formId}/fields`,
-        payload
-      );
-      return normalizeOne<FormField>(data) as FormField;
+  return useMutation<FormField, Error, { formId: string } & Partial<FormField>>(
+    {
+      mutationFn: async ({ formId, ...payload }) => {
+        const { data } = await apiClient.post(
+          `/forms/${formId}/fields`,
+          payload,
+        );
+        return normalizeField(normalizeOne<any>(data));
+      },
+      onSuccess: (_, variables) => {
+        queryClient.invalidateQueries({ queryKey: queryKeys.forms.all });
+        queryClient.invalidateQueries({
+          queryKey: queryKeys.forms.detail(variables.formId ?? ""),
+        });
+      },
     },
-    onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.forms.all });
-      queryClient.invalidateQueries({
-        queryKey: queryKeys.forms.detail(variables.formId ?? ""),
-      });
-    },
-  });
+  );
 }
 
 /**
@@ -210,9 +211,9 @@ export function useUpdateCompetitionFormField() {
     mutationFn: async ({ formId, fieldId, ...payload }) => {
       const { data } = await apiClient.put(
         `/forms/${formId}/fields/${fieldId}`,
-        payload
+        payload,
       );
-      return normalizeOne<FormField>(data) as FormField;
+      return normalizeField(normalizeOne<any>(data));
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: queryKeys.forms.all });
@@ -229,14 +230,10 @@ export function useUpdateCompetitionFormField() {
 export function useDeleteCompetitionFormField() {
   const queryClient = useQueryClient();
 
-  return useMutation<
-    null,
-    Error,
-    { formId: string; fieldId: string }
-  >({
+  return useMutation<null, Error, { formId: string; fieldId: string }>({
     mutationFn: async ({ formId, fieldId }) => {
       const { data } = await apiClient.delete(
-        `/forms/${formId}/fields/${fieldId}`
+        `/forms/${formId}/fields/${fieldId}`,
       );
       return normalizeOne<null>(data);
     },
@@ -263,9 +260,9 @@ export function useReorderCompetitionFormFields() {
     mutationFn: async ({ formId, fieldIds }) => {
       const { data } = await apiClient.patch(
         `/forms/${formId}/fields/reorder`,
-        { fieldIds }
+        { fieldIds },
       );
-      return normalizeOne<CompetitionForm>(data) as CompetitionForm;
+      return normalizeForm(normalizeOne<any>(data)) as CompetitionForm;
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: queryKeys.forms.all });
