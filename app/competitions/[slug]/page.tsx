@@ -12,16 +12,34 @@ import { SectionTransition } from "@/components/section-transition";
 import { useCompetition } from "@/hooks/api/useCompetitions";
 
 const buildTeamSizeLabel = (competition: any): string => {
-  if (competition?.minTeamSize && competition?.maxTeamSize) {
-    return `${competition.minTeamSize}-${competition.maxTeamSize} Members`;
+  const type = String(competition?.type || "").toUpperCase();
+  if (type === "SOLO") return "Solo";
+
+  const minTeamSize = Number(competition?.minTeamSize);
+  const maxTeamSize = Number(competition?.maxTeamSize);
+
+  if (
+    Number.isFinite(minTeamSize) &&
+    Number.isFinite(maxTeamSize) &&
+    minTeamSize > 0 &&
+    maxTeamSize > 0
+  ) {
+    if (minTeamSize === 1 && maxTeamSize === 1) return "Solo";
+    if (minTeamSize === maxTeamSize) {
+      return `${maxTeamSize} Member${maxTeamSize > 1 ? "s" : ""}`;
+    }
+    return `${minTeamSize}-${maxTeamSize} Members`;
   }
-  if (competition?.maxTeamSize) {
-    return `${competition.maxTeamSize} Members`;
+
+  if (Number.isFinite(maxTeamSize) && maxTeamSize > 0) {
+    return `${maxTeamSize} Member${maxTeamSize > 1 ? "s" : ""}`;
   }
+
   if (competition?.teamSize) {
     return String(competition.teamSize);
   }
-  return "";
+
+  return type === "TEAM" ? "Team" : "Solo";
 };
 
 const formatDateTime = (value: any): string => {
@@ -178,7 +196,9 @@ const normalizeRulesRichText = (rulesRichText: any): string => {
 
     const headingMatch = line.match(/^(#{1,6})\s+(.+)$/);
     if (headingMatch) {
-      normalizedLines.push(`${headingMatch[1]} ${normalizeInline(headingMatch[2])}`);
+      normalizedLines.push(
+        `${headingMatch[1]} ${normalizeInline(headingMatch[2])}`,
+      );
       continue;
     }
 
@@ -205,7 +225,10 @@ const normalizeRulesRichText = (rulesRichText: any): string => {
 
   flushCodeBlock();
 
-  return normalizedLines.join("\n").replace(/\n{3,}/g, "\n\n").trim();
+  return normalizedLines
+    .join("\n")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
 };
 
 export default function CompetitionSlugPage({
@@ -268,10 +291,7 @@ export default function CompetitionSlugPage({
 
   const normalizedCompetition = {
     ...competition,
-    image:
-      competition.bannerPath ||
-      competition.bannerMediaPath ||
-      "",
+    image: competition.bannerPath || competition.bannerMediaPath || "",
     title: toDisplayText(competition.title || competition.name),
     teamSize: buildTeamSizeLabel(competition),
     about:
@@ -301,7 +321,6 @@ export default function CompetitionSlugPage({
       <ParallaxBackground imageUrl={normalizedCompetition.image} />
       <AudioController />
       <ScrollProgressIndicator />
-   
 
       <ReturnButton href="/planets/jupiter" />
 

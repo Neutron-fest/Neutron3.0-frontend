@@ -15,6 +15,12 @@ import {
 } from "@/src/hooks/api/usePublicRegistration";
 
 function parseTeamSize(sizeStr: string): number[] {
+  const normalized = String(sizeStr || "")
+    .trim()
+    .toLowerCase();
+  if (!normalized) return [1];
+  if (normalized === "solo" || normalized === "individual") return [1];
+
   const match = sizeStr.match(/(\d+)(?:\s*-\s*(\d+))?/);
   if (!match) return [1];
 
@@ -90,11 +96,13 @@ export default function CompetitionRegistration({
   competitionId,
   competitionTitle,
   teamSize,
+  competitionType,
   unstopLink,
 }: {
   competitionId: string;
   competitionTitle: string;
   teamSize: string;
+  competitionType?: string | null;
   unstopLink?: string | null;
 }) {
   const pathname = usePathname();
@@ -115,8 +123,14 @@ export default function CompetitionRegistration({
     Record<string, any>
   >({});
 
+  const normalizedCompetitionType = String(competitionType || "").toUpperCase();
   const teamOptions = useMemo(() => parseTeamSize(teamSize), [teamSize]);
-  const isSolo = teamOptions.length === 1 && teamOptions[0] === 1;
+  const isSolo =
+    normalizedCompetitionType === "SOLO"
+      ? true
+      : normalizedCompetitionType === "TEAM"
+        ? false
+        : teamOptions.length === 1 && teamOptions[0] === 1;
   const selectedTeamSize = Number(
     teamDetails.selectedTeamSize || teamOptions[0] || 1,
   );
@@ -477,7 +491,7 @@ export default function CompetitionRegistration({
             type="button"
             disabled={isFormMissing || formFieldsQuery.isError}
             onClick={() => {
-              if (isSolo || isMemberMode) {
+              if (isMemberMode) {
                 setStep("form");
                 return;
               }
@@ -546,20 +560,21 @@ export default function CompetitionRegistration({
             </div>
           ) : null}
 
-          {!isSolo && referralCode ? (
-            <div className="flex flex-col space-y-2">
-              <label className="text-xs uppercase tracking-wider text-white/50 font-medium ml-1">
-                Referral Code
-              </label>
-              <input
-                value={referralCode}
-                readOnly
-                className="bg-black border border-white/10 rounded-lg px-4 py-3 text-white/70 placeholder-white/20 focus:outline-hidden focus:border-white/40"
-              />
-            </div>
-          ) : null}
+          <div className="flex flex-col space-y-2">
+            <label className="text-xs uppercase tracking-wider text-white/50 font-medium ml-1">
+              Referral Code (Optional)
+            </label>
+            <input
+              value={referralCode}
+              onChange={(event) =>
+                setReferralCode(event.target.value.toUpperCase())
+              }
+              placeholder="Enter referral code"
+              className="bg-black border border-white/10 rounded-lg px-4 py-3 text-white placeholder-white/30 focus:outline-hidden focus:border-white/40"
+            />
+          </div>
 
-          {teamOptions.length > 1 ? (
+          {!isSolo && teamOptions.length > 1 ? (
             <div className="flex flex-col space-y-2">
               <label className="text-xs uppercase tracking-wider text-white/50 font-medium ml-1">
                 Team Size

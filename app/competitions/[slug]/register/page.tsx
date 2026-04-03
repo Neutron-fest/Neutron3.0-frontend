@@ -7,16 +7,34 @@ import { useCompetition } from "@/hooks/api/useCompetitions";
 import { ReturnButton } from "@/components/return-button";
 
 const buildTeamSizeLabel = (competition: any): string => {
-  if (competition?.minTeamSize && competition?.maxTeamSize) {
-    return `${competition.minTeamSize}-${competition.maxTeamSize} Members`;
+  const type = String(competition?.type || "").toUpperCase();
+  if (type === "SOLO") return "Solo";
+
+  const minTeamSize = Number(competition?.minTeamSize);
+  const maxTeamSize = Number(competition?.maxTeamSize);
+
+  if (
+    Number.isFinite(minTeamSize) &&
+    Number.isFinite(maxTeamSize) &&
+    minTeamSize > 0 &&
+    maxTeamSize > 0
+  ) {
+    if (minTeamSize === 1 && maxTeamSize === 1) return "Solo";
+    if (minTeamSize === maxTeamSize) {
+      return `${maxTeamSize} Member${maxTeamSize > 1 ? "s" : ""}`;
+    }
+    return `${minTeamSize}-${maxTeamSize} Members`;
   }
-  if (competition?.maxTeamSize) {
-    return `${competition.maxTeamSize} Members`;
+
+  if (Number.isFinite(maxTeamSize) && maxTeamSize > 0) {
+    return `${maxTeamSize} Member${maxTeamSize > 1 ? "s" : ""}`;
   }
+
   if (competition?.teamSize) {
     return String(competition.teamSize);
   }
-  return "1 Member";
+
+  return type === "TEAM" ? "Team" : "Solo";
 };
 
 export default function CompetitionRegisterPage({
@@ -95,6 +113,7 @@ export default function CompetitionRegisterPage({
             competition.title || competition.name || "Competition",
           )}
           teamSize={buildTeamSizeLabel(competition)}
+          competitionType={competition.type}
           unstopLink={competitionUnstopLink}
         />
       </div>

@@ -195,7 +195,7 @@ function FlipCard({
             <h3 className="text-sm font-mono uppercase tracking-[0.2em] mb-3 opacity-60">
               {title}
             </h3>
-            <p className="text-4xl lg:text-4xl font-semibold  tracking-tight leading-none wrap-break-word">
+            <p className="text-4xl lg:text-4xl font-semibold tracking-tight leading-none wrap-break-word">
               {value}
             </p>
           </div>
