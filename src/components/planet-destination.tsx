@@ -42,7 +42,16 @@ export default function PlanetDestination({ planet }: { planet: PlanetRecord }) 
             style={{
               height: "min(46vw,21rem)",
               width: "min(46vw,21rem)",
-              background: `radial-gradient(circle at 34% 30%,rgba(255,255,255,0.82),transparent 22%),radial-gradient(circle at 68% 72%,rgba(0,0,0,0.22),transparent 26%),linear-gradient(135deg,rgba(255,255,255,0.1),rgba(255,255,255,0.28))`,
+              background: [
+                `radial-gradient(circle at 34% 30%,rgba(255,255,255,0.82),transparent 22%)`,
+                `radial-gradient(circle at 68% 72%,rgba(0,0,0,0.22),transparent 26%)`,
+                planet.texture ? `url(${planet.texture})` : null,
+                `linear-gradient(135deg,rgba(255,255,255,0.1),rgba(255,255,255,0.28))`,
+              ]
+                .filter(Boolean)
+                .join(","),
+              backgroundSize: "cover",
+              backgroundPosition: "center",
               boxShadow: `inset -34px -28px 60px rgba(0,0,0,0.24),0 0 80px rgba(255,255,255,0.05)`,
             } as CSSProperties}
           />

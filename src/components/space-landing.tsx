@@ -874,11 +874,11 @@ export default function SpaceLanding() {
               transition={{ duration: 1.2 }}
               style={{
                 backgroundImage:
-                  "url('https://res.cloudinary.com/dpod2sj9t/image/upload/v1774685137/BG_l4fb9q.jpg')",
+                  "url('https://ik.imagekit.io/yatharth/BG-DE.png')",
                 backgroundSize: "cover",
                 backgroundPosition: "center",
                 backgroundRepeat: "no-repeat",
-                filter: "brightness(0.5) contrast(1.4)",
+                filter: "brightness(0.5) contrast(1.1)",
               }}
             />
           )}
@@ -1567,19 +1567,14 @@ async function createScene({
       target.rotation.y = planet.rotationOffset ?? 0;
     } else {
       const obj = await loadOBJ(planet.model);
-      const texture = texLoader.load(planet.texture ?? "");
-      texture.colorSpace = THREE.SRGBColorSpace;
-      textures.push(texture);
-      obj.traverse((child: THREE.Object3D) => {
-        const mesh = child as THREE.Mesh;
-        if (mesh.isMesh)
-          mesh.material = new THREE.MeshStandardMaterial({
-            map: texture,
-            roughness: 1.0,
-            metalness: 0.0,
-          });
-      });
       target = normalizeModel(obj, planet.size);
+    }
+
+    let planetTexture: THREE.Texture | null = null;
+    if (planet.texture) {
+      planetTexture = texLoader.load(planet.texture);
+      planetTexture.colorSpace = THREE.SRGBColorSpace;
+      textures.push(planetTexture);
     }
 
     target.traverse((child: THREE.Object3D) => {
@@ -1587,7 +1582,13 @@ async function createScene({
       if (mesh.isMesh) {
         mesh.userData.planetSlug = planet.slug;
         interactiveTargets.push(mesh);
-        if (mesh.material instanceof THREE.MeshStandardMaterial) {
+        if (planetTexture) {
+          mesh.material = new THREE.MeshStandardMaterial({
+            map: planetTexture,
+            roughness: 1.0,
+            metalness: 0.0,
+          });
+        } else if (mesh.material instanceof THREE.MeshStandardMaterial) {
           mesh.material.roughness = 1.0;
           mesh.material.metalness = 0.0;
         }
