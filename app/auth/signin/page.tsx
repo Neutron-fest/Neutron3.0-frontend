@@ -48,10 +48,11 @@ function SignInContent() {
   const router = useRouter();
   const { login, logout, checkAuth, user, loading: authLoading } = useAuth();
   const searchParams = useSearchParams();
-  const callbackUrl = searchParams.get("callbackUrl") || "/";
+  const callbackUrl = searchParams.get("callbackUrl") || "/profile";
   const authStatus = searchParams.get("auth");
   const authReason = searchParams.get("reason");
   const forceLogin = searchParams.get("forceLogin") === "1";
+  const redirectTarget = forceLogin ? callbackUrl : "/profile";
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -68,6 +69,7 @@ function SignInContent() {
   useEffect(() => {
     console.info("[auth/signin] page state", {
       callbackUrl,
+      redirectTarget,
       authStatus,
       forceLogin,
       authLoading,
@@ -79,8 +81,9 @@ function SignInContent() {
     if (!forceLogin && !authLoading && user) {
       console.info("[auth/signin] existing session detected, redirecting", {
         callbackUrl,
+        redirectTarget,
       });
-      safeRedirectTo(callbackUrl, router);
+      safeRedirectTo(redirectTarget, router);
     }
   }, [forceLogin, authLoading, user, callbackUrl, router]);
 
@@ -120,6 +123,7 @@ function SignInContent() {
     if (authStatus === "success") {
       console.info("[auth/signin] auth status success, refreshing session", {
         callbackUrl,
+        redirectTarget,
         forceLogin,
       });
       (async () => {
@@ -132,6 +136,7 @@ function SignInContent() {
           console.info("[auth/signin] auth refresh completed", {
             hasUser: Boolean(refreshedUser),
             callbackUrl,
+            redirectTarget,
           });
 
           if (!refreshedUser) {
@@ -144,6 +149,7 @@ function SignInContent() {
           console.error("[auth/signin] auth refresh failed", {
             error,
             callbackUrl,
+            redirectTarget,
           });
           setLoginError("Google sign-in failed. Please try again.");
         }
@@ -163,6 +169,7 @@ function SignInContent() {
 
     console.info("[auth/signin] email login submit", {
       callbackUrl,
+      redirectTarget,
       email: email.trim().toLowerCase(),
       forceLogin,
     });
@@ -174,26 +181,29 @@ function SignInContent() {
         email: email.trim(),
         password,
       });
-      const user = normalizeAuthResponseUser(payload);
+      const loggedInUser = normalizeAuthResponseUser(payload);
+
+      if (!payload?.success || !loggedInUser?.id) {
+        throw new Error(payload?.error || "Invalid email or password.");
+      }
 
       console.info("[auth/signin] email login response", {
-        success: Boolean(user),
+        success: Boolean(loggedInUser),
         callbackUrl,
-        userId: user?.id,
-        userRole: user?.role,
+        redirectTarget,
+        userId: loggedInUser?.id,
+        userRole: loggedInUser?.role,
       });
-
-      if (!user) {
-        throw new Error("Login failed. Please try again.");
-      }
 
       console.info("[auth/signin] redirecting after email login", {
         callbackUrl,
+        redirectTarget,
       });
-      safeRedirectTo(callbackUrl, router);
+      safeRedirectTo(redirectTarget, router);
     } catch (error: any) {
       console.error("[auth/signin] email login failed", {
         callbackUrl,
+        redirectTarget,
         error,
       });
       const message =

@@ -2568,6 +2568,7 @@ export default function ProfilePage() {
     (authMeQuery.data as any)?.user ||
     authMeQuery.data) as Record<string, any> | undefined;
   const userId = (authUser?.id || authUser?._id || "") as string;
+  const isSuperAdmin = String(authUser?.role || "").toUpperCase() === "SA";
   const campusAmbassador = (authUser?.campusAmbassador || null) as Record<
     string,
     any
@@ -2938,6 +2939,14 @@ export default function ProfilePage() {
           </button>
 
           <div className="hidden md:flex items-center gap-2.5">
+            {isSuperAdmin ? (
+              <Link
+                href="/admin/sa/users"
+                className="px-4 py-2 rounded-xl border border-white/10 bg-white/5 text-[10px] font-extrabold uppercase tracking-widest text-white/70 hover:text-white hover:bg-white/10 transition-all"
+              >
+                Admin Users
+              </Link>
+            ) : null}
             <div className="w-7 h-7 rounded-lg overflow-hidden border border-white/15">
               <img
                 src="/images/bg.jpeg"
@@ -2969,6 +2978,18 @@ export default function ProfilePage() {
               />
 
               <div className="mt-8 pt-6 border-t border-white/10 flex flex-col gap-3">
+                {isSuperAdmin ? (
+                  <Link
+                    href="/admin/sa/user"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="flex items-center justify-between p-4 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-colors"
+                  >
+                    <span className="text-sm font-medium text-white/80">
+                      Admin Users
+                    </span>
+                    <span className="text-white/40">→</span>
+                  </Link>
+                ) : null}
                 <Link
                   href="/competitions"
                   onClick={() => setMobileMenuOpen(false)}

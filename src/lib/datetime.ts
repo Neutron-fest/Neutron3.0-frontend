@@ -27,7 +27,7 @@ export const normalizeDateTimeFieldsToIso = <T extends Record<string, any>>(
   payload: T,
   fields: string[],
 ): T => {
-  const next = { ...payload };
+  const next: Record<string, any> = { ...payload };
 
   for (const field of fields) {
     if (
@@ -44,5 +44,5 @@ export const normalizeDateTimeFieldsToIso = <T extends Record<string, any>>(
     }
   }
 
-  return next;
+  return next as T;
 };
