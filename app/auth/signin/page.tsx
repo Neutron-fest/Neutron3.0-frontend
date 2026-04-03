@@ -6,6 +6,7 @@ import AuthLayout from "@/components/auth-layout";
 import { AuthInput, AuthButton } from "@/components/auth-components";
 import { useRouter, useSearchParams } from "next/navigation";
 import { AuthModal } from "@/components/auth-modal";
+import apiClient from "@/lib/axios";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRequestPasswordReset } from "@/src/hooks/api/useAuth";
 
@@ -72,47 +73,23 @@ function SignInContent() {
       authStatus,
       forceLogin,
       authLoading,
-      hasContextUser: Boolean(user),
+      hasAuthUser: Boolean(user),
     });
-  }, [
-    callbackUrl,
-    redirectTarget,
-    authStatus,
-    forceLogin,
-    authLoading,
-    user,
-  ]);
+  }, [callbackUrl, authStatus, forceLogin, authLoading, user]);
 
   useEffect(() => {
-    if (forceLogin) return;
-    if (authLoading) return;
-
-    const hasValidSession = Boolean(user);
-    if (!hasValidSession) return;
-
-    if (!redirectTarget || redirectTarget.startsWith("/auth/signin")) {
-      safeRedirectTo("/profile", router);
-      return;
-    }
-
-    if (hasValidSession) {
+    if (!forceLogin && !authLoading && user) {
       console.info("[auth/signin] existing session detected, redirecting", {
         callbackUrl,
         redirectTarget,
       });
       safeRedirectTo(redirectTarget, router);
     }
-  }, [
-    forceLogin,
-    authLoading,
-    user,
-    callbackUrl,
-    redirectTarget,
-    router,
-  ]);
+  }, [forceLogin, authLoading, user, callbackUrl, router]);
 
   useEffect(() => {
     if (!forceLogin) return;
+    if (authLoading) return;
     if (!user) return;
     if (isForceLogoutPending) return;
 
@@ -126,12 +103,7 @@ function SignInContent() {
     };
 
     forceSignOut();
-  }, [
-    forceLogin,
-    user,
-    isForceLogoutPending,
-    logout,
-  ]);
+  }, [forceLogin, authLoading, user, isForceLogoutPending, logout]);
 
   useEffect(() => {
     if (authStatus === "failed") {
@@ -157,32 +129,33 @@ function SignInContent() {
       (async () => {
         try {
           await checkAuth();
+          const meResponse = await apiClient.get("/auth/me");
+          const refreshedUser =
+            meResponse?.data?.data?.user || meResponse?.data?.user || null;
+
           console.info("[auth/signin] auth refresh completed", {
-            hasUser: Boolean(user),
+            hasUser: Boolean(refreshedUser),
             callbackUrl,
             redirectTarget,
           });
 
-          // OAuth success callback indicates authenticated state; proceed.
-          safeRedirectTo(redirectTarget, router);
+          if (!refreshedUser) {
+            setLoginError("Google sign-in did not complete. Please try again.");
+            return;
+          }
+
+          safeRedirectTo(callbackUrl, router);
         } catch (error) {
           console.error("[auth/signin] auth refresh failed", {
             error,
             callbackUrl,
             redirectTarget,
           });
+          setLoginError("Google sign-in failed. Please try again.");
         }
       })();
     }
-  }, [
-    authReason,
-    authStatus,
-    checkAuth,
-    callbackUrl,
-    redirectTarget,
-    router,
-    forceLogin,
-  ]);
+  }, [authReason, authStatus, checkAuth, callbackUrl, forceLogin, router]);
 
   const isRequestingReset = requestResetMutation.isPending;
   const submitDisabled = useMemo(
