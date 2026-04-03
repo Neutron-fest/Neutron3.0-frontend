@@ -624,6 +624,18 @@ export function validateVenueScopeOnClient(values: any, venueCatalog: any) {
     return [];
   }
 
+  type CatalogSubVenue = {
+    name?: string;
+    floor?: string | null;
+    [key: string]: any;
+  };
+
+  type CatalogVenue = {
+    venueName: string;
+    subVenues: CatalogSubVenue[];
+    subVenueMap: Map<string, CatalogSubVenue>;
+  };
+
   const normalize = (value: any) => {
     if (value === undefined || value === null) return "";
     return String(value).trim();
@@ -634,21 +646,32 @@ export function validateVenueScopeOnClient(values: any, venueCatalog: any) {
   const venueFloor = normalize(values?.venueFloor);
   const subVenues = Array.isArray(values?.subVenues) ? values.subVenues : [];
 
-  const venueMap = new Map(
-    venueCatalog.venues
-      .filter((venue: any) => normalize(venue?.venueName))
-      .map((venue: any) => [
-        normalize(venue.venueName),
+  const venueEntries: Array<[string, CatalogVenue]> = venueCatalog.venues
+    .filter((venue: any) => normalize(venue?.venueName))
+    .map((venue: any) => {
+      const normalizedVenueName = normalize(venue.venueName);
+      const subVenues: CatalogSubVenue[] = Array.isArray(venue?.subVenues)
+        ? venue.subVenues
+        : [];
+
+      const subVenueEntries: Array<[string, CatalogSubVenue]> = subVenues
+        .filter((subVenue: any) => normalize(subVenue?.name))
+        .map((subVenue: CatalogSubVenue) => [
+          normalize(subVenue.name),
+          subVenue,
+        ]);
+
+      return [
+        normalizedVenueName,
         {
           ...venue,
-          subVenueMap: new Map(
-            (Array.isArray(venue?.subVenues) ? venue.subVenues : [])
-              .filter((subVenue: any) => normalize(subVenue?.name))
-              .map((subVenue: any) => [normalize(subVenue.name), subVenue]),
-          ),
+          subVenues,
+          subVenueMap: new Map<string, CatalogSubVenue>(subVenueEntries),
         },
-      ]),
-  );
+      ];
+    });
+
+  const venueMap = new Map<string, CatalogVenue>(venueEntries);
 
   const errors: Array<{ field: string; message: string }> = [];
 

@@ -1,11 +1,7 @@
 {
   "compilerOptions": {
     "target": "ES2017",
-    "lib": [
-      "dom",
-      "dom.iterable",
-      "esnext"
-    ],
+    "lib": ["dom", "dom.iterable", "esnext"],
     "allowJs": true,
     "skipLibCheck": true,
     "strict": true,
@@ -23,24 +19,17 @@
       }
     ],
     "paths": {
-      "@/*": [
-        "./*",
-        "./src/*"
-      ]
+      "@/*": ["./*", "./src/*"]
     }
   },
   "include": [
     "next-env.d.ts",
     "**/*.ts",
     "**/*.tsx",
-    "**/*.jsx", // Added support for .jsx files
+    "**/*.jsx",
     "**/*.mts",
     "components/withAuth.tsx",
-    "hooks/useUsers.tsx",
-    ".next/types/**/*.ts",
-    ".next/dev/types/**/*.ts"
+    "hooks/useUsers.tsx"
   ],
-  "exclude": [
-    "node_modules"
-  ]
+  "exclude": ["node_modules"]
 }

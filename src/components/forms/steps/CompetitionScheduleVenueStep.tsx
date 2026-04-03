@@ -21,17 +21,21 @@ export default function CompetitionScheduleVenueStep({
   const selectedVenueRoom = useWatch({ control, name: "venueRoom" });
   const selectedVenueFloor = useWatch({ control, name: "venueFloor" });
 
-  const venueNameOptions = useMemo(
-    () =>
-      Array.isArray(venueCatalog?.venueNames)
-        ? venueCatalog.venueNames
-        : Array.isArray(venueCatalog?.venues)
-          ? venueCatalog.venues
-              .map((venue: any) => venue?.venueName)
-              .filter(Boolean)
-          : [],
-    [venueCatalog],
-  );
+  const venueNameOptions: string[] = useMemo(() => {
+    if (Array.isArray(venueCatalog?.venueNames)) {
+      return venueCatalog.venueNames
+        .map((name: any) => String(name || "").trim())
+        .filter(Boolean);
+    }
+
+    if (Array.isArray(venueCatalog?.venues)) {
+      return venueCatalog.venues
+        .map((venue: any) => String(venue?.venueName || "").trim())
+        .filter(Boolean);
+    }
+
+    return [];
+  }, [venueCatalog]);
 
   const selectedVenue = useMemo(() => {
     if (!Array.isArray(venueCatalog?.venues) || !selectedVenueName) return null;
@@ -42,7 +46,7 @@ export default function CompetitionScheduleVenueStep({
     );
   }, [venueCatalog, selectedVenueName]);
 
-  const venueRoomOptions = useMemo(
+  const venueRoomOptions: string[] = useMemo(
     () =>
       Array.isArray(selectedVenue?.subVenues)
         ? selectedVenue.subVenues
@@ -62,7 +66,7 @@ export default function CompetitionScheduleVenueStep({
     return map;
   }, [selectedVenue]);
 
-  const venueFloorOptions = useMemo(() => {
+  const venueFloorOptions: string[] = useMemo(() => {
     if (!selectedVenue) return [];
 
     if (selectedVenueRoom && subVenueMetaMap.has(selectedVenueRoom)) {
@@ -73,7 +77,7 @@ export default function CompetitionScheduleVenueStep({
     }
 
     return Array.from(
-      new Set(
+      new Set<string>(
         (selectedVenue.subVenues || [])
           .map((subVenue: any) => String(subVenue?.floor || "").trim())
           .filter(Boolean),
