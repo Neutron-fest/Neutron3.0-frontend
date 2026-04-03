@@ -29,6 +29,7 @@ export const STEP_FIELDS = [
   ["rulesRichText"],
   [
     "registrationFee",
+    "unstopLink",
     "maxRegistrations",
     "maxTeamsPerCollege",
     "minTeamSize",
@@ -210,6 +211,10 @@ export const competitionSchema = z
     registrationFee: z.preprocess(
       toMoneyOrZero,
       z.number().min(0, "Registration fee cannot be negative"),
+    ),
+    unstopLink: z.preprocess(
+      trimOrUndefined,
+      z.string().max(500, "Unstop link is too long").optional(),
     ),
     maxRegistrations: z.preprocess(
       toIntegerOrUndefined,
@@ -463,6 +468,7 @@ export const DEFAULT_VALUES = {
   subVenues: [],
   rulesRichText: "",
   registrationFee: 0,
+  unstopLink: "",
   maxRegistrations: "",
   maxTeamsPerCollege: "",
   minTeamSize: "",
@@ -504,6 +510,7 @@ export function getEditDefaults(competition: any = {}) {
       : [],
     rulesRichText: competition.rulesRichText ?? "",
     registrationFee: competition.registrationFee ?? 0,
+    unstopLink: competition.unstopLink ?? "",
     maxRegistrations: competition.maxRegistrations ?? "",
     maxTeamsPerCollege: competition.maxTeamsPerCollege ?? "",
     minTeamSize: competition.minTeamSize ?? "",
@@ -655,6 +662,7 @@ export function buildCompetitionPayloadFormData(
 
   const registrationFee = toMoneyOrZero(values.registrationFee);
   formData.append("registrationFee", String(registrationFee));
+  append("unstopLink", trimOrUndefined(values.unstopLink));
 
   const maxRegistrations = toIntegerOrUndefined(values.maxRegistrations);
   if (maxRegistrations !== undefined) {

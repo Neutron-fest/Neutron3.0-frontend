@@ -734,6 +734,7 @@ interface FormState {
   registrationDeadline: string | null;
   registrationsOpen: boolean;
   registrationFee: number | null;
+  unstopLink: string;
   maxRegistrations: number | null;
   requiresApproval: boolean;
   isPaid: boolean;
@@ -784,6 +785,7 @@ function ProposalModal({ open, onClose, competition }: ProposalModalProps) {
         registrationDeadline: toDateTimeLocal(competition.registrationDeadline),
         registrationsOpen: !!competition.registrationsOpen,
         registrationFee: competition.registrationFee ?? 0,
+        unstopLink: competition.unstopLink || "",
         maxRegistrations: competition.maxRegistrations ?? null,
         requiresApproval: !!competition.requiresApproval,
         isPaid: !!competition.isPaid,
@@ -1119,6 +1121,12 @@ function ProposalModal({ open, onClose, competition }: ProposalModalProps) {
             value={form.registrationFee}
             onChange={set("registrationFee")}
             min={0}
+          />
+          <DarkInput
+            label="Unstop Link (Optional)"
+            value={form.unstopLink}
+            onChange={set("unstopLink")}
+            placeholder="https://unstop.com/..."
           />
         </Box>
         <Box

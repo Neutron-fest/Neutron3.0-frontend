@@ -75,6 +75,8 @@ export default function CompetitionRegisterPage({
   }
 
   const competitionId = String(competition.id || competition._id || slug);
+  const competitionUnstopLink =
+    competition.unstopLink || competition.unstop_link || null;
 
   return (
     <div className="min-h-screen bg-[#030303] text-white px-6 py-16">
@@ -93,6 +95,7 @@ export default function CompetitionRegisterPage({
             competition.title || competition.name || "Competition",
           )}
           teamSize={buildTeamSizeLabel(competition)}
+          unstopLink={competitionUnstopLink}
         />
       </div>
     </div>

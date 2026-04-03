@@ -66,6 +66,7 @@ const BACKEND_FIELD_TOKEN_TO_FORM_FIELD: any = {
   VENUEFLOOR: "venueFloor",
   SUBVENUE: "subVenues",
   REGISTRATIONFEE: "registrationFee",
+  UNSTOPLINK: "unstopLink",
   MAXREGISTRATIONS: "maxRegistrations",
   MAXTEAMSPERCOLLEGE: "maxTeamsPerCollege",
   MAXTEAMSIZE: "maxTeamSize",
@@ -177,6 +178,7 @@ const FIELD_LABELS: any = {
   subVenues: "Sub Venues",
   rulesRichText: "Rules",
   registrationFee: "Registration Fee",
+  unstopLink: "Unstop Link",
   maxRegistrations: "Max Registrations",
   maxTeamsPerCollege: "Max Teams Per College",
   minTeamSize: "Min Team Size",
@@ -610,10 +612,10 @@ export default function CompetitionFormModal({
       }
       enqueueSnackbar(
         mapped?.message ||
-        error?.response?.data?.message ||
-        (isEdit
-          ? "Failed to update competition"
-          : "Failed to create competition"),
+          error?.response?.data?.message ||
+          (isEdit
+            ? "Failed to update competition"
+            : "Failed to create competition"),
         { variant: "error" },
       );
     };
@@ -626,7 +628,7 @@ export default function CompetitionFormModal({
             enqueueSnackbar(
               response?.pendingApproval
                 ? response?.message ||
-                "Competition change submitted for SA approval."
+                    "Competition change submitted for SA approval."
                 : "Competition updated successfully",
               {
                 variant: response?.pendingApproval ? "info" : "success",
@@ -646,7 +648,7 @@ export default function CompetitionFormModal({
         enqueueSnackbar(
           response?.pendingApproval
             ? response?.message ||
-            "Competition creation submitted for SA approval."
+                "Competition creation submitted for SA approval."
             : "Competition created successfully",
           {
             variant: response?.pendingApproval ? "info" : "success",
@@ -762,9 +764,10 @@ export default function CompetitionFormModal({
         onSubmit={(e) => e.preventDefault()}
         sx={{ display: "flex", flexDirection: "column", flex: 1, minHeight: 0 }}
       >
-        <Box 
-        data-lenis-prevent
-        sx={{ px: 4, py: 3, flex: 1, minHeight: 0, overflowY: "auto" }}>
+        <Box
+          data-lenis-prevent
+          sx={{ px: 4, py: 3, flex: 1, minHeight: 0, overflowY: "auto" }}
+        >
           {/* Error banner */}
           <StepErrorBanner messages={currentStepErrors} />
 

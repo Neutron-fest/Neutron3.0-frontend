@@ -2158,15 +2158,19 @@ function InboxPanel({
 function SidebarNav({
   active,
   setActive,
+  showCampusAmbassador = false,
 }: {
   active: any;
   setActive: (v: any) => void;
+  showCampusAmbassador?: boolean;
 }) {
   const items = [
     { id: "profile", label: "Profile", icon: User },
     { id: "competitions", label: "Competitions", icon: Award },
     { id: "events", label: "Events", icon: Zap },
-    { id: "campus-ambassador", label: "Campus Ambassador", icon: Star },
+    ...(showCampusAmbassador
+      ? [{ id: "campus-ambassador", label: "Campus Ambassador", icon: Star }]
+      : []),
     { id: "inbox", label: "Inbox", icon: Mail },
   ];
 
@@ -2350,6 +2354,16 @@ export default function ProfileMobPage() {
     string,
     any
   > | null;
+  const isCampusAmbassador =
+    Boolean(campusAmbassador) ||
+    authUser?.role === "CA" ||
+    authUser?.isCa === true;
+
+  useEffect(() => {
+    if (!isCampusAmbassador && active === "campus-ambassador") {
+      setActive("profile");
+    }
+  }, [active, isCampusAmbassador]);
 
   useEffect(() => {
     if (!authUser) return;
@@ -2695,6 +2709,7 @@ export default function ProfileMobPage() {
                   setActive(v);
                   setMobileMenuOpen(false);
                 }}
+                showCampusAmbassador={isCampusAmbassador}
               />
 
               <div className="mt-8 pt-6 border-t border-white/10 flex flex-col gap-3">
@@ -2746,7 +2761,11 @@ export default function ProfileMobPage() {
               </div>
             </div>
 
-            <SidebarNav active={active} setActive={setActive} />
+            <SidebarNav
+              active={active}
+              setActive={setActive}
+              showCampusAmbassador={isCampusAmbassador}
+            />
 
             <div className="mt-auto flex flex-col gap-1.5 pt-6 border-t border-white/6">
               <button

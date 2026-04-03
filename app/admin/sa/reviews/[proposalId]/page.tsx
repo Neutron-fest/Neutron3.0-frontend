@@ -26,9 +26,27 @@ import { LoadingState } from "@/src/components/LoadingState";
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
 const STATUS_CONFIG: any = {
-  PENDING: { label: "Pending", bg: "rgba(234,179,8,0.1)", text: "#fbbf24", border: "rgba(234,179,8,0.2)", icon: Clock },
-  APPROVED: { label: "Approved", bg: "rgba(34,197,94,0.1)", text: "#4ade80", border: "rgba(34,197,94,0.2)", icon: CheckCircle },
-  REJECTED: { label: "Rejected", bg: "rgba(239,68,68,0.1)", text: "#f87171", border: "rgba(239,68,68,0.2)", icon: XCircle },
+  PENDING: {
+    label: "Pending",
+    bg: "rgba(234,179,8,0.1)",
+    text: "#fbbf24",
+    border: "rgba(234,179,8,0.2)",
+    icon: Clock,
+  },
+  APPROVED: {
+    label: "Approved",
+    bg: "rgba(34,197,94,0.1)",
+    text: "#4ade80",
+    border: "rgba(34,197,94,0.2)",
+    icon: CheckCircle,
+  },
+  REJECTED: {
+    label: "Rejected",
+    bg: "rgba(239,68,68,0.1)",
+    text: "#f87171",
+    border: "rgba(239,68,68,0.2)",
+    icon: XCircle,
+  },
 };
 
 // Human-readable field label mapping
@@ -45,6 +63,7 @@ const FIELD_LABELS: any = {
   registrationDeadline: "Registration Deadline",
   registrationsOpen: "Registrations Open",
   registrationFee: "Registration Fee",
+  unstopLink: "Unstop Link",
   maxRegistrations: "Max Registrations",
   maxTeamsPerCollege: "Max Teams / College",
   venueName: "Venue Name",
@@ -69,19 +88,31 @@ function formatFieldValue(key: any, value: any) {
   if (typeof value === "string" && /^\d{4}-\d{2}-\d{2}T/.test(value)) {
     try {
       return new Date(value).toLocaleString("en-US", {
-        year: "numeric", month: "short", day: "numeric",
-        hour: "2-digit", minute: "2-digit",
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
       });
-    } catch { /* fall through */ }
+    } catch {
+      /* fall through */
+    }
   }
   return String(value);
 }
 
 function getDiffRows(before: any = {}, after: any = {}) {
-  const keys = Array.from(new Set([...Object.keys(before || {}), ...Object.keys(after || {})]));
+  const keys = Array.from(
+    new Set([...Object.keys(before || {}), ...Object.keys(after || {})]),
+  );
   return keys
     .filter((k) => JSON.stringify(before?.[k]) !== JSON.stringify(after?.[k]))
-    .map((k) => ({ key: k, label: FIELD_LABELS[k] || k, before: before?.[k], after: after?.[k] }));
+    .map((k) => ({
+      key: k,
+      label: FIELD_LABELS[k] || k,
+      before: before?.[k],
+      after: after?.[k],
+    }));
 }
 
 // ── Primitives ────────────────────────────────────────────────────────────────
@@ -120,10 +151,22 @@ function StatusPill({ status }: any) {
 const MetaItem = ({ icon: Icon, label, value }: any) => (
   <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
     <Icon size={13} color="rgba(255,255,255,0.25)" />
-    <Typography sx={{ fontSize: 11, color: "rgba(255,255,255,0.25)", fontFamily: "'DM Mono', monospace" }}>
+    <Typography
+      sx={{
+        fontSize: 11,
+        color: "rgba(255,255,255,0.25)",
+        fontFamily: "'DM Mono', monospace",
+      }}
+    >
       {label}
     </Typography>
-    <Typography sx={{ fontSize: 11, color: "rgba(255,255,255,0.55)", fontFamily: "'DM Mono', monospace" }}>
+    <Typography
+      sx={{
+        fontSize: 11,
+        color: "rgba(255,255,255,0.55)",
+        fontFamily: "'DM Mono', monospace",
+      }}
+    >
       {value}
     </Typography>
   </Box>
@@ -168,7 +211,16 @@ function DarkInput({ label, value, onChange, placeholder }: any) {
   return (
     <Box sx={{ mb: 1.5 }}>
       {label && (
-        <Typography sx={{ fontSize: 9.5, letterSpacing: "0.18em", textTransform: "uppercase", color: "rgba(255,255,255,0.2)", fontFamily: "'Syne', sans-serif", mb: 0.75 }}>
+        <Typography
+          sx={{
+            fontSize: 9.5,
+            letterSpacing: "0.18em",
+            textTransform: "uppercase",
+            color: "rgba(255,255,255,0.2)",
+            fontFamily: "'Syne', sans-serif",
+            mb: 0.75,
+          }}
+        >
           {label}
         </Typography>
       )}
@@ -200,7 +252,16 @@ function DarkTextarea({ label, value, onChange, placeholder, rows = 3 }: any) {
   return (
     <Box sx={{ mb: 1.5 }}>
       {label && (
-        <Typography sx={{ fontSize: 9.5, letterSpacing: "0.18em", textTransform: "uppercase", color: "rgba(255,255,255,0.2)", fontFamily: "'Syne', sans-serif", mb: 0.75 }}>
+        <Typography
+          sx={{
+            fontSize: 9.5,
+            letterSpacing: "0.18em",
+            textTransform: "uppercase",
+            color: "rgba(255,255,255,0.2)",
+            fontFamily: "'Syne', sans-serif",
+            mb: 0.75,
+          }}
+        >
           {label}
         </Typography>
       )}
@@ -245,11 +306,16 @@ function PendingDecisionPanel({ proposalId, onSuccess }: any) {
   async function handleApprove() {
     try {
       await approveMutation.mutateAsync({ proposalId, reviewNotes });
-      enqueueSnackbar("Proposal approved and changes applied", { variant: "success" });
+      enqueueSnackbar("Proposal approved and changes applied", {
+        variant: "success",
+      });
       setConfirming(null);
       onSuccess?.();
     } catch (err: any) {
-      enqueueSnackbar(err?.response?.data?.message || err?.message || "Failed to approve", { variant: "error" });
+      enqueueSnackbar(
+        err?.response?.data?.message || err?.message || "Failed to approve",
+        { variant: "error" },
+      );
     }
   }
 
@@ -259,12 +325,19 @@ function PendingDecisionPanel({ proposalId, onSuccess }: any) {
       return;
     }
     try {
-      await rejectMutation.mutateAsync({ proposalId, rejectionReason, reviewNotes });
+      await rejectMutation.mutateAsync({
+        proposalId,
+        rejectionReason,
+        reviewNotes,
+      });
       enqueueSnackbar("Proposal rejected", { variant: "success" });
       setConfirming(null);
       onSuccess?.();
     } catch (err: any) {
-      enqueueSnackbar(err?.response?.data?.message || err?.message || "Failed to reject", { variant: "error" });
+      enqueueSnackbar(
+        err?.response?.data?.message || err?.message || "Failed to reject",
+        { variant: "error" },
+      );
     }
   }
 
@@ -272,28 +345,60 @@ function PendingDecisionPanel({ proposalId, onSuccess }: any) {
   if (confirming === "approve") {
     return (
       <Box>
-        <Box sx={{ p: 1.5, mb: 2, borderRadius: "8px", background: "rgba(34,197,94,0.06)", border: "1px solid rgba(34,197,94,0.15)" }}>
-          <Typography sx={{ fontSize: 12, color: "#4ade80", fontFamily: "'Syne', sans-serif", display: "flex", alignItems: "center", gap: 0.75 }}>
+        <Box
+          sx={{
+            p: 1.5,
+            mb: 2,
+            borderRadius: "8px",
+            background: "rgba(34,197,94,0.06)",
+            border: "1px solid rgba(34,197,94,0.15)",
+          }}
+        >
+          <Typography
+            sx={{
+              fontSize: 12,
+              color: "#4ade80",
+              fontFamily: "'Syne', sans-serif",
+              display: "flex",
+              alignItems: "center",
+              gap: 0.75,
+            }}
+          >
             <CheckCircle size={13} />
-            Approving will immediately apply all proposed changes to the competition.
+            Approving will immediately apply all proposed changes to the
+            competition.
           </Typography>
         </Box>
-        <DarkTextarea label="Review Notes (optional)" value={reviewNotes} onChange={setReviewNotes} placeholder="Add any notes visible to the proposer…" rows={3} />
+        <DarkTextarea
+          label="Review Notes (optional)"
+          value={reviewNotes}
+          onChange={setReviewNotes}
+          placeholder="Add any notes visible to the proposer…"
+          rows={3}
+        />
         <Box sx={{ display: "flex", gap: 1, mt: 2 }}>
-          <GhostBtn onClick={() => setConfirming(null)} disabled={pending}>Back</GhostBtn>
+          <GhostBtn onClick={() => setConfirming(null)} disabled={pending}>
+            Back
+          </GhostBtn>
           <button
             type="button"
             onClick={handleApprove}
             disabled={pending}
             style={{
               ...btnBase,
-              background: pending ? "rgba(34,197,94,0.2)" : "rgba(34,197,94,0.85)",
+              background: pending
+                ? "rgba(34,197,94,0.2)"
+                : "rgba(34,197,94,0.85)",
               border: "1px solid rgba(34,197,94,0.35)",
               color: pending ? "rgba(255,255,255,0.3)" : "#fff",
               cursor: pending ? "not-allowed" : "pointer",
             }}
           >
-            {pending ? <CircularProgress size={12} sx={{ color: "#fff" }} /> : <CheckCircle size={14} />}
+            {pending ? (
+              <CircularProgress size={12} sx={{ color: "#fff" }} />
+            ) : (
+              <CheckCircle size={14} />
+            )}
             Confirm Approve
           </button>
         </Box>
@@ -304,16 +409,46 @@ function PendingDecisionPanel({ proposalId, onSuccess }: any) {
   if (confirming === "reject") {
     return (
       <Box>
-        <Box sx={{ p: 1.5, mb: 2, borderRadius: "8px", background: "rgba(239,68,68,0.06)", border: "1px solid rgba(239,68,68,0.15)" }}>
-          <Typography sx={{ fontSize: 12, color: "#f87171", fontFamily: "'Syne', sans-serif", display: "flex", alignItems: "center", gap: 0.75 }}>
+        <Box
+          sx={{
+            p: 1.5,
+            mb: 2,
+            borderRadius: "8px",
+            background: "rgba(239,68,68,0.06)",
+            border: "1px solid rgba(239,68,68,0.15)",
+          }}
+        >
+          <Typography
+            sx={{
+              fontSize: 12,
+              color: "#f87171",
+              fontFamily: "'Syne', sans-serif",
+              display: "flex",
+              alignItems: "center",
+              gap: 0.75,
+            }}
+          >
             <XCircle size={13} />
             Rejection is final. The proposer will be notified with your reason.
           </Typography>
         </Box>
-        <DarkInput label="Rejection Reason" value={rejectionReason} onChange={setRejectionReason} placeholder="Explain why this proposal is being rejected…" />
-        <DarkTextarea label="Review Notes (optional)" value={reviewNotes} onChange={setReviewNotes} placeholder="Additional notes for the proposer…" rows={2} />
+        <DarkInput
+          label="Rejection Reason"
+          value={rejectionReason}
+          onChange={setRejectionReason}
+          placeholder="Explain why this proposal is being rejected…"
+        />
+        <DarkTextarea
+          label="Review Notes (optional)"
+          value={reviewNotes}
+          onChange={setReviewNotes}
+          placeholder="Additional notes for the proposer…"
+          rows={2}
+        />
         <Box sx={{ display: "flex", gap: 1, mt: 2 }}>
-          <GhostBtn onClick={() => setConfirming(null)} disabled={pending}>Back</GhostBtn>
+          <GhostBtn onClick={() => setConfirming(null)} disabled={pending}>
+            Back
+          </GhostBtn>
           <button
             type="button"
             onClick={handleReject}
@@ -323,11 +458,16 @@ function PendingDecisionPanel({ proposalId, onSuccess }: any) {
               background: "rgba(239,68,68,0.1)",
               border: "1px solid rgba(239,68,68,0.25)",
               color: "#f87171",
-              cursor: (pending || !rejectionReason.trim()) ? "not-allowed" : "pointer",
-              opacity: (pending || !rejectionReason.trim()) ? 0.5 : 1,
+              cursor:
+                pending || !rejectionReason.trim() ? "not-allowed" : "pointer",
+              opacity: pending || !rejectionReason.trim() ? 0.5 : 1,
             }}
           >
-            {pending ? <CircularProgress size={12} sx={{ color: "#f87171" }} /> : <XCircle size={14} />}
+            {pending ? (
+              <CircularProgress size={12} sx={{ color: "#f87171" }} />
+            ) : (
+              <XCircle size={14} />
+            )}
             Confirm Reject
           </button>
         </Box>
@@ -338,7 +478,14 @@ function PendingDecisionPanel({ proposalId, onSuccess }: any) {
   // Default: choose action
   return (
     <Box>
-      <Typography sx={{ fontSize: 12, color: "rgba(255,255,255,0.3)", fontFamily: "'Syne', sans-serif", mb: 2 }}>
+      <Typography
+        sx={{
+          fontSize: 12,
+          color: "rgba(255,255,255,0.3)",
+          fontFamily: "'Syne', sans-serif",
+          mb: 2,
+        }}
+      >
         Review the field changes on the left, then choose an action.
       </Typography>
       <Box sx={{ display: "flex", gap: 1.5 }}>
@@ -352,8 +499,12 @@ function PendingDecisionPanel({ proposalId, onSuccess }: any) {
             color: "#4ade80",
             cursor: "pointer",
           }}
-          onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(34,197,94,0.15)"; }}
-          onMouseLeave={(e) => { e.currentTarget.style.background = "rgba(34,197,94,0.08)"; }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.background = "rgba(34,197,94,0.15)";
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.background = "rgba(34,197,94,0.08)";
+          }}
         >
           <CheckCircle size={14} />
           Approve
@@ -368,8 +519,12 @@ function PendingDecisionPanel({ proposalId, onSuccess }: any) {
             color: "#f87171",
             cursor: "pointer",
           }}
-          onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(239,68,68,0.15)"; }}
-          onMouseLeave={(e) => { e.currentTarget.style.background = "rgba(239,68,68,0.08)"; }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.background = "rgba(239,68,68,0.15)";
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.background = "rgba(239,68,68,0.08)";
+          }}
         >
           <XCircle size={14} />
           Reject
@@ -399,14 +554,33 @@ function ReviewedPanel({ proposal }: any) {
       >
         <Icon size={18} color={cfg?.text} />
         <Box>
-          <Typography sx={{ fontSize: 13, fontWeight: 600, color: cfg?.text, fontFamily: "'Syne', sans-serif" }}>
-            {proposal.status === "APPROVED" ? "Proposal Approved" : "Proposal Rejected"}
+          <Typography
+            sx={{
+              fontSize: 13,
+              fontWeight: 600,
+              color: cfg?.text,
+              fontFamily: "'Syne', sans-serif",
+            }}
+          >
+            {proposal.status === "APPROVED"
+              ? "Proposal Approved"
+              : "Proposal Rejected"}
           </Typography>
           {proposal.reviewedAt && (
-            <Typography sx={{ fontSize: 11, color: "rgba(255,255,255,0.3)", fontFamily: "'DM Mono', monospace", mt: 0.25 }}>
+            <Typography
+              sx={{
+                fontSize: 11,
+                color: "rgba(255,255,255,0.3)",
+                fontFamily: "'DM Mono', monospace",
+                mt: 0.25,
+              }}
+            >
               {new Date(proposal.reviewedAt).toLocaleString("en-US", {
-                year: "numeric", month: "short", day: "numeric",
-                hour: "2-digit", minute: "2-digit",
+                year: "numeric",
+                month: "short",
+                day: "numeric",
+                hour: "2-digit",
+                minute: "2-digit",
               })}
             </Typography>
           )}
@@ -415,11 +589,33 @@ function ReviewedPanel({ proposal }: any) {
 
       {proposal.rejectionReason && (
         <Box sx={{ mb: 2 }}>
-          <Typography sx={{ fontSize: 9.5, letterSpacing: "0.18em", textTransform: "uppercase", color: "rgba(255,255,255,0.2)", fontFamily: "'Syne', sans-serif", mb: 0.75 }}>
+          <Typography
+            sx={{
+              fontSize: 9.5,
+              letterSpacing: "0.18em",
+              textTransform: "uppercase",
+              color: "rgba(255,255,255,0.2)",
+              fontFamily: "'Syne', sans-serif",
+              mb: 0.75,
+            }}
+          >
             Rejection Reason
           </Typography>
-          <Box sx={{ p: 1.5, borderRadius: "8px", background: "rgba(239,68,68,0.06)", border: "1px solid rgba(239,68,68,0.12)" }}>
-            <Typography sx={{ fontSize: 13, color: "#f87171", fontFamily: "'DM Mono', monospace" }}>
+          <Box
+            sx={{
+              p: 1.5,
+              borderRadius: "8px",
+              background: "rgba(239,68,68,0.06)",
+              border: "1px solid rgba(239,68,68,0.12)",
+            }}
+          >
+            <Typography
+              sx={{
+                fontSize: 13,
+                color: "#f87171",
+                fontFamily: "'DM Mono', monospace",
+              }}
+            >
               {proposal.rejectionReason}
             </Typography>
           </Box>
@@ -428,11 +624,33 @@ function ReviewedPanel({ proposal }: any) {
 
       {proposal.reviewNotes && (
         <Box>
-          <Typography sx={{ fontSize: 9.5, letterSpacing: "0.18em", textTransform: "uppercase", color: "rgba(255,255,255,0.2)", fontFamily: "'Syne', sans-serif", mb: 0.75 }}>
+          <Typography
+            sx={{
+              fontSize: 9.5,
+              letterSpacing: "0.18em",
+              textTransform: "uppercase",
+              color: "rgba(255,255,255,0.2)",
+              fontFamily: "'Syne', sans-serif",
+              mb: 0.75,
+            }}
+          >
             Review Notes
           </Typography>
-          <Box sx={{ p: 1.5, borderRadius: "8px", background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)" }}>
-            <Typography sx={{ fontSize: 13, color: "rgba(255,255,255,0.55)", fontFamily: "'DM Mono', monospace" }}>
+          <Box
+            sx={{
+              p: 1.5,
+              borderRadius: "8px",
+              background: "rgba(255,255,255,0.03)",
+              border: "1px solid rgba(255,255,255,0.06)",
+            }}
+          >
+            <Typography
+              sx={{
+                fontSize: 13,
+                color: "rgba(255,255,255,0.55)",
+                fontFamily: "'DM Mono', monospace",
+              }}
+            >
               {proposal.reviewNotes}
             </Typography>
           </Box>
@@ -458,7 +676,13 @@ export default function ReviewDetailPage() {
   if (!proposal) {
     return (
       <Box sx={{ p: { xs: 2, md: 4 } }}>
-        <Typography sx={{ color: "rgba(255,255,255,0.35)", fontSize: 13, fontFamily: "'Syne', sans-serif" }}>
+        <Typography
+          sx={{
+            color: "rgba(255,255,255,0.35)",
+            fontSize: 13,
+            fontFamily: "'Syne', sans-serif",
+          }}
+        >
           Proposal not found.
         </Typography>
       </Box>
@@ -501,16 +725,36 @@ export default function ReviewDetailPage() {
           border: "1px solid rgba(255,255,255,0.06)",
         }}
       >
-        <Box sx={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 2, flexWrap: "wrap", mb: 1.5 }}>
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "flex-start",
+            justifyContent: "space-between",
+            gap: 2,
+            flexWrap: "wrap",
+            mb: 1.5,
+          }}
+        >
           <Box>
             <Typography
-              sx={{ fontSize: 18, fontWeight: 600, color: "#f4f4f5", fontFamily: "'Syne', sans-serif", letterSpacing: "0.01em", mb: 0.5 }}
+              sx={{
+                fontSize: 18,
+                fontWeight: 600,
+                color: "#f4f4f5",
+                fontFamily: "'Syne', sans-serif",
+                letterSpacing: "0.01em",
+                mb: 0.5,
+              }}
             >
               {proposal.competitionTitle}
             </Typography>
             {(proposal.summary || proposal.changeDescription) && (
               <Typography
-                sx={{ fontSize: 13, color: "rgba(255,255,255,0.35)", fontFamily: "'Syne', sans-serif" }}
+                sx={{
+                  fontSize: 13,
+                  color: "rgba(255,255,255,0.35)",
+                  fontFamily: "'Syne', sans-serif",
+                }}
               >
                 {proposal.summary || proposal.changeDescription}
               </Typography>
@@ -521,16 +765,28 @@ export default function ReviewDetailPage() {
 
         <Box sx={{ display: "flex", gap: 2.5, flexWrap: "wrap" }}>
           {proposal.proposerName && (
-            <MetaItem icon={User} label="Proposed by" value={proposal.proposerName} />
+            <MetaItem
+              icon={User}
+              label="Proposed by"
+              value={proposal.proposerName}
+            />
           )}
           {proposal.createdAt && (
             <MetaItem
               icon={Calendar}
               label="Submitted"
-              value={new Date(proposal.createdAt).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })}
+              value={new Date(proposal.createdAt).toLocaleDateString("en-US", {
+                year: "numeric",
+                month: "short",
+                day: "numeric",
+              })}
             />
           )}
-          <MetaItem icon={FileText} label="Changes" value={`${diffRows.length} field${diffRows.length !== 1 ? "s" : ""}`} />
+          <MetaItem
+            icon={FileText}
+            label="Changes"
+            value={`${diffRows.length} field${diffRows.length !== 1 ? "s" : ""}`}
+          />
         </Box>
       </Box>
 
@@ -563,12 +819,22 @@ export default function ReviewDetailPage() {
             }}
           >
             <Typography
-              sx={{ fontSize: 9.5, letterSpacing: "0.2em", textTransform: "uppercase", color: "rgba(255,255,255,0.2)", fontFamily: "'Syne', sans-serif" }}
+              sx={{
+                fontSize: 9.5,
+                letterSpacing: "0.2em",
+                textTransform: "uppercase",
+                color: "rgba(255,255,255,0.2)",
+                fontFamily: "'Syne', sans-serif",
+              }}
             >
               Field Changes
             </Typography>
             <Typography
-              sx={{ fontSize: 10, color: "rgba(255,255,255,0.18)", fontFamily: "'DM Mono', monospace" }}
+              sx={{
+                fontSize: 10,
+                color: "rgba(255,255,255,0.18)",
+                fontFamily: "'DM Mono', monospace",
+              }}
             >
               {diffRows.length} changed
             </Typography>
@@ -576,7 +842,13 @@ export default function ReviewDetailPage() {
 
           {diffRows.length === 0 ? (
             <Box sx={{ px: 3, py: 5, textAlign: "center" }}>
-              <Typography sx={{ fontSize: 13, color: "rgba(255,255,255,0.18)", fontFamily: "'Syne', sans-serif" }}>
+              <Typography
+                sx={{
+                  fontSize: 13,
+                  color: "rgba(255,255,255,0.18)",
+                  fontFamily: "'Syne', sans-serif",
+                }}
+              >
                 No field differences found
               </Typography>
             </Box>
@@ -586,12 +858,25 @@ export default function ReviewDetailPage() {
                 <Box sx={{ px: 3, py: 2 }}>
                   {/* Field name */}
                   <Typography
-                    sx={{ fontSize: 9.5, letterSpacing: "0.16em", textTransform: "uppercase", color: "rgba(255,255,255,0.22)", fontFamily: "'Syne', sans-serif", mb: 1 }}
+                    sx={{
+                      fontSize: 9.5,
+                      letterSpacing: "0.16em",
+                      textTransform: "uppercase",
+                      color: "rgba(255,255,255,0.22)",
+                      fontFamily: "'Syne', sans-serif",
+                      mb: 1,
+                    }}
                   >
                     {row.label}
                   </Typography>
 
-                  <Box sx={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 1 }}>
+                  <Box
+                    sx={{
+                      display: "grid",
+                      gridTemplateColumns: "1fr 1fr",
+                      gap: 1,
+                    }}
+                  >
                     {/* Before */}
                     <Box
                       sx={{
@@ -602,12 +887,25 @@ export default function ReviewDetailPage() {
                       }}
                     >
                       <Typography
-                        sx={{ fontSize: 9, letterSpacing: "0.16em", textTransform: "uppercase", color: "rgba(239,68,68,0.5)", fontFamily: "'DM Mono', monospace", mb: 0.5 }}
+                        sx={{
+                          fontSize: 9,
+                          letterSpacing: "0.16em",
+                          textTransform: "uppercase",
+                          color: "rgba(239,68,68,0.5)",
+                          fontFamily: "'DM Mono', monospace",
+                          mb: 0.5,
+                        }}
                       >
                         Before
                       </Typography>
                       <Typography
-                        sx={{ fontSize: 12, color: "#fca5a5", fontFamily: "'DM Mono', monospace", wordBreak: "break-word", whiteSpace: "pre-wrap" }}
+                        sx={{
+                          fontSize: 12,
+                          color: "#fca5a5",
+                          fontFamily: "'DM Mono', monospace",
+                          wordBreak: "break-word",
+                          whiteSpace: "pre-wrap",
+                        }}
                       >
                         {formatFieldValue(row.key, row.before)}
                       </Typography>
@@ -623,12 +921,25 @@ export default function ReviewDetailPage() {
                       }}
                     >
                       <Typography
-                        sx={{ fontSize: 9, letterSpacing: "0.16em", textTransform: "uppercase", color: "rgba(34,197,94,0.5)", fontFamily: "'DM Mono', monospace", mb: 0.5 }}
+                        sx={{
+                          fontSize: 9,
+                          letterSpacing: "0.16em",
+                          textTransform: "uppercase",
+                          color: "rgba(34,197,94,0.5)",
+                          fontFamily: "'DM Mono', monospace",
+                          mb: 0.5,
+                        }}
                       >
                         After
                       </Typography>
                       <Typography
-                        sx={{ fontSize: 12, color: "#86efac", fontFamily: "'DM Mono', monospace", wordBreak: "break-word", whiteSpace: "pre-wrap" }}
+                        sx={{
+                          fontSize: 12,
+                          color: "#86efac",
+                          fontFamily: "'DM Mono', monospace",
+                          wordBreak: "break-word",
+                          whiteSpace: "pre-wrap",
+                        }}
                       >
                         {formatFieldValue(row.key, row.after)}
                       </Typography>
@@ -636,7 +947,9 @@ export default function ReviewDetailPage() {
                   </Box>
                 </Box>
                 {idx < diffRows.length - 1 && (
-                  <Box sx={{ height: "1px", background: "rgba(255,255,255,0.05)" }} />
+                  <Box
+                    sx={{ height: "1px", background: "rgba(255,255,255,0.05)" }}
+                  />
                 )}
               </Box>
             ))
@@ -655,7 +968,14 @@ export default function ReviewDetailPage() {
           }}
         >
           <Typography
-            sx={{ fontSize: 9.5, letterSpacing: "0.2em", textTransform: "uppercase", color: "rgba(255,255,255,0.2)", fontFamily: "'Syne', sans-serif", mb: 2 }}
+            sx={{
+              fontSize: 9.5,
+              letterSpacing: "0.2em",
+              textTransform: "uppercase",
+              color: "rgba(255,255,255,0.2)",
+              fontFamily: "'Syne', sans-serif",
+              mb: 2,
+            }}
           >
             {isPending ? "Decision" : "Review Result"}
           </Typography>

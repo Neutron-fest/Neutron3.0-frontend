@@ -47,7 +47,14 @@ function SectionHeading({ title, subtitle }: any) {
 
 // ─── Toggle row ──────────────────────────────────────────────────────────────
 
-function ToggleRow({ label, description, checked, onChange, disabled, error }: any) {
+function ToggleRow({
+  label,
+  description,
+  checked,
+  onChange,
+  disabled,
+  error,
+}: any) {
   return (
     <Box>
       <Box
@@ -331,6 +338,25 @@ export default function CompetitionRegistrationConfigStep({
                       ? "rgba(248,113,113,0.5)"
                       : undefined,
                   }}
+                />
+              )}
+            />
+          </FieldGroup>
+
+          <FieldGroup
+            label="Unstop Link (Optional)"
+            error={errors.unstopLink}
+            span={2}
+          >
+            <Controller
+              name="unstopLink"
+              control={control}
+              render={({ field }) => (
+                <input
+                  {...field}
+                  type="text"
+                  placeholder="https://unstop.com/..."
+                  style={inputCss}
                 />
               )}
             />
