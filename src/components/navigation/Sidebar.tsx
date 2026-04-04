@@ -153,9 +153,11 @@ export function Sidebar({ user, onLogout, mobileOpen, onMobileClose }: any) {
       ? "Super Admin"
       : user?.role === "JUDGE"
         ? "Judge"
-        : user?.role === "CH"
-          ? "Club Head"
-          : "Department Head";
+        : user?.role === "CA"
+          ? "Campus Ambassador"
+          : user?.role === "CH"
+            ? "Club Head"
+            : "Department Head";
 
   const drawerContent = (
     <Box

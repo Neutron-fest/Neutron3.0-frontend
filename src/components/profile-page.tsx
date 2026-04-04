@@ -19,10 +19,11 @@ import {
   Calendar,
   Zap,
   Award,
+  Star,
   ChevronLeft,
 } from "lucide-react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import ProfileCard from "./ProfileCard";
 import { useAuthMe } from "@/src/hooks/api/useAuth";
 import { useAuth } from "@/contexts/AuthContext";
@@ -34,7 +35,13 @@ import {
 } from "@/src/hooks/api/usePublicRegistration";
 import { useUpdateUserProfile } from "@/src/hooks/api/useUserProfile";
 
-type NavItem = "profile" | "competitions" | "events" | "calendar" | "inbox";
+type NavItem =
+  | "profile"
+  | "competitions"
+  | "events"
+  | "calendar"
+  | "inbox"
+  | "campus-ambassador";
 
 const DashboardContext = React.createContext<{
   showToast: (msg: string, type?: "success" | "error" | "info") => void;
@@ -1949,15 +1956,20 @@ function InboxPanel({
 function SidebarNav({
   active,
   setActive,
+  showCampusAmbassador = false,
 }: {
   active: any;
   setActive: (v: any) => void;
+  showCampusAmbassador?: boolean;
 }) {
   const items = [
     { id: "profile", label: "Profile", icon: User },
     { id: "competitions", label: "Competitions", icon: Award },
     { id: "events", label: "Events", icon: Zap },
     { id: "calendar", label: "Calendar", icon: Calendar },
+    ...(showCampusAmbassador
+      ? [{ id: "campus-ambassador", label: "Campus Ambassador", icon: Star }]
+      : []),
     { id: "inbox", label: "Inbox", icon: Mail },
   ];
 
@@ -1998,8 +2010,98 @@ function SidebarNav({
   );
 }
 
+function CampusAmbassadorPanel({
+  campusAmbassador,
+  profileName,
+}: {
+  campusAmbassador: Record<string, any> | null;
+  profileName: string;
+}) {
+  const [origin, setOrigin] = useState("");
+  const [copied, setCopied] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    setOrigin(window.location.origin);
+  }, []);
+
+  const referralCode = String(campusAmbassador?.referralCode || "").trim();
+  const referralLink = referralCode
+    ? `${origin || ""}/?ref=${encodeURIComponent(referralCode)}`
+    : "";
+
+  const copyLink = async () => {
+    if (!referralLink || typeof navigator === "undefined") return;
+    await navigator.clipboard.writeText(referralLink);
+    setCopied(true);
+    window.setTimeout(() => setCopied(false), 1500);
+  };
+
+  return (
+    <div className="space-y-4">
+      <DashboardWidget title="Campus Ambassador" onManage={() => {}}>
+        {campusAmbassador ? (
+          <div className="space-y-4">
+            <div className="grid gap-3">
+              <div className="rounded-2xl border border-white/10 bg-white/3 p-4">
+                <p className="text-[10px] uppercase tracking-widest text-white/30 font-mono">
+                  Referral Code
+                </p>
+                <p className="mt-2 text-lg font-bold text-white">
+                  {referralCode || "—"}
+                </p>
+              </div>
+              <div className="rounded-2xl border border-white/10 bg-white/3 p-4">
+                <p className="text-[10px] uppercase tracking-widest text-white/30 font-mono">
+                  Approved Registrations
+                </p>
+                <p className="mt-2 text-lg font-bold text-white">
+                  {campusAmbassador.totalRegistrations || 0}
+                </p>
+              </div>
+              <div className="rounded-2xl border border-white/10 bg-white/3 p-4">
+                <p className="text-[10px] uppercase tracking-widest text-white/30 font-mono">
+                  Ambassador
+                </p>
+                <p className="mt-2 text-lg font-bold text-white">
+                  {profileName || campusAmbassador.name || "User"}
+                </p>
+              </div>
+            </div>
+
+            <div className="rounded-2xl border border-white/10 bg-black/30 p-4">
+              <p className="text-[10px] uppercase tracking-widest text-white/30 font-mono">
+                Referral Link
+              </p>
+              <div className="mt-3 flex flex-col gap-3">
+                <input
+                  readOnly
+                  value={referralLink}
+                  className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white outline-none"
+                />
+                <button
+                  type="button"
+                  onClick={copyLink}
+                  className="rounded-xl border border-white/15 bg-white/5 px-4 py-3 text-[10px] font-bold uppercase tracking-widest text-white/70 hover:bg-white/10"
+                >
+                  {copied ? "Copied" : "Copy Link"}
+                </button>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div className="rounded-2xl border border-white/10 bg-white/3 p-5 text-sm text-white/60">
+            You are not currently a Campus Ambassador.
+          </div>
+        )}
+      </DashboardWidget>
+    </div>
+  );
+}
+
 export default function ProfilePage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { logout } = useAuth();
   const authMeQuery = useAuthMe();
   const updateProfileMutation = useUpdateUserProfile();
@@ -2031,9 +2133,36 @@ export default function ProfilePage() {
     (authMeQuery.data as any)?.user ||
     authMeQuery.data) as Record<string, any> | undefined;
   const userId = (authUser?.id || authUser?._id || "") as string;
-  const isPanelUser = ["SA", "DH", "JUDGE", "CH", "VOLUNTEER"].includes(
-    String(authUser?.role || "").toUpperCase(),
-  );
+  const campusAmbassador = (authUser?.campusAmbassador || null) as Record<
+    string,
+    any
+  > | null;
+  const role = String(authUser?.role || "").toUpperCase();
+  const isCampusAmbassador =
+    Boolean(campusAmbassador) || role === "CA" || authUser?.isCa === true;
+  const isPanelUser = ["SA", "DH", "JUDGE", "CH", "VOLUNTEER"].includes(role);
+
+  useEffect(() => {
+    const section = searchParams.get("section");
+    if (!section) return;
+
+    const normalized = section.toLowerCase();
+    if (normalized === "inbox" || normalized === "invites") {
+      setActive("inbox");
+    } else if (
+      normalized === "campus-ambassador" ||
+      normalized === "campus ambassador" ||
+      normalized === "ca"
+    ) {
+      setActive("campus-ambassador");
+    }
+  }, [searchParams]);
+
+  useEffect(() => {
+    if (!isCampusAmbassador && active === "campus-ambassador") {
+      setActive("profile");
+    }
+  }, [active, isCampusAmbassador]);
 
   useEffect(() => {
     if (!authUser) return;
@@ -2320,6 +2449,7 @@ export default function ProfilePage() {
             >
               <SidebarNav
                 active={active}
+                showCampusAmbassador={isCampusAmbassador}
                 setActive={(v: any) => {
                   setActive(v);
                   setMobileMenuOpen(false);
@@ -2375,7 +2505,11 @@ export default function ProfilePage() {
               </div>
             </div>
 
-            <SidebarNav active={active} setActive={setActive} />
+            <SidebarNav
+              active={active}
+              setActive={setActive}
+              showCampusAmbassador={isCampusAmbassador}
+            />
 
             <div className="mt-auto flex flex-col gap-1.5 pt-6 border-t border-white/6">
               {[
@@ -2523,6 +2657,12 @@ export default function ProfilePage() {
                         acceptInviteMutation.isPending ||
                         declineInviteMutation.isPending
                       }
+                    />
+                  )}
+                  {active === "campus-ambassador" && (
+                    <CampusAmbassadorPanel
+                      campusAmbassador={campusAmbassador}
+                      profileName={profile.name}
                     />
                   )}
                 </motion.div>
