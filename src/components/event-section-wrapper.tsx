@@ -60,9 +60,9 @@ export default function EventSectionWrapper({ event }: { event: EventRecord }) {
             spanClassName="bg-clip-text text-transparent bg-linear-to-b from-white via-white to-white/20 drop-shadow-[0_10px_30px_rgba(255,255,255,0.1)]"
           />
           
-          <div className="relative max-w-3xl group pt-4">
+          <div className="relative w-full group pt-4">
             {/* <div className="absolute -left-6 top-0 bottom-0 w-[2px] bg-white/10 transition-all duration-700"></div> */}
-            <div className="pl-8 space-y-8">
+            <div className="pl-0 md:pl-8 flex flex-col md:flex-row md:items-center justify-between gap-6 w-full">
               <div className="flex flex-wrap gap-3">
                 <span className="px-3 py-1.5 rounded-full bg-white/5 border border-white/10 text-xs uppercase tracking-[0.2em] text-white/50 font-mono backdrop-blur-md">
                   {event.category}
@@ -70,15 +70,28 @@ export default function EventSectionWrapper({ event }: { event: EventRecord }) {
                 <span className="px-3 py-1.5 rounded-full bg-white/5 border border-white/10 text-xs uppercase tracking-[0.2em] text-white/50 font-mono backdrop-blur-md">
                   {event.teamSize}
                 </span>
-                <span className={`px-3 py-1.5 rounded-full border text-xs uppercase tracking-[0.2em] font-mono backdrop-blur-md ${
-                  event.status === 'open' ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' :
-                  event.status === 'closed' ? 'bg-rose-500/10 border-rose-500/20 text-rose-400' :
-                  event.status === 'postponed' ? 'bg-amber-500/10 border-amber-500/20 text-amber-400' :
-                  'bg-white/5 border-white/10 text-white/30'
-                }`}>
+                <span
+                  className={`px-3 py-1.5 rounded-full border text-xs uppercase tracking-[0.2em] font-mono backdrop-blur-md ${
+                    event.status === "open"
+                      ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-400"
+                      : event.status === "closed"
+                        ? "bg-rose-500/10 border-rose-500/20 text-rose-400"
+                        : event.status === "postponed"
+                          ? "bg-amber-500/10 border-amber-500/20 text-amber-400"
+                          : "bg-white/5 border-white/10 text-white/30"
+                  }`}
+                >
                   {event.status}
                 </span>
               </div>
+              <a href={`/events/${event.slug}/register`}>
+                <button
+                  type="button"
+                  className="bg-white text-black px-8 py-2 rounded-full font-semibold hover:bg-gray-200 transition-all hover:scale-105 active:scale-95 cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed text-sm uppercase tracking-wider"
+                >
+                  Register Now
+                </button>
+              </a>
             </div>
           </div>
         </div>
