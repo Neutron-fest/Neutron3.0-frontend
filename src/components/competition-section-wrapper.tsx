@@ -74,9 +74,9 @@ export default function SectionWrapper({ competition }: { competition: any }) {
             spanClassName="bg-clip-text text-transparent bg-linear-to-b from-white via-white to-white/20 drop-shadow-[0_10px_30px_rgba(255,255,255,0.1)]"
           />
 
-          <div className="relative max-w-3xl group pt-4">
+          <div className="relative w-full group pt-4">
             {/* <div className="absolute -left-6 top-0 bottom-0 w-[2px] bg-white/10 transition-all duration-700"></div> */}
-            <div className="pl-8 space-y-8">
+            <div className="pl-0 md:pl-8 flex flex-col md:flex-row md:items-center justify-between gap-6 w-full">
               <div className="flex flex-wrap gap-3">
                 <span className="px-3 py-1.5 rounded-full bg-white/5 border border-white/10 text-xs uppercase tracking-[0.2em] text-white/50 font-mono backdrop-blur-md">
                   {competition.category}
@@ -98,17 +98,14 @@ export default function SectionWrapper({ competition }: { competition: any }) {
                   {status}
                 </span>
               </div>
-              <div className="w-screen flex justify-end px-80">
-                <a href={`/competitions/${competition.id}/register`}>
+              <a href={`/competitions/${competition.id}/register`}>
                 <button
-                      type="button"
-                    
-                      className="bg-white text-black px-8 py-1.5 rounded-full font-semibold hover:bg-gray-200 transition-colors cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed " 
-                    >
-                      Register Now
+                  type="button"
+                  className="bg-white text-black px-8 py-2 rounded-full font-semibold hover:bg-gray-200 transition-all hover:scale-105 active:scale-95 cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed text-sm uppercase tracking-wider"
+                >
+                  Register Now
                 </button>
-                </a>
-              </div>  
+              </a>
             </div>
           </div>
         </div>

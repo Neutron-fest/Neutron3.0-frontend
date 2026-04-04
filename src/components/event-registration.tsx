@@ -4,6 +4,8 @@ import React, { useState, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useValidatePromoCode } from "@/src/hooks/api/usePublicRegistration";
+import { useAuthMe } from "@/src/hooks/api/useAuth";
 
 function parseTeamSize(sizeStr: string): number[] {
   const match = sizeStr.match(/(\d+)(?:-(\d+))?/);
@@ -26,9 +28,13 @@ type MemberData = {
 export default function EventRegistration({
   eventTitle,
   teamSize,
+  eventId,
+  registrationFee = 0,
 }: {
   eventTitle: string;
   teamSize: string;
+  eventId: string;
+  registrationFee?: number;
 }) {
   const pathname = usePathname();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -41,7 +47,24 @@ export default function EventRegistration({
     college: "",
     teamSize: teamOptions[0].toString(),
     members: [{ name: "", email: "", phone: "" }] as MemberData[],
+    promoCode: "",
+    referralCode: "",
   });
+
+  const [promoDiscount, setPromoDiscount] = useState<{
+    amount: number;
+    type: "FLAT" | "PERCENT";
+  } | null>(null);
+  const [promoError, setPromoError] = useState("");
+
+  const validatePromoMutation = useValidatePromoCode();
+  const { data: user } = useAuthMe();
+
+  useEffect(() => {
+    if (user) {
+      setIsAuthenticated(true);
+    }
+  }, [user]);
 
   useEffect(() => {
     setFormData((prev) => {
@@ -85,6 +108,40 @@ export default function EventRegistration({
       return { ...prev, members: newMembers };
     });
   };
+
+  const handleApplyPromoCode = async () => {
+    if (!formData.promoCode.trim()) {
+      setPromoError("Please enter a promo code.");
+      return;
+    }
+    setPromoError("");
+    setPromoDiscount(null);
+
+    try {
+      const result = await validatePromoMutation.mutateAsync({
+        competitionId: eventId,
+        promoCode: formData.promoCode.trim().toUpperCase(),
+      });
+      if (result) {
+        setPromoDiscount({
+          amount: result.discountAmount || result.amount || 0,
+          type: result.type || result.discountType || "FLAT",
+        });
+      }
+    } catch (err: any) {
+      setPromoError(
+        err?.response?.data?.message || err?.message || "Invalid promo code.",
+      );
+    }
+  };
+
+  const finalFee = useMemo(() => {
+    if (!promoDiscount) return registrationFee;
+    if (promoDiscount.type === "PERCENT") {
+      return Math.max(0, registrationFee * (1 - promoDiscount.amount / 100));
+    }
+    return Math.max(0, registrationFee - promoDiscount.amount);
+  }, [registrationFee, promoDiscount]);
 
   const handleRegister = (e: React.FormEvent) => {
     e.preventDefault();
@@ -142,11 +199,18 @@ export default function EventRegistration({
         <button
           onClick={() => {
             setIsSuccess(false);
-            setFormData({ 
-              college: "", 
-              teamSize: teamOptions[0].toString(), 
-              members: Array(teamOptions[0]).fill({ name: "", email: "", phone: "" }) 
+            setFormData({
+              college: "",
+              teamSize: teamOptions[0].toString(),
+              members: Array(teamOptions[0]).fill({
+                name: "",
+                email: "",
+                phone: "",
+              }),
+              promoCode: "",
+              referralCode: "",
             });
+            setPromoDiscount(null);
           }}
           className="border border-white/20 text-white px-8 py-3 rounded-full hover:bg-white/5 transition-colors duration-300 cursor-pointer"
         >
@@ -208,6 +272,74 @@ export default function EventRegistration({
             />
           </div>
         </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-white/5 border border-white/10 rounded-xl p-6 relative overflow-hidden">
+          <div className="absolute top-0 left-0 w-1 h-full bg-purple-500/50"></div>
+          
+          <div className="flex flex-col space-y-2">
+            <label className="text-xs uppercase tracking-wider text-white/50 font-medium ml-1">Referral Code (Optional)</label>
+            <input
+              name="referralCode"
+              value={formData.referralCode}
+              onChange={handleGeneralChange}
+              type="text"
+              placeholder="REF123"
+              className="bg-black border border-white/10 rounded-lg px-4 py-3 text-white placeholder-white/20 focus:outline-hidden focus:border-white/40 focus:bg-white/10 transition-colors"
+            />
+          </div>
+
+          <div className="flex flex-col space-y-2">
+            <label className="text-xs uppercase tracking-wider text-white/50 font-medium ml-1">Promo Code (Optional)</label>
+            <div className="flex gap-2">
+              <input
+                name="promoCode"
+                value={formData.promoCode}
+                onChange={(e) => {
+                  setPromoError("");
+                  handleGeneralChange(e);
+                }}
+                type="text"
+                placeholder="PROMO10"
+                className="bg-black border border-white/10 rounded-lg px-4 py-3 text-white placeholder-white/20 focus:outline-hidden focus:border-white/40 focus:bg-white/10 transition-colors flex-1"
+              />
+              <button
+                type="button"
+                onClick={handleApplyPromoCode}
+                disabled={validatePromoMutation.isPending || !formData.promoCode}
+                className="px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg border border-white/20 transition-colors disabled:opacity-50"
+              >
+                {validatePromoMutation.isPending ? "..." : "Apply"}
+              </button>
+            </div>
+            {promoError && (
+              <p className="text-[10px] text-rose-400 ml-1">{promoError}</p>
+            )}
+            {promoDiscount && (
+              <p className="text-[10px] text-emerald-400 ml-1">
+                Applied! {promoDiscount.type === 'PERCENT' ? `${promoDiscount.amount}%` : `₹${promoDiscount.amount}`} discount.
+              </p>
+            )}
+          </div>
+        </div>
+
+        {registrationFee > 0 && (
+          <div className="bg-white/5 border border-white/10 rounded-xl p-4">
+            <div className="flex justify-between text-sm mb-2">
+              <span className="text-white/50">Registration Fee</span>
+              <span className="text-white">₹{registrationFee}</span>
+            </div>
+            {promoDiscount && (
+              <div className="flex justify-between text-sm mb-2 text-emerald-400">
+                <span>Promo Discount</span>
+                <span>- ₹{registrationFee - finalFee}</span>
+              </div>
+            )}
+            <div className="flex justify-between font-bold border-t border-white/5 pt-2 mt-2">
+              <span className="text-white">Total Amount</span>
+              <span className="text-white text-lg">₹{finalFee}</span>
+            </div>
+          </div>
+        )}
 
         <div className="space-y-6">
           <AnimatePresence>

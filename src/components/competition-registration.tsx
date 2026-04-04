@@ -12,7 +12,9 @@ import {
   useRegisterTeamCompetition,
   useSendTeamInvite,
   useSubmitTeamMemberForm,
+  useValidatePromoCode,
 } from "@/src/hooks/api/usePublicRegistration";
+import { useCompetition } from "@/src/hooks/api/useCompetitions";
 
 function parseTeamSize(sizeStr: string): number[] {
   const normalized = String(sizeStr || "")
@@ -124,6 +126,12 @@ export default function CompetitionRegistration({
   const [dynamicFormValues, setDynamicFormValues] = useState<
     Record<string, any>
   >({});
+  const [promoCode, setPromoCode] = useState("");
+  const [promoDiscount, setPromoDiscount] = useState<{
+    amount: number;
+    type: "FLAT" | "PERCENT";
+  } | null>(null);
+  const [promoError, setPromoError] = useState("");
 
   const normalizedCompetitionType = String(competitionType || "").toUpperCase();
   const teamOptions = useMemo(() => parseTeamSize(teamSize), [teamSize]);
@@ -147,6 +155,8 @@ export default function CompetitionRegistration({
   const registerTeamMutation = useRegisterTeamCompetition();
   const sendTeamInviteMutation = useSendTeamInvite();
   const submitMemberFormMutation = useSubmitTeamMemberForm();
+  const competitionDetailQuery = useCompetition(competitionId);
+  const validatePromoMutation = useValidatePromoCode();
 
   const mode = searchParams.get("mode");
   const teamIdFromQuery = searchParams.get("teamId") || "";
@@ -227,6 +237,45 @@ export default function CompetitionRegistration({
       setStep("form");
     }
   }, [isMemberMode, step]);
+
+  const handleApplyPromoCode = async () => {
+    if (!promoCode.trim()) {
+      setPromoError("Please enter a promo code.");
+      return;
+    }
+    setPromoError("");
+    setPromoDiscount(null);
+
+    try {
+      const result = await validatePromoMutation.mutateAsync({
+        competitionId,
+        promoCode: promoCode.trim().toUpperCase(),
+      });
+      if (result) {
+        setPromoDiscount({
+          amount: result.discountAmount || result.amount || 0,
+          type: result.type || result.discountType || "FLAT",
+        });
+      }
+    } catch (err: any) {
+      setPromoError(
+        err?.response?.data?.message ||
+          err?.message ||
+          "Invalid promo code.",
+      );
+    }
+  };
+
+  const registrationFee = competitionDetailQuery.data?.registrationFee || 0;
+  const isPaid = (competitionDetailQuery.data as any)?.isPaid ?? registrationFee > 0;
+
+  const finalFee = useMemo(() => {
+    if (!promoDiscount) return registrationFee;
+    if (promoDiscount.type === "PERCENT") {
+      return Math.max(0, registrationFee * (1 - promoDiscount.amount / 100));
+    }
+    return Math.max(0, registrationFee - promoDiscount.amount);
+  }, [registrationFee, promoDiscount]);
 
   const handleTeamDetailsContinue = (e: React.FormEvent) => {
     e.preventDefault();
@@ -310,6 +359,7 @@ export default function CompetitionRegistration({
         registrationResult = await registerSoloMutation.mutateAsync({
           competitionId,
           formData,
+          promoCode: promoCode || undefined,
         });
       } else {
         registrationResult = await registerTeamMutation.mutateAsync({
@@ -317,6 +367,7 @@ export default function CompetitionRegistration({
           teamName: teamDetails.teamName.trim(),
           formData,
           referralCode: referralCode || undefined,
+          promoCode: promoCode || undefined,
         });
 
         const createdTeamId = registrationResult?.team?.id;
@@ -635,6 +686,57 @@ export default function CompetitionRegistration({
               className="bg-black border border-white/10 rounded-lg px-4 py-3 text-white placeholder-white/30 focus:outline-hidden focus:border-white/40"
             />
           </div>
+
+          <div className="flex flex-col space-y-2">
+            <label className="text-xs uppercase tracking-wider text-white/50 font-medium ml-1">
+              Promo Code (Optional)
+            </label>
+            <div className="flex gap-2">
+              <input
+                value={promoCode}
+                onChange={(event) =>
+                  setPromoCode(event.target.value.toUpperCase())
+                }
+                placeholder="PROMO10"
+                className="bg-black border border-white/10 rounded-lg px-4 py-3 text-white placeholder-white/30 focus:outline-hidden focus:border-white/40 flex-1"
+              />
+              <button
+                type="button"
+                onClick={handleApplyPromoCode}
+                disabled={validatePromoMutation.isPending || !promoCode}
+                className="px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg border border-white/20 transition-colors disabled:opacity-50"
+              >
+                {validatePromoMutation.isPending ? "..." : "Apply"}
+              </button>
+            </div>
+            {promoError && (
+              <p className="text-[10px] text-rose-400 ml-1">{promoError}</p>
+            )}
+            {promoDiscount && (
+              <p className="text-[10px] text-emerald-400 ml-1">
+                Applied! {promoDiscount.type === 'PERCENT' ? `${promoDiscount.amount}%` : `₹${promoDiscount.amount}`} discount.
+              </p>
+            )}
+          </div>
+
+          {isPaid && registrationFee > 0 && (
+            <div className="bg-white/5 border border-white/10 rounded-xl p-4 mt-4">
+              <div className="flex justify-between text-sm mb-2">
+                <span className="text-white/50">Registration Fee</span>
+                <span className="text-white">₹{registrationFee}</span>
+              </div>
+              {promoDiscount && (
+                <div className="flex justify-between text-sm mb-2 text-emerald-400">
+                  <span>Promo Discount</span>
+                  <span>- ₹{registrationFee - finalFee}</span>
+                </div>
+              )}
+              <div className="flex justify-between font-bold border-t border-white/5 pt-2 mt-2">
+                <span className="text-white">Total Amount</span>
+                <span className="text-white text-lg">₹{finalFee}</span>
+              </div>
+            </div>
+          )}
 
           {!isSolo && teamOptions.length > 1 ? (
             <div className="flex flex-col space-y-2">

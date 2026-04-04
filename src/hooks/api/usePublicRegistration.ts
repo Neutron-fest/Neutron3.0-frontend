@@ -116,6 +116,11 @@ interface RemovePendingInviteParams {
   inviteId: string;
 }
 
+interface ValidatePromoCodeParams {
+  competitionId: string;
+  promoCode: string;
+}
+
 // Update all hooks with appropriate types
 export function usePublicCompetitionFormFields(competitionId: string) {
   return useQuery<CompetitionFormFields>({
@@ -368,6 +373,18 @@ export function useLeaveTeam() {
           queryKey: queryKeys.publicRegistrations.team(teamId),
         });
       }
+    },
+  });
+}
+
+export function useValidatePromoCode() {
+  return useMutation({
+    mutationFn: async (params: ValidatePromoCodeParams) => {
+      const { data } = await apiClient.post(
+        `/registration/competition/${params.competitionId}/validate-promo`,
+        { promoCode: params.promoCode },
+      );
+      return data?.data || data;
     },
   });
 }
