@@ -94,6 +94,12 @@ const normalizeUnstopUrl = (raw: string | null | undefined): string | null => {
   }
 };
 
+const formatInrAmount = (value: number) => {
+  const safeValue = Number(value);
+  if (!Number.isFinite(safeValue)) return "0.00";
+  return safeValue.toFixed(2);
+};
+
 export default function CompetitionRegistration({
   competitionId,
   competitionTitle,
@@ -130,6 +136,7 @@ export default function CompetitionRegistration({
   const [promoDiscount, setPromoDiscount] = useState<{
     amount: number;
     type: "FLAT" | "PERCENT";
+    finalFee?: number;
   } | null>(null);
   const [promoError, setPromoError] = useState("");
 
@@ -252,30 +259,50 @@ export default function CompetitionRegistration({
         promoCode: promoCode.trim().toUpperCase(),
       });
       if (result) {
+        const normalizedType =
+          result.type === "PERCENT" || result.discountType === "PERCENT"
+            ? "PERCENT"
+            : "FLAT";
+        const normalizedAmount =
+          normalizedType === "PERCENT"
+            ? Number(result.discountValue ?? result.amount ?? 0)
+            : Number(result.discountAmount ?? result.amount ?? 0);
+        const normalizedFinalFee = Number(result.finalFee);
+
         setPromoDiscount({
-          amount: result.discountAmount || result.amount || 0,
-          type: result.type || result.discountType || "FLAT",
+          amount: Number.isFinite(normalizedAmount) ? normalizedAmount : 0,
+          type: normalizedType,
+          finalFee: Number.isFinite(normalizedFinalFee)
+            ? normalizedFinalFee
+            : undefined,
         });
       }
     } catch (err: any) {
       setPromoError(
-        err?.response?.data?.message ||
-          err?.message ||
-          "Invalid promo code.",
+        err?.response?.data?.message || err?.message || "Invalid promo code.",
       );
     }
   };
 
   const registrationFee = competitionDetailQuery.data?.registrationFee || 0;
-  const isPaid = (competitionDetailQuery.data as any)?.isPaid ?? registrationFee > 0;
+  const isPaid =
+    (competitionDetailQuery.data as any)?.isPaid ?? registrationFee > 0;
 
   const finalFee = useMemo(() => {
     if (!promoDiscount) return registrationFee;
+    if (typeof promoDiscount.finalFee === "number") {
+      return Math.max(0, promoDiscount.finalFee);
+    }
     if (promoDiscount.type === "PERCENT") {
       return Math.max(0, registrationFee * (1 - promoDiscount.amount / 100));
     }
     return Math.max(0, registrationFee - promoDiscount.amount);
   }, [registrationFee, promoDiscount]);
+
+  const promoDiscountAmount = useMemo(
+    () => Math.max(0, Number(registrationFee || 0) - Number(finalFee || 0)),
+    [registrationFee, finalFee],
+  );
 
   const handleTeamDetailsContinue = (e: React.FormEvent) => {
     e.preventDefault();
@@ -561,9 +588,12 @@ export default function CompetitionRegistration({
 
     return (
       <div className="bg-amber-500/10 border border-amber-300/30 rounded-2xl p-8 md:p-12 text-center max-w-lg mx-auto">
-        <h3 className="text-2xl font-semibold mb-3 text-white">Complete Payment</h3>
+        <h3 className="text-2xl font-semibold mb-3 text-white">
+          Complete Payment
+        </h3>
         <p className="text-white/70 mb-6">
-          You are registered for {competitionTitle}, but payment is still pending.
+          You are registered for {competitionTitle}, but payment is still
+          pending.
         </p>
         <button
           type="button"
@@ -714,7 +744,11 @@ export default function CompetitionRegistration({
             )}
             {promoDiscount && (
               <p className="text-[10px] text-emerald-400 ml-1">
-                Applied! {promoDiscount.type === 'PERCENT' ? `${promoDiscount.amount}%` : `₹${promoDiscount.amount}`} discount.
+                Applied!{" "}
+                {promoDiscount.type === "PERCENT"
+                  ? `${promoDiscount.amount}%`
+                  : `₹${promoDiscount.amount}`}{" "}
+                discount.
               </p>
             )}
           </div>
@@ -723,17 +757,21 @@ export default function CompetitionRegistration({
             <div className="bg-white/5 border border-white/10 rounded-xl p-4 mt-4">
               <div className="flex justify-between text-sm mb-2">
                 <span className="text-white/50">Registration Fee</span>
-                <span className="text-white">₹{registrationFee}</span>
+                <span className="text-white">
+                  ₹{formatInrAmount(registrationFee)}
+                </span>
               </div>
               {promoDiscount && (
                 <div className="flex justify-between text-sm mb-2 text-emerald-400">
                   <span>Promo Discount</span>
-                  <span>- ₹{registrationFee - finalFee}</span>
+                  <span>- ₹{formatInrAmount(promoDiscountAmount)}</span>
                 </div>
               )}
               <div className="flex justify-between font-bold border-t border-white/5 pt-2 mt-2">
                 <span className="text-white">Total Amount</span>
-                <span className="text-white text-lg">₹{finalFee}</span>
+                <span className="text-white text-lg">
+                  ₹{formatInrAmount(finalFee)}
+                </span>
               </div>
             </div>
           )}

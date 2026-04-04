@@ -13,11 +13,17 @@ function parseTeamSize(sizeStr: string): number[] {
   const min = parseInt(match[1]);
   const max = match[2] ? parseInt(match[2]) : min;
   const options = [];
-  for(let i=min; i<=max; i++) {
+  for (let i = min; i <= max; i++) {
     options.push(i);
   }
   return options;
 }
+
+const formatInrAmount = (value: number) => {
+  const safeValue = Number(value);
+  if (!Number.isFinite(safeValue)) return "0.00";
+  return safeValue.toFixed(2);
+};
 
 type MemberData = {
   name: string;
@@ -54,6 +60,7 @@ export default function EventRegistration({
   const [promoDiscount, setPromoDiscount] = useState<{
     amount: number;
     type: "FLAT" | "PERCENT";
+    finalFee?: number;
   } | null>(null);
   const [promoError, setPromoError] = useState("");
 
@@ -73,10 +80,10 @@ export default function EventRegistration({
       while (newMembers.length < defaultSize) {
         newMembers.push({ name: "", email: "", phone: "" });
       }
-      return { 
-        ...prev, 
+      return {
+        ...prev,
         teamSize: defaultSize.toString(),
-        members: newMembers.slice(0, defaultSize)
+        members: newMembers.slice(0, defaultSize),
       };
     });
   }, [teamOptions]);
@@ -96,12 +103,16 @@ export default function EventRegistration({
       return {
         ...prev,
         teamSize: e.target.value,
-        members: newMembers.slice(0, newSize)
+        members: newMembers.slice(0, newSize),
       };
     });
   };
 
-  const handleMemberChange = (index: number, field: keyof MemberData, value: string) => {
+  const handleMemberChange = (
+    index: number,
+    field: keyof MemberData,
+    value: string,
+  ) => {
     setFormData((prev) => {
       const newMembers = [...prev.members];
       newMembers[index] = { ...newMembers[index], [field]: value };
@@ -123,9 +134,22 @@ export default function EventRegistration({
         promoCode: formData.promoCode.trim().toUpperCase(),
       });
       if (result) {
+        const normalizedType =
+          result.type === "PERCENT" || result.discountType === "PERCENT"
+            ? "PERCENT"
+            : "FLAT";
+        const normalizedAmount =
+          normalizedType === "PERCENT"
+            ? Number(result.discountValue ?? result.amount ?? 0)
+            : Number(result.discountAmount ?? result.amount ?? 0);
+        const normalizedFinalFee = Number(result.finalFee);
+
         setPromoDiscount({
-          amount: result.discountAmount || result.amount || 0,
-          type: result.type || result.discountType || "FLAT",
+          amount: Number.isFinite(normalizedAmount) ? normalizedAmount : 0,
+          type: normalizedType,
+          finalFee: Number.isFinite(normalizedFinalFee)
+            ? normalizedFinalFee
+            : undefined,
         });
       }
     } catch (err: any) {
@@ -137,11 +161,19 @@ export default function EventRegistration({
 
   const finalFee = useMemo(() => {
     if (!promoDiscount) return registrationFee;
+    if (typeof promoDiscount.finalFee === "number") {
+      return Math.max(0, promoDiscount.finalFee);
+    }
     if (promoDiscount.type === "PERCENT") {
       return Math.max(0, registrationFee * (1 - promoDiscount.amount / 100));
     }
     return Math.max(0, registrationFee - promoDiscount.amount);
   }, [registrationFee, promoDiscount]);
+
+  const promoDiscountAmount = useMemo(
+    () => Math.max(0, Number(registrationFee || 0) - Number(finalFee || 0)),
+    [registrationFee, finalFee],
+  );
 
   const handleRegister = (e: React.FormEvent) => {
     e.preventDefault();
@@ -161,11 +193,19 @@ export default function EventRegistration({
           stroke="currentColor"
           viewBox="0 0 24 24"
         >
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={1}
+            d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+          />
         </svg>
-        <h3 className="text-2xl font-semibold mb-4 text-white">Authentication Required</h3>
+        <h3 className="text-2xl font-semibold mb-4 text-white">
+          Authentication Required
+        </h3>
         <p className="text-white/60 mb-8 font-light">
-          You must be signed in to your Neutron account to register for {eventTitle}.
+          You must be signed in to your Neutron account to register for{" "}
+          {eventTitle}.
         </p>
         <Link
           href={`/auth/signin?callbackUrl=${encodeURIComponent(pathname)}`}
@@ -190,11 +230,19 @@ export default function EventRegistration({
           stroke="currentColor"
           viewBox="0 0 24 24"
         >
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={1.5}
+            d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+          />
         </svg>
-        <h3 className="text-3xl font-bold mb-4 text-white">Registration Complete</h3>
+        <h3 className="text-3xl font-bold mb-4 text-white">
+          Registration Complete
+        </h3>
         <p className="text-white/60 mb-8 font-light">
-          Your team is successfully registered for {eventTitle}. Briefing documents have been sent.
+          Your team is successfully registered for {eventTitle}. Briefing
+          documents have been sent.
         </p>
         <button
           onClick={() => {
@@ -227,21 +275,28 @@ export default function EventRegistration({
       className="bg-black/40 backdrop-blur-xl border border-white/10 rounded-2xl p-6 md:p-10 max-w-2xl mx-auto shadow-2xl"
     >
       <div className="mb-8">
-        <h3 className="text-2xl md:text-3xl font-bold text-white mb-2">Secure Your Spot</h3>
+        <h3 className="text-2xl md:text-3xl font-bold text-white mb-2">
+          Secure Your Spot
+        </h3>
         <p className="text-white/50 text-sm">
-          Complete the form below to finalize your registration. All fields are required.
+          Complete the form below to finalize your registration. All fields are
+          required.
         </p>
       </div>
 
       <form onSubmit={handleRegister} className="space-y-8 flex flex-col">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-white/5 border border-white/10 rounded-xl p-6 relative overflow-hidden">
           <div className="absolute top-0 left-0 w-1 h-full bg-blue-500/50"></div>
-          
+
           <div className="flex flex-col space-y-2">
-            <label className="text-xs uppercase tracking-wider text-white/50 font-medium ml-1">Team Size</label>
+            <label className="text-xs uppercase tracking-wider text-white/50 font-medium ml-1">
+              Team Size
+            </label>
             {teamOptions.length === 1 ? (
               <div className="bg-black border border-white/10 rounded-lg px-4 py-3 text-white/60">
-                {teamOptions[0] === 1 ? "1 (Solo)" : `${teamOptions[0]} Members`}
+                {teamOptions[0] === 1
+                  ? "1 (Solo)"
+                  : `${teamOptions[0]} Members`}
               </div>
             ) : (
               <select
@@ -260,7 +315,9 @@ export default function EventRegistration({
           </div>
 
           <div className="flex flex-col space-y-2">
-            <label className="text-xs uppercase tracking-wider text-white/50 font-medium ml-1">College/University</label>
+            <label className="text-xs uppercase tracking-wider text-white/50 font-medium ml-1">
+              College/University
+            </label>
             <input
               required
               name="college"
@@ -275,9 +332,11 @@ export default function EventRegistration({
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-white/5 border border-white/10 rounded-xl p-6 relative overflow-hidden">
           <div className="absolute top-0 left-0 w-1 h-full bg-purple-500/50"></div>
-          
+
           <div className="flex flex-col space-y-2">
-            <label className="text-xs uppercase tracking-wider text-white/50 font-medium ml-1">Referral Code (Optional)</label>
+            <label className="text-xs uppercase tracking-wider text-white/50 font-medium ml-1">
+              Referral Code (Optional)
+            </label>
             <input
               name="referralCode"
               value={formData.referralCode}
@@ -289,7 +348,9 @@ export default function EventRegistration({
           </div>
 
           <div className="flex flex-col space-y-2">
-            <label className="text-xs uppercase tracking-wider text-white/50 font-medium ml-1">Promo Code (Optional)</label>
+            <label className="text-xs uppercase tracking-wider text-white/50 font-medium ml-1">
+              Promo Code (Optional)
+            </label>
             <div className="flex gap-2">
               <input
                 name="promoCode"
@@ -305,7 +366,9 @@ export default function EventRegistration({
               <button
                 type="button"
                 onClick={handleApplyPromoCode}
-                disabled={validatePromoMutation.isPending || !formData.promoCode}
+                disabled={
+                  validatePromoMutation.isPending || !formData.promoCode
+                }
                 className="px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg border border-white/20 transition-colors disabled:opacity-50"
               >
                 {validatePromoMutation.isPending ? "..." : "Apply"}
@@ -316,7 +379,11 @@ export default function EventRegistration({
             )}
             {promoDiscount && (
               <p className="text-[10px] text-emerald-400 ml-1">
-                Applied! {promoDiscount.type === 'PERCENT' ? `${promoDiscount.amount}%` : `₹${promoDiscount.amount}`} discount.
+                Applied!{" "}
+                {promoDiscount.type === "PERCENT"
+                  ? `${promoDiscount.amount}%`
+                  : `₹${promoDiscount.amount}`}{" "}
+                discount.
               </p>
             )}
           </div>
@@ -326,17 +393,21 @@ export default function EventRegistration({
           <div className="bg-white/5 border border-white/10 rounded-xl p-4">
             <div className="flex justify-between text-sm mb-2">
               <span className="text-white/50">Registration Fee</span>
-              <span className="text-white">₹{registrationFee}</span>
+              <span className="text-white">
+                ₹{formatInrAmount(registrationFee)}
+              </span>
             </div>
             {promoDiscount && (
               <div className="flex justify-between text-sm mb-2 text-emerald-400">
                 <span>Promo Discount</span>
-                <span>- ₹{registrationFee - finalFee}</span>
+                <span>- ₹{formatInrAmount(promoDiscountAmount)}</span>
               </div>
             )}
             <div className="flex justify-between font-bold border-t border-white/5 pt-2 mt-2">
               <span className="text-white">Total Amount</span>
-              <span className="text-white text-lg">₹{finalFee}</span>
+              <span className="text-white text-lg">
+                ₹{formatInrAmount(finalFee)}
+              </span>
             </div>
           </div>
         )}
@@ -344,13 +415,15 @@ export default function EventRegistration({
         <div className="space-y-6">
           <AnimatePresence>
             {formData.members.map((member, index) => (
-              <motion.div 
+              <motion.div
                 key={index}
                 initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: 'auto' }}
+                animate={{ opacity: 1, height: "auto" }}
                 exit={{ opacity: 0, height: 0 }}
-                transition={{ duration: 0.3, ease: 'easeInOut' }}
-                onAnimationComplete={() => window.dispatchEvent(new Event('resize'))}
+                transition={{ duration: 0.3, ease: "easeInOut" }}
+                onAnimationComplete={() =>
+                  window.dispatchEvent(new Event("resize"))
+                }
                 className="bg-white/5 border border-white/10 rounded-xl p-6 relative overflow-hidden"
               >
                 <div className="absolute top-0 left-0 w-1 h-full bg-green-500/50"></div>
@@ -358,16 +431,22 @@ export default function EventRegistration({
                   <span className="w-5 h-5 rounded-full bg-white/10 flex items-center justify-center text-[10px] mr-2 text-white/70">
                     {index + 1}
                   </span>
-                  {index === 0 ? "Team Leader Details" : `Member ${index + 1} Details`}
+                  {index === 0
+                    ? "Team Leader Details"
+                    : `Member ${index + 1} Details`}
                 </h4>
-                
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="flex flex-col space-y-2">
-                    <label className="text-xs uppercase tracking-wider text-white/50 font-medium ml-1">Full Name</label>
+                    <label className="text-xs uppercase tracking-wider text-white/50 font-medium ml-1">
+                      Full Name
+                    </label>
                     <input
                       required
                       value={member.name}
-                      onChange={(e) => handleMemberChange(index, "name", e.target.value)}
+                      onChange={(e) =>
+                        handleMemberChange(index, "name", e.target.value)
+                      }
                       type="text"
                       placeholder="Commander Shepard"
                       className="bg-black border border-white/10 rounded-lg px-4 py-3 text-white placeholder-white/20 focus:outline-hidden focus:border-white/40 focus:bg-white/10 transition-colors"
@@ -375,11 +454,15 @@ export default function EventRegistration({
                   </div>
 
                   <div className="flex flex-col space-y-2">
-                    <label className="text-xs uppercase tracking-wider text-white/50 font-medium ml-1">Email Address</label>
+                    <label className="text-xs uppercase tracking-wider text-white/50 font-medium ml-1">
+                      Email Address
+                    </label>
                     <input
                       required
                       value={member.email}
-                      onChange={(e) => handleMemberChange(index, "email", e.target.value)}
+                      onChange={(e) =>
+                        handleMemberChange(index, "email", e.target.value)
+                      }
                       type="email"
                       placeholder="shepard@normandy.com"
                       className="bg-black border border-white/10 rounded-lg px-4 py-3 text-white placeholder-white/20 focus:outline-hidden focus:border-white/40 focus:bg-white/10 transition-colors"
@@ -387,11 +470,15 @@ export default function EventRegistration({
                   </div>
 
                   <div className="flex flex-col space-y-2 md:col-span-2">
-                    <label className="text-xs uppercase tracking-wider text-white/50 font-medium ml-1">Phone Number</label>
+                    <label className="text-xs uppercase tracking-wider text-white/50 font-medium ml-1">
+                      Phone Number
+                    </label>
                     <input
                       required
                       value={member.phone}
-                      onChange={(e) => handleMemberChange(index, "phone", e.target.value)}
+                      onChange={(e) =>
+                        handleMemberChange(index, "phone", e.target.value)
+                      }
                       type="tel"
                       placeholder="+91 98765 43210"
                       className="bg-black border border-white/10 rounded-lg px-4 py-3 text-white placeholder-white/20 focus:outline-hidden focus:border-white/40 focus:bg-white/10 transition-colors"
@@ -417,8 +504,19 @@ export default function EventRegistration({
           ) : (
             <>
               <span>Confirm Registration</span>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M5 12h14M12 5l7 7-7 7" strokeLinecap="round" strokeLinejoin="round" />
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+              >
+                <path
+                  d="M5 12h14M12 5l7 7-7 7"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
               </svg>
             </>
           )}

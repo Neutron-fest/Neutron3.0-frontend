@@ -18,7 +18,7 @@ export function useRegistrationPaymentStatus(
     queryKey: queryKeys.payments.status(registrationId || ""),
     queryFn: async () => {
       const { data } = await apiClient.get(
-        `/payment/registration/${registrationId}/status`,
+        `/payments/registration/${registrationId}/status`,
       );
       return unwrapResponse(data);
     },
@@ -32,7 +32,7 @@ export function useRetryRegistrationPayment() {
   return useMutation({
     mutationFn: async (registrationId: string) => {
       const { data } = await apiClient.post(
-        `/payment/registration/${registrationId}/retry`,
+        `/payments/registration/${registrationId}/retry`,
       );
       return unwrapResponse(data);
     },
@@ -57,7 +57,7 @@ export function useCreateRegistrationCheckoutSession() {
   return useMutation({
     mutationFn: async (registrationId: string) => {
       const { data } = await apiClient.post(
-        `/payment/registration/${registrationId}/checkout`,
+        `/payments/registration/${registrationId}/checkout`,
       );
       return unwrapResponse(data);
     },
@@ -79,7 +79,7 @@ export function useApprovedUnpaidRegistrations(
   return useQuery({
     queryKey: queryKeys.payments.approvedUnpaid(filters),
     queryFn: async () => {
-      const { data } = await apiClient.get("/payment/admin/approved-unpaid", {
+      const { data } = await apiClient.get("/payments/admin/approved-unpaid", {
         params: filters,
       });
       return Array.isArray(data?.data) ? data.data : [];
@@ -94,7 +94,7 @@ export function useResendRegistrationPaymentLink() {
   return useMutation({
     mutationFn: async (registrationId: string) => {
       const { data } = await apiClient.post(
-        `/payment/admin/registration/${registrationId}/resend-link`,
+        `/payments/admin/registration/${registrationId}/resend-link`,
       );
       return unwrapResponse(data);
     },
@@ -118,7 +118,7 @@ export function useRegistrationPaymentSessions(
     queryKey: queryKeys.payments.sessions(registrationId || ""),
     queryFn: async () => {
       const { data } = await apiClient.get(
-        `/payment/admin/registration/${registrationId}/sessions`,
+        `/payments/admin/registration/${registrationId}/sessions`,
       );
       return Array.isArray(data?.data) ? data.data : [];
     },
