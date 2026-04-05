@@ -7,6 +7,7 @@ import { AuthInput, AuthButton } from "@/components/auth-components";
 import { useRouter, useSearchParams } from "next/navigation";
 import { AuthModal } from "@/components/auth-modal";
 import apiClient from "@/lib/axios";
+import { getApiOriginBaseUrl } from "@/lib/apiBaseUrl";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRequestPasswordReset } from "@/src/hooks/api/useAuth";
 
@@ -238,8 +239,7 @@ function SignInContent() {
   };
 
   const handleGoogleLogin = () => {
-    const backendUrl =
-      process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3001";
+    const backendUrl = getApiOriginBaseUrl();
     const normalizedBackendUrl = backendUrl.replace(/\/+$/, "");
     const oauthBaseUrl = normalizedBackendUrl.endsWith("/api/v1")
       ? normalizedBackendUrl

@@ -10,6 +10,7 @@ import {
   isSocketConnectionAllowed,
   waitForSocketConnection,
 } from "@/lib/socket";
+import { getApiV1BaseUrl } from "@/lib/apiBaseUrl";
 
 const AUTH_REJECTION_ERRORS = new Set([
   "UNAUTHORIZED",
@@ -41,8 +42,7 @@ const emitServerRejectedAuth = (): void => {
   window.dispatchEvent(new Event("auth:server-rejected"));
 };
 
-const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3001";
+const API_BASE_URL = getApiV1BaseUrl();
 
 const PUBLIC_PATHS = [
   "/auth/login",
@@ -122,7 +122,7 @@ const addPendingRequest = (callback: () => void): void => {
 
 // Create axios instance with default config
 const apiClient: AxiosInstance = axios.create({
-  baseURL: `${API_BASE_URL}/api/v1`,
+  baseURL: API_BASE_URL,
   withCredentials: true, // Send cookies with requests
   headers: {
     "Content-Type": "application/json",

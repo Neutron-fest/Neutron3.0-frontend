@@ -1,7 +1,7 @@
 import { io, Socket } from "socket.io-client";
+import { getApiOriginBaseUrl } from "@/lib/apiBaseUrl";
 
-const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3001";
+const API_BASE_URL = getApiOriginBaseUrl();
 
 const SOCKET_GRACE_MS = Number.parseInt(
   process.env.NEXT_PUBLIC_SOCKET_RECONNECT_GRACE_MS || "7000",

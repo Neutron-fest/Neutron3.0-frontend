@@ -33,6 +33,21 @@ export interface RegisterPayload {
   password: string;
 }
 
+export interface InvitationPreview {
+  valid?: boolean;
+  email?: string;
+  invitedEmail?: string;
+  role?: string;
+  expiresAt?: string;
+  [key: string]: any;
+}
+
+export interface AcceptInvitationPayload {
+  token: string;
+  name: string;
+  password: string;
+}
+
 /**
  * Get current authenticated user
  */
@@ -111,6 +126,40 @@ export function useRegister() {
   >({
     mutationFn: async (payload) => {
       const { data } = await apiClient.post("/auth/register", payload);
+      return data;
+    },
+  });
+}
+
+/**
+ * Validate invitation token
+ */
+export function useInvitationPreview(token?: string) {
+  return useQuery<InvitationPreview>({
+    queryKey: queryKeys.publicRegistrations.invitePreview(token || ""),
+    queryFn: async () => {
+      const { data } = await apiClient.get("/auth/invite/validate", {
+        params: { token },
+      });
+
+      return data?.data || data;
+    },
+    enabled: Boolean(token),
+    retry: false,
+  });
+}
+
+/**
+ * Accept invitation and create account credentials
+ */
+export function useAcceptInvitation() {
+  return useMutation<
+    { success: boolean; message?: string },
+    Error,
+    AcceptInvitationPayload
+  >({
+    mutationFn: async (payload) => {
+      const { data } = await apiClient.post("/auth/invite/accept", payload);
       return data;
     },
   });
