@@ -101,71 +101,85 @@ function PolaroidCard({ title, image, slug, category, date, index, total, scroll
           scale,
           opacity,
           transformStyle: "preserve-3d",
-          backgroundImage: `linear-gradient(rgba(10, 10, 15, 0.7), rgba(10, 10, 15, 0.8)), url('https://ik.imagekit.io/yatharth/CARDS.png')`,
-          backgroundColor: "#0a0a0f",
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-          backgroundBlendMode: "overlay",
         }}
-        className="relative w-[320px] md:w-[480px] aspect-4/5 p-4 pb-16 md:p-6 md:pb-24 shadow-[0_40px_80px_rgba(0,0,0,0.9)] rounded-[2px] group pointer-events-auto overflow-visible border border-zinc-800/60"
+        className="relative w-[300px] md:w-[420px] aspect-3/4 shadow-[0_40px_100px_rgba(0,0,0,0.95)] rounded-2xl group pointer-events-auto overflow-hidden border border-white/10"
       >
-        <div className="absolute inset-0 pointer-events-none rounded-[2px] border border-white/5 shadow-[inset_0_0_40px_rgba(255,255,255,0.02)]" />
-        
-        <div className="absolute inset-0 pointer-events-none opacity-[0.03] bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%),linear-gradient(90deg,rgba(255,0,0,0.06),rgba(0,255,0,0.02),rgba(0,0,255,0.06))] z-50 bg-size-[100%_2px,3px_100%]" />
-        
-        <Link href={`/competitions/${slug}`} onClick={playSciFiClick} className="block w-full h-full relative flex-col z-10">
-          <div className="flex justify-between items-start text-[9px] md:text-[12px] font-caveat text-zinc-500 tracking-wider pt-1">
-            <div className="flex flex-col -space-y-1">
-              <span>F/11</span>
-              <span>ISO 100</span>
-            </div>
-            <div className="absolute left-1/2 -translate-x-1/2 font-caveat text-lg md:text-xl text-zinc-300 leading-none -rotate-1">
-              LIFT OFF!
-            </div>
-            <div className="font-caveat text-sm md:text-lg text-zinc-300 rotate-1">
-              {date || "MISSION DATE"}
-            </div>
-          </div>
+        {/* Scanline grain */}
+        <div className="absolute inset-0 pointer-events-none opacity-[0.035] bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%),linear-gradient(90deg,rgba(255,0,0,0.06),rgba(0,255,0,0.02),rgba(0,0,255,0.06))] z-50 bg-size-[100%_2px,3px_100%]" />
 
-          <div className="w-full aspect-4/3 relative overflow-hidden bg-zinc-900 mt-6 md:mt-10 rounded-[1px] border border-zinc-800 group-hover:border-amber-500/50 transition-colors duration-500 shadow-[inset_0_0_40px_rgba(0,0,0,0.6)]">
+        <Link href={`/competitions/${slug}`} onClick={playSciFiClick} className="block w-full h-full">
+
+          {/* ── FULL-BLEED IMAGE ── */}
+          <div className="absolute inset-0">
             <img
               src={image}
               alt={title}
-              className="w-full h-full object-cover filter brightness-[0.7] contrast-[1.2] grayscale-[0.3] transition-all duration-700 group-hover:scale-105 group-hover:brightness-[0.9] group-hover:grayscale-0"
+              className="w-full h-full object-cover brightness-[0.55] contrast-[1.15] transition-all duration-700 group-hover:scale-105 group-hover:brightness-[0.72]"
             />
-            <div className="absolute top-2 left-2 w-3 h-3 border-l-2 border-t-2 border-amber-500/30" />
-            <div className="absolute top-2 right-2 w-3 h-3 border-r-2 border-t-2 border-amber-500/30" />
-            <div className="absolute bottom-2 left-2 w-3 h-3 border-l-2 border-b-2 border-amber-500/30" />
-            <div className="absolute bottom-2 right-2 w-3 h-3 border-r-2 border-b-2 border-amber-500/30" />
           </div>
 
-          <div className="flex-1 flex flex-col items-center justify-center pt-6">
-            <h2 className="font-sans font-black text-2xl md:text-4xl text-amber-500 uppercase tracking-tighter leading-none px-4 text-center mb-2 drop-shadow-[0_0_15px_rgba(245,158,11,0.5)] group-hover:text-amber-400 transition-colors">
+          {/* ── GRADIENT OVERLAY — bottom heavy ── */}
+          <div className="absolute inset-0 bg-linear-to-t from-black/95 via-black/50 to-black/20 z-10" />
+
+          {/* ── TOP TAGS ── */}
+          <div className="absolute top-4 left-4 right-4 z-20 flex items-center justify-between">
+            {/* Category pill */}
+            <span className="inline-flex items-center px-3 py-1 rounded-full text-[9px] font-mono uppercase tracking-[0.2em] text-white/85 bg-white/10 backdrop-blur-md border border-white/20 shadow-[0_2px_16px_rgba(0,0,0,0.5)]">
+              {category}
+            </span>
+            {/* Status pill */}
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[9px] font-mono uppercase tracking-[0.2em] text-emerald-300 bg-emerald-500/10 backdrop-blur-md border border-emerald-500/30 shadow-[0_0_14px_rgba(52,211,153,0.18)]">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+              Active
+            </span>
+          </div>
+
+          {/* ── BOTTOM TEXT BLOCK ── */}
+          <div className="absolute bottom-0 left-0 right-0 z-20 px-5 pb-6 md:px-7 md:pb-8">
+            {/* Title */}
+            <h2 className="font-sans font-black text-[1.85rem] md:text-[2.6rem] text-white uppercase tracking-tight leading-[0.88] drop-shadow-[0_0_20px_rgba(255,255,255,0.18)] group-hover:drop-shadow-[0_0_32px_rgba(255,200,80,0.5)] transition-all duration-500 mb-2">
               {title}
             </h2>
-            <div className="flex items-center gap-4">
-              <div className="h-px w-8 bg-amber-500/20" />
-              <span className="text-[10px] md:text-[8px] font-mono uppercase tracking-[0.5em] text-amber-500/40 font-bold">
-                DATA_NODE_{index + 1}
-              </span>
-              <div className="h-px w-8 bg-amber-500/20" />
-            </div>
+
+            {/* Date — subtle mono */}
+            <p className="text-[9px] md:text-[10px] font-mono text-white/35 uppercase tracking-[0.4em]">
+              {date}
+            </p>
+
+            {/* Hairline divider */}
+            <div className="mt-4 h-px bg-linear-to-r from-white/25 via-white/8 to-transparent" />
+
+            {/* Subline */}
+            <p className="mt-3 text-[9px] md:text-[10px] font-mono text-white/35 uppercase tracking-[0.3em]">
+              Tap to explore mission
+            </p>
           </div>
+
+          {/* Corner accents */}
+          <div className="absolute top-3 left-3 w-4 h-4 border-l border-t border-white/25 z-20" />
+          <div className="absolute top-3 right-3 w-4 h-4 border-r border-t border-white/25 z-20" />
+          <div className="absolute bottom-3 left-3 w-4 h-4 border-l border-b border-white/25 z-20" />
+          <div className="absolute bottom-3 right-3 w-4 h-4 border-r border-b border-white/25 z-20" />
+
+          {/* Hover glow border */}
+          <div className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 ring-1 ring-inset ring-white/20 shadow-[inset_0_0_60px_rgba(255,200,80,0.05)] z-30 pointer-events-none" />
         </Link>
+
+        {/* Nav arrows */}
         <div className="absolute top-1/2 -left-12 -right-12 md:-left-16 md:-right-16 -translate-y-1/2 flex justify-between items-center z-50 px-2 pointer-events-none">
           <button
             onClick={(e) => { e.stopPropagation(); playSciFiClick(); scrollToCard(index - 1); }}
-            className={`w-12 h-12 flex items-center justify-center bg-zinc-950 border border-amber-500/20 text-amber-500 transition-all hover:bg-amber-500/10 hover:border-amber-500/50 hover:scale-110 pointer-events-auto backdrop-blur-md shadow-[0_0_20px_rgba(245,158,11,0.05)] ${index === 0 ? 'opacity-0 cursor-default' : 'opacity-40 hover:opacity-100'}`}
+            className={`w-10 h-10 flex items-center justify-center rounded-full bg-black/60 border border-white/15 text-white/70 transition-all hover:bg-white/10 hover:border-white/40 hover:scale-110 pointer-events-auto backdrop-blur-md ${index === 0 ? 'opacity-0 cursor-default' : 'opacity-50 hover:opacity-100'}`}
             disabled={index === 0}
           >
-            <ChevronLeft size={24} strokeWidth={1.5} />
+            <ChevronLeft size={18} strokeWidth={1.5} />
           </button>
           <button
             onClick={(e) => { e.stopPropagation(); playSciFiClick(); scrollToCard(index + 1); }}
-            className={`w-12 h-12 flex items-center justify-center bg-zinc-950 border border-amber-500/20 text-amber-500 transition-all hover:bg-amber-500/10 hover:border-amber-500/50 hover:scale-110 pointer-events-auto backdrop-blur-md shadow-[0_0_20px_rgba(245,158,11,0.05)] ${index === total - 1 ? 'opacity-0 cursor-default' : 'opacity-40 hover:opacity-100'}`}
+            className={`w-10 h-10 flex items-center justify-center rounded-full bg-black/60 border border-white/15 text-white/70 transition-all hover:bg-white/10 hover:border-white/40 hover:scale-110 pointer-events-auto backdrop-blur-md ${index === total - 1 ? 'opacity-0 cursor-default' : 'opacity-50 hover:opacity-100'}`}
             disabled={index === total - 1}
           >
-            <ChevronRight size={24} strokeWidth={1.5} />
+            <ChevronRight size={18} strokeWidth={1.5} />
           </button>
         </div>
       </motion.div>
