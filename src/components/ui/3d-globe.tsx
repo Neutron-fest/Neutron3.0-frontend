@@ -22,7 +22,7 @@ export interface Globe3DConfig {
   radius?: number;
   /** Globe base color (used as fallback or tint) */
   globeColor?: string;
-  /** URL to the Earth texture map */
+  /** URL to the Earth texture map (can be overridden by top-level 'texture' prop) */
   textureUrl?: string;
   /** URL to the bump/elevation map for terrain */
   bumpMapUrl?: string;
@@ -67,6 +67,8 @@ interface Globe3DProps {
   markers?: GlobeMarker[];
   /** Globe configuration */
   config?: Globe3DConfig;
+  /** Direct texture control (can be a preset like 'jupiter', 'venus', or a URL) */
+  texture?: string;
   /** Additional CSS classes */
   className?: string;
   /** Callback when a marker is clicked */
@@ -83,6 +85,14 @@ const DEFAULT_EARTH_TEXTURE =
   "https://unpkg.com/three-globe@2.31.0/example/img/earth-blue-marble.jpg";
 const DEFAULT_BUMP_TEXTURE =
   "https://unpkg.com/three-globe@2.31.0/example/img/earth-topology.png";
+
+export const GLOBE_TEXTURES = {
+  earth: DEFAULT_EARTH_TEXTURE,
+  jupiter: "https://ik.imagekit.io/yatharth/EARTH-PLANET.png",
+  venus: "https://ik.imagekit.io/yatharth/PLUTO-LA.png",
+  mars: "https://ik.imagekit.io/yatharth/ChatGPT%20Image%20Apr%204,%202026,%2010_11_36%20PM.png",
+  moon: "https://ik.imagekit.io/yatharth/MARS.png",
+} as const;
 
 // ============================================================================
 // Utility Functions
@@ -506,14 +516,25 @@ const defaultConfig: Required<Globe3DConfig> = {
 export function Globe3D({
   markers = [],
   config = {},
+  texture,
   className,
   onMarkerClick,
   onMarkerHover,
 }: Globe3DProps) {
-  const mergedConfig = useMemo(
-    () => ({ ...defaultConfig, ...config }),
-    [config],
-  );
+  const mergedConfig = useMemo(() => {
+    const finalConfig = { ...defaultConfig, ...config };
+    
+    // Resolve texture if provided
+    if (texture) {
+      if (texture in GLOBE_TEXTURES) {
+        finalConfig.textureUrl = GLOBE_TEXTURES[texture as keyof typeof GLOBE_TEXTURES];
+      } else {
+        finalConfig.textureUrl = texture;
+      }
+    }
+    
+    return finalConfig;
+  }, [config, texture]);
 
   return (
     <div className={cn("relative h-[500px] w-full", className)}>

@@ -35,6 +35,7 @@ const SpaceBackdrop = () => {
       <div className="absolute bottom-[-10%] md:bottom-[-45%] left-1/2 -translate-x-1/2 w-[140%] aspect-square max-w-[1200px] opacity-80 mix-blend-screen pointer-events-auto">
         <Globe3D 
           className="w-full h-full"
+          // texture="venus"
           config={{
             radius: 2,
             autoRotateSpeed: 0.5,
