@@ -2644,7 +2644,7 @@ export default function ProfileMobPage() {
             <img
               src="https://ik.imagekit.io/yatharth/neutron_clean.png"
               alt="Neutron"
-              className="h-8 w-8 opacity-90"
+              className="h-10 w-30 opacity-90"
             />
             <span className="font-bold text-white tracking-wide hidden sm:block">
               Neutron
@@ -2714,7 +2714,7 @@ export default function ProfileMobPage() {
 
               <div className="mt-8 pt-6 border-t border-white/10 flex flex-col gap-3">
                 <Link
-                  href="/competitions"
+                  href="/planets/jupiter"
                   onClick={() => setMobileMenuOpen(false)}
                   className="flex items-center justify-between p-4 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-colors"
                 >
@@ -2724,7 +2724,7 @@ export default function ProfileMobPage() {
                   <span className="text-white/40">→</span>
                 </Link>
                 <Link
-                  href="/events"
+                  href="/planets/venus"
                   onClick={() => setMobileMenuOpen(false)}
                   className="flex items-center justify-between p-4 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-colors"
                 >

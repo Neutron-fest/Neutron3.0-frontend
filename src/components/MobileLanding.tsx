@@ -48,8 +48,8 @@ export default function MobileLanding({ onMenuToggle, isMenuOpen }: MobileLandin
           <Image 
             src="https://ik.imagekit.io/yatharth/neutron_clean.png" 
             alt="Neutron Logo" 
-            width={48} 
-            height={48} 
+            width={100} 
+            height={100} 
             className="drop-shadow-[0_0_10px_rgba(255,255,255,0.2)]"
           />
         </a>

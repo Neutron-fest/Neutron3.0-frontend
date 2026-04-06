@@ -91,8 +91,8 @@ export default function MobileNavbar({ isOpen, onClose }: MobileNavbarProps) {
                 <Image 
                   src="https://ik.imagekit.io/yatharth/neutron_clean.png" 
                   alt="Neutron Logo" 
-                  width={42} 
-                  height={42} 
+                  width={100} 
+                  height={100} 
                   className="opacity-100 drop-shadow-lg" 
                 />
                </button>

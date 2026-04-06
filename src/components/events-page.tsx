@@ -32,7 +32,7 @@ const SpaceBackdrop = () => {
       <div className="absolute top-[-10%] left-[-10%] w-[60%] h-[60%] bg-blue-900/10 rounded-full blur-[120px]" />
       <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-purple-900/10 rounded-full blur-[100px]" />
 
-      <div className="absolute bottom-[-45%] left-1/2 -translate-x-1/2 w-[140%] aspect-square max-w-[1200px] opacity-80 mix-blend-screen pointer-events-auto">
+      <div className="absolute bottom-[-10%] md:bottom-[-45%] left-1/2 -translate-x-1/2 w-[140%] aspect-square max-w-[1200px] opacity-80 mix-blend-screen pointer-events-auto">
         <Globe3D 
           className="w-full h-full"
           config={{
@@ -119,10 +119,10 @@ function PolaroidCard({ title, image, slug, category, date, index, total, scroll
               <span>F/11</span>
               <span>ISO 100</span>
             </div>
-            <div className="absolute left-1/2 -translate-x-1/2 font-caveat text-2xl md:text-xl text-zinc-300 leading-none -rotate-1">
+            <div className="absolute left-1/2 -translate-x-1/2 font-caveat text-lg md:text-xl text-zinc-300 leading-none -rotate-1">
               LIFT OFF!
             </div>
-            <div className="font-caveat text-xl md:text-lg text-zinc-300 rotate-1">
+            <div className="font-caveat text-sm md:text-lg text-zinc-300 rotate-1">
               {date || "MISSION DATE"}
             </div>
           </div>
@@ -140,7 +140,7 @@ function PolaroidCard({ title, image, slug, category, date, index, total, scroll
           </div>
 
           <div className="flex-1 flex flex-col items-center justify-center pt-6">
-            <h2 className="font-sans font-black text-4xl md:text-4xl text-amber-500 uppercase tracking-tighter leading-none px-4 text-center mb-2 drop-shadow-[0_0_15px_rgba(245,158,11,0.5)] group-hover:text-amber-400 transition-colors">
+            <h2 className="font-sans font-black text-2xl md:text-4xl text-amber-500 uppercase tracking-tighter leading-none px-4 text-center mb-2 drop-shadow-[0_0_15px_rgba(245,158,11,0.5)] group-hover:text-amber-400 transition-colors">
               {title}
             </h2>
             <div className="flex items-center gap-4">
@@ -255,7 +255,7 @@ export default function EventsPage() {
           <img
             src="https://ik.imagekit.io/yatharth/neutron_clean.png"
             alt="Logo"
-            className="h-10 w-10 md:h-100 md:w-100 opacity-90 transition-transform duration-300 hover:scale-110 drop-shadow-[0_0_15px_rgba(255,200,80,0.4)]"
+            className="h-10 w-30 md:h-10 md:w-30 opacity-90 transition-transform duration-300 hover:scale-110 drop-shadow-[0_0_15px_rgba(255,200,80,0.4)]"
           />
         </Link>
         <Link
@@ -270,7 +270,7 @@ export default function EventsPage() {
         </Link>
       </div>
 
-      <header className="fixed top-0 left-0 right-0 z-40 pointer-events-none pt-12 md:pt-24 pb-12 flex flex-col items-center">
+      <header className="fixed top-0 left-0 mt-10 right-0 z-40 pointer-events-none pt-12 md:pt-24 pb-12 flex flex-col items-center">
         <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1.2 }}>
           <BlurHeading text={"EVENTS"} className="text-4xl md:text-7xl lg:text-[6rem] font-bold uppercase tracking-[-0.03em] leading-[0.92] drop-shadow-[0_0_30px_rgba(255,255,255,0.1)]" />
         </motion.div>
