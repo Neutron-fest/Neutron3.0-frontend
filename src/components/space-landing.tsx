@@ -551,7 +551,7 @@ export default function SpaceLanding() {
     <MotionConfig transition={{ type: "spring", stiffness: 240, damping: 28 }}>
       <div
         className="relative overflow-x-clip"
-        style={{ minHeight: scenePhase === "planets" ? "50000svh" : "100svh" }}
+        style={{ minHeight: scenePhase === "planets" ? "50000svh" : (isMobile ? "auto" : "100svh") }}
         onMouseMove={onMouseMove}
         onMouseLeave={onMouseLeave}
       >
@@ -574,7 +574,7 @@ export default function SpaceLanding() {
         `}</style>
 
         {isMobile && (
-          <div className="fixed inset-0 z-100 h-screen w-full pointer-events-auto">
+          <div className="relative z-100 w-full pointer-events-auto">
             <MobileLanding
               isMenuOpen={isMobileMenuOpen}
               onMenuToggle={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
@@ -587,7 +587,7 @@ export default function SpaceLanding() {
         )}
 
         <AnimatePresence>
-          {scenePhase !== "planets" && (
+          {(scenePhase !== "planets" && !isMobile) && (
             <motion.div
               key="landing-background"
               className="pointer-events-none fixed inset-0 z-0 overflow-hidden"

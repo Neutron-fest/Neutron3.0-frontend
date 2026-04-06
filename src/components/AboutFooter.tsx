@@ -19,7 +19,7 @@ export default function AboutFooter() {
   return (
     <footer className="relative w-full bg-black text-white pt-32 overflow-hidden border-t border-white/5">
       <div className="max-w-7xl mx-auto px-4 md:px-12">
-        <div className="flex flex-col items-center justify-center mb-24 md:mb-40">
+        <div className="flex flex-col items-center justify-center">
           <motion.div 
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -28,7 +28,7 @@ export default function AboutFooter() {
             className="flex items-center gap-6 md:gap-12 flex-wrap justify-center text-center"
           >
             
-            <div className="w-16 h-16 md:w-100 md:h-100 flex items-center justify-center relative">
+            <div className="w-auto h-auto mb-20 md:w-100 md:h-100 flex items-center justify-center relative">
               <img src="https://ik.imagekit.io/yatharth/neutron_clean.png" alt="Logo" />
             </div>
           </motion.div>
