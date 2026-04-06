@@ -4,7 +4,7 @@ import React, { use } from "react";
 import Link from "next/link";
 import SectionWrapper from "@/components/competition-section-wrapper";
 import { ScrollRevealCards } from "@/components/scroll-reveal-cards";
-import AudioController from "@/components/audio-controller";
+// import AudioController from "@/components/audio-controller";
 import { ScrollProgressIndicator } from "@/components/scroll-progress-indicator";
 import { ParallaxBackground } from "@/components/parallax-background";
 import { ReturnButton } from "@/components/return-button";
@@ -198,9 +198,8 @@ export default function EventSlugPage({
   };
 
   return (
-    <div className="min-h-screen bg-[#030303] text-white selection:bg-white/20 relative font-sans text-pretty">
+    <div className="min-h-screen bg-[#030303] text-white selection:bg-white/20 relative text-pretty overflow-x-clip w-full">
       <ParallaxBackground imageUrl={normalizedEvent.image} />
-      <AudioController />
       <ScrollProgressIndicator />
 
       <ReturnButton href="/planets/venus" />
@@ -217,7 +216,7 @@ export default function EventSlugPage({
         />
       </SectionTransition>
 
-      <SectionTransition className="relative pt-64 z-30 bg-[#030303] overflow-hidden">
+      <SectionTransition className="relative pt-64 z-30 bg-[url('https://ik.imagekit.io/yatharth/CTO-UP.png')] bg-brightness-50 bg-cover bg-center overflow-hidden">
         <div className="absolute top-0 left-0 w-full h-64 bg-linear-to-b from-transparent to-[#030303] pointer-events-none -translate-y-full"></div>
         <div className="max-w-4xl mx-auto px-6 relative text-center">
           <div className="mb-24 text-center">
@@ -225,9 +224,9 @@ export default function EventSlugPage({
             <h2 className="text-6xl md:text-8xl font-black tracking-tighter mb-6 uppercase">
               Launch Initiation
             </h2>
-            <p className="text-white/40 text-xl font-light tracking-wide">
+            <p className="text-white/70 text-xl font-semibold tracking-wide">
               Confirm your mission parameters for{" "}
-              <span className="text-white">{normalizedEvent.title}</span>
+              <span className="text-white font-bold">{normalizedEvent.title}</span>
             </p>
           </div>
           <Link

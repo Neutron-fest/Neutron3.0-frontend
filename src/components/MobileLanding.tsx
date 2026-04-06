@@ -89,7 +89,7 @@ export default function MobileLanding({ onMenuToggle, isMenuOpen }: MobileLandin
       </header>
 
       <div ref={heroSectionRef} className="relative h-[250vh] w-full">
-        <div className="sticky top-0 h-[100dvh] w-full flex items-center justify-center overflow-hidden z-10">
+        <div className="sticky top-0 h-dvh w-full flex items-center justify-center overflow-hidden z-10">
           <motion.div 
             style={{ 
               width: heroWidth, 
