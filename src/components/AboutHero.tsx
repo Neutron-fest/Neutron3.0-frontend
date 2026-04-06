@@ -76,8 +76,8 @@ export default function AboutHero() {
           <Image
             src="https://ik.imagekit.io/yatharth/neutron_clean.png"
             alt="Neutron Logo"
-            width={48}
-            height={48}
+            width={100}
+            height={100}
             className="object-contain"
             style={{ filter: "drop-shadow(0 0 14px rgba(220,140,30,0.55)) drop-shadow(0 0 4px rgba(255,200,80,0.3))" }}
             priority

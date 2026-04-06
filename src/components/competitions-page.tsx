@@ -248,7 +248,7 @@ export default function CompetitionsPage() {
           <img
             src="https://ik.imagekit.io/yatharth/neutron_clean.png"
             alt="Logo"
-            className="h-10 w-10 md:h-12 md:w-12 opacity-90 transition-transform duration-300 hover:scale-110 drop-shadow-[0_0_15px_rgba(255,200,80,0.4)]"
+            className="h-10 w-10 md:h-100 md:w-100 opacity-90 transition-transform duration-300 hover:scale-110 drop-shadow-[0_0_15px_rgba(255,200,80,0.4)]"
           />
         </Link>
         <Link

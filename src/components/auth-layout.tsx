@@ -62,8 +62,8 @@ export default function AuthLayout({ children, title, subtitle }: AuthLayoutProp
             <Image
               src="https://ik.imagekit.io/yatharth/neutron_clean.png"
               alt="Neutron Logo"
-              width={80}
-              height={80}
+              width={100}
+              height={100}
               className="drop-shadow-[0_0_15px_rgba(189,121,64,0.5)]"
             />
           </div>

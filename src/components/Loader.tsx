@@ -64,7 +64,7 @@ const Loader: React.FC<LoaderProps> = ({ onComplete }) => {
                 initial={{ opacity: 0, y: -20, scale: 0.8 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 transition={{ duration: 1, delay: 0.8 }}
-                className="mb-8 md:mb-12 relative w-16 h-16 md:w-24 md:h-24"
+                className="relative w-16 h-16 md:w-100 md:h-100"
               >
                 <Image
                   src="https://ik.imagekit.io/yatharth/neutron_clean.png"

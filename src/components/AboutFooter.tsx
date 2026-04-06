@@ -28,13 +28,9 @@ export default function AboutFooter() {
             className="flex items-center gap-6 md:gap-12 flex-wrap justify-center text-center"
           >
             
-            <div className="w-16 h-16 md:w-32 md:h-32 flex items-center justify-center relative">
+            <div className="w-16 h-16 md:w-100 md:h-100 flex items-center justify-center relative">
               <img src="https://ik.imagekit.io/yatharth/neutron_clean.png" alt="Logo" />
             </div>
-
-            <h2 className="text-[3.5rem] md:text-[8rem] font-black tracking-tighter leading-none uppercase">
-              NEUTRON
-            </h2>
           </motion.div>
         </div>
 
