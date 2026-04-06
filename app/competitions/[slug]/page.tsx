@@ -316,7 +316,7 @@ export default function CompetitionSlugPage({
   };
 
   return (
-    <div className="min-h-screen bg-[#030303] text-white selection:bg-white/20 relative text-pretty">
+    <div className="min-h-screen bg-[#030303] text-white selection:bg-white/20 relative text-pretty overflow-x-clip w-full">
       <ParallaxBackground imageUrl={normalizedCompetition.image} />
       <ScrollProgressIndicator />
 
@@ -326,6 +326,7 @@ export default function CompetitionSlugPage({
         <SectionWrapper competition={normalizedCompetition} />
       </main>
 
+      {/* Desktop reveal cards */}
       <SectionTransition className="relative z-20 hidden md:block">
         <ScrollRevealCards
           prizePool={normalizedCompetition.prizePool}
@@ -339,7 +340,7 @@ export default function CompetitionSlugPage({
         <div className="max-w-4xl mx-auto px-6 relative text-center">
           <div className="mb-24 text-center">
             <div className="h-px w-32 bg-white/10 mx-auto mb-12" />
-            <h2 className="text-6xl md:text-8xl font-black tracking-tighter mb-6 uppercase">
+            <h2 className="text-5xl sm:text-6xl md:text-8xl font-black tracking-tighter mb-6 uppercase wrap-break-words px-2">
               Launch Initiation
             </h2>
             <p className="text-white/70 text-xl font-semibold tracking-wide">

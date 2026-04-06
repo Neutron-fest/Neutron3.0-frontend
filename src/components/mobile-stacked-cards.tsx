@@ -18,7 +18,8 @@ export const MobileStackedCards: React.FC<MobileStackedCardsProps> = ({
     {
       title: "Deployment Zone",
       value: location,
-      color: "bg-[#252525]",
+      bgImage: "https://images.unsplash.com/photo-1446776811953-b23d57bd21aa?w=1600&q=80",
+      overlay: "from-black/70 via-black/40 to-black/80",
       textColor: "text-white",
       icon: (
         <svg
@@ -30,7 +31,7 @@ export const MobileStackedCards: React.FC<MobileStackedCardsProps> = ({
           strokeWidth="2"
           strokeLinecap="round"
           strokeLinejoin="round"
-          className="opacity-40"
+          className="opacity-60"
         >
           <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
           <circle cx="12" cy="10" r="3"></circle>
@@ -42,7 +43,8 @@ export const MobileStackedCards: React.FC<MobileStackedCardsProps> = ({
     {
       title: "Mission Bounty",
       value: prizePool,
-      color: "bg-[#b70000]",
+      bgImage: "https://images8.alphacoders.com/117/thumb-1920-1178623.jpg",
+      overlay: "from-black/60 via-red-900/20 to-black/80",
       textColor: "text-white",
       icon: (
         <svg
@@ -54,7 +56,7 @@ export const MobileStackedCards: React.FC<MobileStackedCardsProps> = ({
           strokeWidth="2"
           strokeLinecap="round"
           strokeLinejoin="round"
-          className="opacity-40"
+          className="opacity-60"
         >
           <circle cx="12" cy="12" r="10"></circle>
           <path d="M12 6v6l4 2"></path>
@@ -66,7 +68,8 @@ export const MobileStackedCards: React.FC<MobileStackedCardsProps> = ({
     {
       title: "Crew Formation",
       value: teamSize,
-      color: "bg-[#0a0a0a]",
+      bgImage: "https://images.unsplash.com/photo-1541185933-ef5d8ed016c2?w=1600&q=80",
+      overlay: "from-black/70 via-blue-950/30 to-black/80",
       textColor: "text-white",
       icon: (
         <svg
@@ -78,7 +81,7 @@ export const MobileStackedCards: React.FC<MobileStackedCardsProps> = ({
           strokeWidth="2"
           strokeLinecap="round"
           strokeLinejoin="round"
-          className="opacity-40"
+          className="opacity-60"
         >
           <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
           <circle cx="9" cy="7" r="4"></circle>
@@ -104,29 +107,40 @@ export const MobileStackedCards: React.FC<MobileStackedCardsProps> = ({
             delay: i * 0.1,
             ease: [0.16, 1, 0.3, 1],
           }}
-          className={`relative w-full max-w-[340px] aspect-4/5 rounded-[2.5rem] p-10 shadow-[0_20px_50px_rgba(0,0,0,0.5)] border border-white/10 ${card.color} flex flex-col justify-between`}
+          className="relative w-full max-w-[340px] aspect-4/5 rounded-[2.5rem] shadow-[0_20px_60px_rgba(0,0,0,0.7)] border border-white/10 overflow-hidden flex flex-col justify-between"
           style={{
             zIndex: i,
             marginLeft: `${card.x}px`,
           }}
         >
-          <div className="flex justify-between items-start">
-            {card.icon}
-            <div className="w-8 h-8 rounded-full border border-white/10 flex items-center justify-center">
-              <div className="w-1.5 h-1.5 rounded-full bg-white/40" />
-            </div>
+          <div
+            className="absolute inset-0 bg-cover bg-center"
+            style={{ backgroundImage: `url('${card.bgImage}')` }}
+          />
+          <div className={`absolute inset-0 bg-linear-to-b ${card.overlay}`} />
+          <div
+            className="absolute inset-0 pointer-events-none"
+            style={{
+              backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`,
+              backgroundRepeat: "repeat",
+              backgroundSize: "128px 128px",
+              opacity: 0.18,
+              mixBlendMode: "overlay",
+            }}
+          />
+
+          <div className="relative z-10 flex justify-between items-start p-10">
           </div>
 
-          <div className="relative z-10">
-            <h3 className="text-4xl font-bold tracking-tighter leading-tight mb-4 text-white uppercase break-words">
+          {/* Text content */}
+          <div className="relative z-10 p-10 pt-0">
+            <h3 className="text-4xl font-bold tracking-tighter leading-tight mb-4 text-white uppercase wrap-break-word drop-shadow-[0_2px_12px_rgba(0,0,0,0.8)]">
               {card.value}
             </h3>
-            <p className="text-[10px] font-mono uppercase tracking-[0.4em] text-white/40">
+            <p className="text-[10px] font-mono uppercase tracking-[0.4em] text-white/50">
               {card.title}
             </p>
           </div>
-
-          <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.03] mix-blend-overlay rounded-[2.5rem]"></div>
         </motion.div>
       ))}
     </div>
