@@ -20,18 +20,47 @@ const escapeHtml = (value = "") =>
 const renderInline = (line: string) => {
   const escaped = escapeHtml(line);
   return escaped
-    .replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '<img src="$2" alt="$1" class="my-4 max-w-full rounded-xl border border-white/10" />')
-    .replace(/\[([^\]]+)\]\((https?:\/\/[^)\s]+|\/[^)\s]+)\)/g, (match, text, href) => {
-      const external = /^https?:\/\//i.test(href);
-      return `<a href="${href}"${external ? ' target="_blank" rel="noreferrer noopener"' : ""} class="text-white underline underline-offset-4 hover:text-white/80">${text}</a>`;
-    })
+    .replace(
+      /!\[([^\]]*)\]\(([^)]+)\)/g,
+      '<img src="$2" alt="$1" class="my-4 max-w-full rounded-xl border border-white/10" />',
+    )
+    .replace(
+      /\[([^\]]+)\]\((https?:\/\/[^)\s]+|\/[^)\s]+)\)/g,
+      (match, text, href) => {
+        const external = /^https?:\/\//i.test(href);
+        return `<a href="${href}"${external ? ' target="_blank" rel="noreferrer noopener"' : ""} class="text-white underline underline-offset-4 hover:text-white/80">${text}</a>`;
+      },
+    )
     .replace(/\*\*\*([^*]+)\*\*\*/g, "<strong><em>$1</em></strong>")
     .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>")
     .replace(/__([^_]+)__/g, "<strong>$1</strong>")
     .replace(/\*([^*]+)\*/g, "<em>$1</em>")
     .replace(/_([^_]+)_/g, "<em>$1</em>")
     .replace(/~~([^~]+)~~/g, "<del>$1</del>")
-    .replace(/`([^`]+)`/g, '<code class="bg-white/10 px-1.5 py-0.5 rounded text-[0.9em] text-white/90">$1</code>');
+    .replace(
+      /`([^`]+)`/g,
+      '<code class="bg-white/10 px-1.5 py-0.5 rounded text-[0.9em] text-white/90">$1</code>',
+    );
+};
+
+const splitTableCells = (line: string): string[] => {
+  const trimmed = line.trim().replace(/^\|/, "").replace(/\|$/, "");
+  return trimmed.split("|").map((cell) => cell.trim());
+};
+
+const isTableSeparatorLine = (line: string): boolean => {
+  if (!line.includes("|")) return false;
+  const segments = splitTableCells(line);
+  if (!segments.length) return false;
+  return segments.every((segment) => /^:?-{3,}:?$/.test(segment));
+};
+
+const getTableAlignment = (segment: string): "left" | "center" | "right" => {
+  if (segment.startsWith(":")) {
+    return segment.endsWith(":") ? "center" : "left";
+  }
+  if (segment.endsWith(":")) return "right";
+  return "left";
 };
 
 const renderMarkdownToHtml = (markdownValue = "") => {
@@ -57,7 +86,8 @@ const renderMarkdownToHtml = (markdownValue = "") => {
     codeLines = [];
   };
 
-  for (const rawLine of lines) {
+  for (let index = 0; index < lines.length; index += 1) {
+    const rawLine = lines[index];
     const line = rawLine.trim();
 
     if (!line) {
@@ -84,7 +114,7 @@ const renderMarkdownToHtml = (markdownValue = "") => {
 
     if (/^[-*_]{3,}$/.test(line)) {
       closeList();
-      blocks.push("<hr class=\"my-6 border-white/10\" />");
+      blocks.push('<hr class="my-6 border-white/10" />');
       continue;
     }
 
@@ -110,6 +140,64 @@ const renderMarkdownToHtml = (markdownValue = "") => {
       continue;
     }
 
+    if (
+      line.includes("|") &&
+      index + 1 < lines.length &&
+      isTableSeparatorLine(lines[index + 1])
+    ) {
+      closeList();
+
+      const headerCells = splitTableCells(rawLine);
+      const separatorCells = splitTableCells(lines[index + 1]);
+      const alignments = separatorCells.map(getTableAlignment);
+      const columnCount = Math.max(headerCells.length, alignments.length);
+      let rowIndex = index + 2;
+      const bodyRows: string[] = [];
+
+      while (rowIndex < lines.length) {
+        const rowLine = lines[rowIndex];
+        const rowTrimmed = rowLine.trim();
+        if (
+          !rowTrimmed ||
+          !rowTrimmed.includes("|") ||
+          isTableSeparatorLine(rowLine)
+        ) {
+          break;
+        }
+
+        const rowCells = splitTableCells(rowLine);
+        const renderedRow = Array.from(
+          { length: columnCount },
+          (_, cellIndex) => {
+            const alignment = alignments[cellIndex] || "left";
+            const cell = rowCells[cellIndex] || "";
+            return `<td class="px-4 py-3 border-r border-white/10 last:border-r-0 text-white/75 align-top" style="text-align:${alignment}">${renderInline(cell)}</td>`;
+          },
+        ).join("");
+
+        bodyRows.push(
+          `<tr class="border-b border-white/10 last:border-b-0">${renderedRow}</tr>`,
+        );
+        rowIndex += 1;
+      }
+
+      const renderedHeaders = Array.from(
+        { length: columnCount },
+        (_, cellIndex) => {
+          const alignment = alignments[cellIndex] || "left";
+          const header = headerCells[cellIndex] || "";
+          return `<th class="px-4 py-3 border-r border-white/10 last:border-r-0 font-semibold text-white align-top" style="text-align:${alignment}">${renderInline(header)}</th>`;
+        },
+      ).join("");
+
+      blocks.push(
+        `<div class="mb-6 overflow-x-auto"><table class="min-w-full border border-white/15 rounded-xl overflow-hidden text-sm"><thead class="bg-white/10"><tr>${renderedHeaders}</tr></thead><tbody class="bg-white/5">${bodyRows.join("")}</tbody></table></div>`,
+      );
+
+      index = rowIndex - 1;
+      continue;
+    }
+
     const unordered = line.match(/^[-*+]\s+(.+)$/);
     if (unordered) {
       if (activeList !== "ul") {
@@ -117,7 +205,9 @@ const renderMarkdownToHtml = (markdownValue = "") => {
         activeList = "ul";
         blocks.push('<ul class="list-disc ml-5 space-y-2 mb-4 text-white/75">');
       }
-      blocks.push(`<li class="leading-relaxed">${renderInline(unordered[1])}</li>`);
+      blocks.push(
+        `<li class="leading-relaxed">${renderInline(unordered[1])}</li>`,
+      );
       continue;
     }
 
@@ -126,9 +216,13 @@ const renderMarkdownToHtml = (markdownValue = "") => {
       if (activeList !== "ol") {
         closeList();
         activeList = "ol";
-        blocks.push('<ol class="list-decimal ml-5 space-y-2 mb-4 text-white/75">');
+        blocks.push(
+          '<ol class="list-decimal ml-5 space-y-2 mb-4 text-white/75">',
+        );
       }
-      blocks.push(`<li class="leading-relaxed">${renderInline(ordered[1])}</li>`);
+      blocks.push(
+        `<li class="leading-relaxed">${renderInline(ordered[1])}</li>`,
+      );
       continue;
     }
 
@@ -142,7 +236,9 @@ const renderMarkdownToHtml = (markdownValue = "") => {
     }
 
     closeList();
-    blocks.push(`<p class="text-white/75 leading-relaxed mb-3">${renderInline(rawLine)}</p>`);
+    blocks.push(
+      `<p class="text-white/75 leading-relaxed mb-3">${renderInline(rawLine)}</p>`,
+    );
   }
 
   if (inCodeBlock) flushCode();
@@ -161,17 +257,25 @@ export default function RulesSection({
     [rules],
   );
   const previewHtml = useMemo(
-    () => renderMarkdownToHtml(markdownSource.split(/\r?\n/).filter(Boolean).slice(0, 12).join("\n")),
+    () =>
+      renderMarkdownToHtml(
+        markdownSource.split(/\r?\n/).filter(Boolean).slice(0, 12).join("\n"),
+      ),
     [markdownSource],
   );
-  const fullHtml = useMemo(() => renderMarkdownToHtml(markdownSource), [markdownSource]);
+  const fullHtml = useMemo(
+    () => renderMarkdownToHtml(markdownSource),
+    [markdownSource],
+  );
   const hasMore = markdownSource.split(/\r?\n/).filter(Boolean).length > 12;
 
   return (
     <div className="flex flex-col space-y-8">
       <div className="flex items-center space-x-4">
         <div className="w-12 h-px bg-white/40"></div>
-        <h2 className="text-2xl tracking-widest uppercase font-medium text-white/80">{title}</h2>
+        <h2 className="text-2xl tracking-widest uppercase font-medium text-white/80">
+          {title}
+        </h2>
       </div>
 
       <motion.div
@@ -189,9 +293,14 @@ export default function RulesSection({
         >
           <span className="flex items-center cursor-pointer">
             View All Rules
-            <svg 
-              className="ml-3 group-hover:translate-x-1 transition-transform" 
-              width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
+            <svg
+              className="ml-3 group-hover:translate-x-1 transition-transform"
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
             >
               <path d="M5 12h14M12 5l7 7-7 7" />
             </svg>
@@ -205,19 +314,22 @@ export default function RulesSection({
         title={title}
       >
         <div className="space-y-10 py-4">
-          <div className="markdown-content" dangerouslySetInnerHTML={{ __html: fullHtml }} />
-          
+          <div
+            className="markdown-content"
+            dangerouslySetInnerHTML={{ __html: fullHtml }}
+          />
+
           <div className="pt-16 mt-16 border-t border-white/5 flex flex-col items-center space-y-4">
-             <div className="flex items-center space-x-4 opacity-20">
-               <div className="h-px w-8 bg-white" />
-               <p className="text-[10px] font-mono text-white uppercase tracking-[0.5em]">
-                 Neutron Space Protocol
-               </p>
-               <div className="h-px w-8 bg-white" />
-             </div>
-             <p className="text-[8px] font-mono text-white/10 uppercase tracking-[1em]">
-               System Integrity Verified • Access Granted
-             </p>
+            <div className="flex items-center space-x-4 opacity-20">
+              <div className="h-px w-8 bg-white" />
+              <p className="text-[10px] font-mono text-white uppercase tracking-[0.5em]">
+                Neutron Space Protocol
+              </p>
+              <div className="h-px w-8 bg-white" />
+            </div>
+            <p className="text-[8px] font-mono text-white/10 uppercase tracking-[1em]">
+              System Integrity Verified • Access Granted
+            </p>
           </div>
         </div>
       </Modal>
