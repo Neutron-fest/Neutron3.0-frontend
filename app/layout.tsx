@@ -9,8 +9,8 @@ import Noise from "@/components/Noise";
 import SmoothScroll from "@/components/smooth-scroll";
 import { AppProviders } from "@/src/providers/AppProviders";
 
-const spaceGrotesk = Space_Grotesk({
-  subsets: ["latin"],
+const spaceGrotesk = localFont({
+  src: "./fonts/Space_Grotesk/SpaceGrotesk-VariableFont_wght.ttf",
   variable: "--font-space-grotesk",
 });
 

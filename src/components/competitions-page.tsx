@@ -24,9 +24,9 @@ const SpaceBackdrop = () => {
     <div className="fixed inset-0 z-0 pointer-events-none">
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,#0a0a1a_0%,#000000_100%)]" />
       <div 
-        className="absolute inset-0 opacity-40 bg-repeat bg-size-[200px_200px]"
+        className="absolute inset-0 opacity-40 bg-no-repeat overflow-auto bg-size-cover"
         style={{
-          backgroundImage: `url('https://www.transparenttextures.com/patterns/stardust.png')`,
+          backgroundImage: `url('https://ik.imagekit.io/yatharth/BG-NEUTRI_C.png')`,
         }}
       />
       <div className="absolute top-[-10%] left-[-10%] w-[60%] h-[60%] bg-blue-900/10 rounded-full blur-[120px]" />
