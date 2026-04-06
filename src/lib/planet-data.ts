@@ -7,6 +7,7 @@ export type PlanetRecord = {
   model: string;
   texture?: string;
   rotationOffset?: number;
+  autoRotateSpeed?: number;
   eyebrow: string;
   headline: string;
   summary: string;
@@ -23,6 +24,7 @@ export const PLANET_RECORDS: PlanetRecord[] = [
     model: "/3D/planets/purple_planet.glb",
     texture: "https://ik.imagekit.io/yatharth/ChatGPT%20Image%20Apr%204,%202026,%2010_11_36%20PM.png",
     rotationOffset: Math.PI * 0.22,
+    autoRotateSpeed: 0.3,
     eyebrow: "Red frontier",
     headline: "A harsher orbit, cut for propulsion tests and long-range landings.",
     summary:
@@ -41,6 +43,7 @@ export const PLANET_RECORDS: PlanetRecord[] = [
     kind: "glb",
     model: "/3D/planets/purple_planet.glb",
     texture: "https://ik.imagekit.io/yatharth/EARTH-PLANET.png",
+    autoRotateSpeed: 0.3,
     eyebrow: "Storm system",
     headline: "A heavy outer lane built for wide turns, slow drift, and dense atmospheres.",
     summary:
@@ -59,6 +62,7 @@ export const PLANET_RECORDS: PlanetRecord[] = [
     kind: "obj",
     model: "/3D/planets/venus/source/jupiter.obj",
     texture: "https://ik.imagekit.io/yatharth/PLUTO-LA.png",
+    autoRotateSpeed: 0.3,
     eyebrow: "Golden haze",
     headline: "A hotter corridor with a warmer visual signature and tighter orbital passes.",
     summary:
@@ -95,6 +99,7 @@ export const PLANET_RECORDS: PlanetRecord[] = [
     kind: "obj",
     model: "/3D/planets/moon/source/earth.obj",
     texture: "https://ik.imagekit.io/yatharth/MARS.png",
+    autoRotateSpeed: 0.3,
     eyebrow: "Close pass",
     headline: "A near-field orbit with faster motion, tighter framing, and cleaner surface reads.",
     summary:

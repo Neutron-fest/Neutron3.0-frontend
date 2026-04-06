@@ -1709,13 +1709,13 @@ async function createScene({
     };
   };
 
-  const clock = new THREE.Timer();
+  const clock = new THREE.Clock();
   let animationFrame = 0;
   let frameCount = 0;
 
   const render = () => {
     const delta = clock.getDelta();
-    const elapsed = clock.getElapsed();
+    const elapsed = clock.getElapsedTime();
 
     const scrollMax =
       document.documentElement.scrollHeight - window.innerHeight || 1;
@@ -1799,9 +1799,13 @@ async function createScene({
         visibility,
       );
 
-      // SELF ROTATION ( axis rotation ) - Increased speed and logic check
-      const rotationSpeed = (0.75 + index * 0.35) * delta;
+      // SELF ROTATION ( axis rotation ) - Synchronized with Globe3D style
+      const axialSpeed = planet.autoRotateSpeed ?? 0.5;
+      const rotationSpeed = axialSpeed * delta * 1.5; // Scaled for visual consistency
       entry.target.rotation.y += rotationSpeed;
+      
+      // Apply Axial Tilt (~23.5 degrees - similar to Globe3D)
+      entry.target.rotation.z = 0.41; 
 
       entry.pivot.rotation.y += delta * (0.1 + index * 0.015);
       entry.pivot.rotation.x = Math.sin(elapsed * 0.22 + index * 0.88) * 0.038;
