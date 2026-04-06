@@ -56,7 +56,7 @@ export default function LogoutPage() {
         >
           <div className="absolute inset-0 bg-white/5 blur-2xl rounded-full scale-150" />
           <Image 
-            src="https://ik.imagekit.io/yatharth/NEUT-LOGO.png" 
+            src="https://ik.imagekit.io/yatharth/neutron_clean.png" 
             alt="Neutron Logo" 
             width={100} 
             height={100} 

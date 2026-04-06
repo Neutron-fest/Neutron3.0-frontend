@@ -17,6 +17,7 @@ import { theme } from "@/src/theme";
 import EmotionRegistry from "./EmotionRegistry";
 import ClarityTracker from "@/src/components/analytics/ClarityTracker";
 import SupportIssueWidget from "@/src/components/support/SupportIssueWidget";
+import Support_Button from "@/src/components/Support_Button";
 
 /* ================= TYPES ================= */
 

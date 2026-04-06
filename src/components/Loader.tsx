@@ -67,7 +67,7 @@ const Loader: React.FC<LoaderProps> = ({ onComplete }) => {
                 className="mb-8 md:mb-12 relative w-16 h-16 md:w-24 md:h-24"
               >
                 <Image
-                  src="https://ik.imagekit.io/yatharth/NEUT-LOGO.png"
+                  src="https://ik.imagekit.io/yatharth/neutron_clean.png"
                   alt="Neutron Logo"
                   fill
                   className="object-contain drop-shadow-[0_0_15px_rgba(255,160,40,0.6)]"

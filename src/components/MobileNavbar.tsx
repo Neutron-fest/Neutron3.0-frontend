@@ -89,7 +89,7 @@ export default function MobileNavbar({ isOpen, onClose }: MobileNavbarProps) {
             <div className="relative z-10 flex items-center justify-between px-6 pt-10 pb-6 shadow-sm">
                <button onClick={onClose} className="transition-transform active:scale-90 flex items-center gap-3">
                 <Image 
-                  src="https://ik.imagekit.io/yatharth/NEUT-LOGO.png" 
+                  src="https://ik.imagekit.io/yatharth/neutron_clean.png" 
                   alt="Neutron Logo" 
                   width={42} 
                   height={42} 

@@ -2642,7 +2642,7 @@ export default function ProfileMobPage() {
         <header className="fixed top-0 left-0 right-0 z-50 h-14 border-b border-white/6 backdrop-blur-xl bg-[#030303]/70 flex items-center px-6 gap-4">
           <Link href="/" className="shrink-0 flex items-center gap-2">
             <img
-              src="https://ik.imagekit.io/yatharth/NEUT-LOGO.png"
+              src="https://ik.imagekit.io/yatharth/neutron_clean.png"
               alt="Neutron"
               className="h-8 w-8 opacity-90"
             />

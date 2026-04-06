@@ -74,7 +74,7 @@ export default function AboutHero() {
       <div className="fixed top-6 left-6 z-50 flex items-center gap-5">
         <Link href="/" className="transition-transform duration-300 hover:scale-110" aria-label="Neutron Home">
           <Image
-            src="https://ik.imagekit.io/yatharth/NEUT-LOGO.png"
+            src="https://ik.imagekit.io/yatharth/neutron_clean.png"
             alt="Neutron Logo"
             width={48}
             height={48}

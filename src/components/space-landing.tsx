@@ -890,7 +890,7 @@ export default function SpaceLanding() {
           aria-label="Neutron Home"
         >
           <Image
-            src="https://ik.imagekit.io/yatharth/NEUT-LOGO.png"
+            src="https://ik.imagekit.io/yatharth/neutron_clean.png"
             alt="Neutron Logo"
             width={48}
             height={48}

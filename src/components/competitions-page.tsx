@@ -246,7 +246,7 @@ export default function CompetitionsPage() {
       <div className="fixed top-6 left-6 z-50 flex flex-row items-center gap-4">
         <Link href="/" onClick={playSciFiClick}>
           <img
-            src="https://ik.imagekit.io/yatharth/NEUT-LOGO.png"
+            src="https://ik.imagekit.io/yatharth/neutron_clean.png"
             alt="Logo"
             className="h-10 w-10 md:h-12 md:w-12 opacity-90 transition-transform duration-300 hover:scale-110 drop-shadow-[0_0_15px_rgba(255,200,80,0.4)]"
           />
