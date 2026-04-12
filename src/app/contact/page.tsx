@@ -53,7 +53,7 @@ export default function ContactPage() {
           style={{ filter: "grayscale(0.25) contrast(1.2) brightness(0.25) blur(8px)" }}
         />
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_80%_at_50%_45%,transparent_25%,rgba(0,0,0,0.6)_55%,rgba(0,0,0,0.93)_80%,#000_100%)]" />
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/90" />
+        <div className="absolute inset-0 bg-linear-to-b from-transparent via-transparent to-black/90" />
       </div>
 
       <div
@@ -154,7 +154,7 @@ export default function ContactPage() {
                 >
                   {label}
                   <span
-                    className="absolute left-0 bottom-0 h-[1px] w-full -translate-x-full group-hover/link:translate-x-0 transition-transform duration-300"
+                    className="absolute left-0 bottom-0 h-px w-full -translate-x-full group-hover/link:translate-x-0 transition-transform duration-300"
                     style={{ background: color }}
                   />
                 </a>

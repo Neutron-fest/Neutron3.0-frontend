@@ -6,6 +6,8 @@ import Noise from "@/components/Noise";
 import BackgroundVideo from "@/components/BackgroundVideo";
 import RetroWorkstation from "@/components/RetroWorkstation";
 import GlitchText from "@/components/GlitchText";
+import Image from "next/image";
+
 
 export default function Home() {
   const router = useRouter();
@@ -116,19 +118,18 @@ export default function Home() {
 
       <main className="relative z-10 w-full min-h-screen pointer-events-none">
         
-        <div className="absolute left-6 md:left-16 top-[40%] md:top-1/2 -translate-y-1/2 max-w-[600px] pointer-events-auto flex flex-col gap-4 md:gap-6 z-50">
-          <p className="text-white/80 font-spaceMono text-sm md:text-xl tracking-[0.2em] leading-relaxed drop-shadow-[0_0_8px_rgba(255,255,255,0.3)]">
-            Scroll down if you want to expereince
-          </p>
-          <div className="flex flex-col gap-1 md:gap-2">
-            <GlitchText speed={0.4} className="text-6xl md:text-[6rem] tracking-tighter leading-[1.1] font-black italic uppercase drop-shadow-[0_0_20px_rgba(34,211,238,0.6)] hover:scale-105 transition-transform duration-300 origin-left">
-              glitchy horizon..
-            </GlitchText>
-            <GlitchText speed={0.8} className="text-5xl md:text-[5rem] tracking-tighter leading-[1.1] font-black italic uppercase drop-shadow-[0_0_15px_rgba(255,255,255,0.4)] hover:scale-105 transition-transform duration-300 origin-left">
-              new gen fest
-            </GlitchText>
-          </div>
+        <div className="absolute -left-10 md:left-20 -bottom-10 md:bottom-0 w-[110vw] md:w-[20vw] max-w-[1100px] pointer-events-auto z-50">
+          <Image 
+            width={2000}
+            height={2000} 
+            src="https://ik.imagekit.io/yatharth/image%20(9).png" 
+            alt="Glitchy Horizon - New Gen Fest" 
+            priority
+            className="w-full h-auto drop-shadow-[0_0_30px_rgba(34,211,238,0.5)] scale-105 md:scale-110 origin-bottom-left"
+          />
         </div>
+
+
 
         <div className="absolute bottom-0 right-0 w-full max-w-[1000px] pointer-events-auto">
            <RetroWorkstation />

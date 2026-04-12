@@ -79,9 +79,9 @@ export default function EventSlugPage() {
   return (
     <main className="relative w-full h-screen bg-[#030303] text-white font-mono overflow-hidden selection:bg-cyan-500/30">
       
-      <div className="fixed inset-0 pointer-events-none z-[100] opacity-[0.03] contrast-200 brightness-200 bg-[url('https://res.cloudinary.com/dyd911kmh/image/upload/v1640050115/glitch_u4q1zq.gif')]"></div>
-      <div className="fixed inset-0 pointer-events-none z-[110] opacity-[0.15] bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.5)_50%)] bg-size-[100%_4px]"></div>
-      <div className="fixed inset-0 pointer-events-none z-[120] bg-[radial-gradient(circle_at_50%_50%,transparent_0%,rgba(0,0,0,0.6)_100%)]"></div>
+      <div className="fixed inset-0 pointer-events-none z-100 opacity-[0.03] contrast-200 brightness-200 bg-[url('https://res.cloudinary.com/dyd911kmh/image/upload/v1640050115/glitch_u4q1zq.gif')]"></div>
+      <div className="fixed inset-0 pointer-events-none z-110 opacity-[0.15] bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.5)_50%)] bg-size-[100%_4px]"></div>
+      <div className="fixed inset-0 pointer-events-none z-120 bg-[radial-gradient(circle_at_50%_50%,transparent_0%,rgba(0,0,0,0.6)_100%)]"></div>
 
       <div 
         ref={scrollContainerRef}
@@ -97,7 +97,7 @@ export default function EventSlugPage() {
         <div className="w-[85vw] md:w-[75vw] lg:w-[65vw] shrink-0 flex flex-col justify-center h-full relative">
           
           <div className="text-cyan-400/80 text-[1.2rem] md:text-[1.5rem] uppercase tracking-[0.5em] mb-4 font-bold flex items-center gap-4">
-              <span className="w-8 h-[1px] bg-cyan-500" />
+              <span className="w-8 h-px bg-cyan-500" />
               {event.category}
           </div>
 
@@ -121,7 +121,7 @@ export default function EventSlugPage() {
           </div>
         </div>
 
-        <div className="w-[85vw] md:w-[65vw] lg:w-[55vw] h-[65vh] md:h-[75vh] flex-shrink-0 relative group">
+        <div className="w-[85vw] md:w-[65vw] lg:w-[55vw] h-[65vh] md:h-[75vh] shrink-0 relative group">
           <div className="absolute -top-4 -left-4 w-12 h-12 border-t-2 border-l-2 border-cyan-500 transition-all group-hover:w-16 group-hover:h-16" />
           <div className="absolute -bottom-4 -right-4 w-12 h-12 border-b-2 border-r-2 border-magenta-500 transition-all group-hover:w-16 group-hover:h-16" />
 
@@ -142,12 +142,12 @@ export default function EventSlugPage() {
           
           <div className="absolute -bottom-10 left-0 text-[10px] font-bold text-white/30 tracking-widest uppercase flex items-center gap-4 w-full">
               <span>SCAN_ID: 0x99A_FF2</span>
-              <div className="h-[1px] flex-1 bg-white/10" />
+              <div className="h-px flex-1 bg-white/10" />
               <span>FOCAL_LENGTH_DETECTOR: AR-12</span>
           </div>
         </div>
 
-        <div className="w-[85vw] md:w-[60vw] lg:w-[50vw] flex-shrink-0 flex flex-col justify-center h-full relative">
+        <div className="w-[85vw] md:w-[60vw] lg:w-[50vw] shrink-0 flex flex-col justify-center h-full relative">
            <div className="relative">
                 <div className="text-[1.8rem] md:text-[2.6rem] lg:text-[3.2rem] leading-[1.2] font-black uppercase tracking-tight text-white mb-10">
                     {event.description}
@@ -164,10 +164,10 @@ export default function EventSlugPage() {
            </div>
         </div>
 
-        <div className="w-[85vw] md:w-[65vw] lg:w-[60vw] flex-shrink-0 flex flex-col justify-center h-full">
+        <div className="w-[85vw] md:w-[65vw] lg:w-[60vw] shrink-0 flex flex-col justify-center h-full">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 md:gap-12 relative">
-                <div className="hidden sm:block absolute top-1/2 left-0 w-full h-[1px] bg-white/5 -translate-y-1/2" />
-                <div className="hidden sm:block absolute left-1/2 top-0 w-[1px] h-full bg-white/5 -translate-x-1/2" />
+                <div className="hidden sm:block absolute top-1/2 left-0 w-full h-px bg-white/5 -translate-y-1/2" />
+                <div className="hidden sm:block absolute left-1/2 top-0 w-px h-full bg-white/5 -translate-x-1/2" />
 
                 {[
                    { icon: Ticket, label: "ACCESS_CODE", value: event.ticketPrice, color: "text-cyan-400" },
@@ -191,7 +191,7 @@ export default function EventSlugPage() {
             </div>
         </div>
 
-        <div className="w-[90vw] md:w-[75vw] lg:w-[65vw] flex-shrink-0 flex flex-col justify-center h-full mr-12 md:mr-24">
+        <div className="w-[90vw] md:w-[75vw] lg:w-[65vw] shrink-0 flex flex-col justify-center h-full mr-12 md:mr-24">
             <div className="relative bg-[#0A0A0A] border border-white/10 p-12 md:p-20 overflow-hidden group/final">
                 <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-size-[40px_40px] z-0" />
                 
@@ -244,7 +244,7 @@ export default function EventSlugPage() {
       <div className="absolute bottom-10 left-12 right-12 flex justify-between items-center z-30 pointer-events-none opacity-40">
         <div className="flex items-center gap-4">
             <span className="text-[10px] font-bold text-cyan-500 tracking-[0.2em] animate-pulse">DRAG_TO_EXPLORE</span>
-            <div className="h-[1px] w-48 bg-cyan-500/20" />
+            <div className="h-px w-48 bg-cyan-500/20" />
         </div>
         <div className="font-mono text-[10px] text-white/50 tracking-[0.4em]">
             PHOTON_OS // v2.0.4

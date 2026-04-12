@@ -20,7 +20,7 @@ export default function AboutPage() {
              src="https://ik.imagekit.io/yatharth/CRAXYY.png" 
              alt="Office Team" 
              fill 
-             className="object-cover object-top md:object-[50%_40%] mix-blend-multiply opacity-95 grayscale-[30%] sepia-[30%] contrast-110 group-hover:grayscale-[50%] group-hover:contrast-125 transition-all duration-300" 
+             className="object-cover object-top md:object-[50%_40%] mix-blend-multiply opacity-95 grayscale-30 sepia-30 contrast-110 group-hover:grayscale-50 group-hover:contrast-125 transition-all duration-300" 
            />
         </div>
 
@@ -72,54 +72,54 @@ export default function AboutPage() {
           <div className="w-full h-[650px] overflow-hidden flex gap-6 md:gap-8 relative" style={{ WebkitMaskImage: 'linear-gradient(to bottom, transparent, black 10%, black 90%, transparent)' }}>
              <div className="flex-1 flex flex-col gap-6 md:gap-8 animate-scroll-vertical w-1/2 md:w-1/3">
                 {[
-                  "https://neutron-organization.vercel.app/Gallery/ARS06099.JPG", "/images/retro_shrugging_guy.png", "https://neutron-organization.vercel.app/Gallery/ARS07327.JPG", "/images/retro_pointing_left.png", 
-                  "https://ik.imagekit.io/yatharth/ARS03049.JPG", "/images/retro_keyboard_macro.png", "https://neutron-organization.vercel.app/Gallery/ARS07087.JPG", "/images/retro_watercooler.png",
-                  "https://ik.imagekit.io/yatharth/ARS06750.JPG", "/images/retro_office_team.png", "https://neutron-organization.vercel.app/Gallery/Gaurav.webp", "/images/retro_floppy_disks.png",
-                  "https://ik.imagekit.io/yatharth/ARS06494.JPG", "/images/retro_pointing_right.png", "https://neutron-organization.vercel.app/Gallery/ARS06503.JPG", "/images/retro_computers_chart.png",
-                  "https://neutron-organization.vercel.app/Gallery/ARS06099.JPG", "/images/retro_shrugging_guy.png", "https://neutron-organization.vercel.app/Gallery/ARS07327.JPG", "/images/retro_pointing_left.png", 
-                  "https://ik.imagekit.io/yatharth/ARS03049.JPG", "/images/retro_keyboard_macro.png", "https://neutron-organization.vercel.app/Gallery/ARS07087.JPG", "/images/retro_watercooler.png",
-                  "https://ik.imagekit.io/yatharth/ARS06750.JPG", "/images/retro_office_team.png", "https://neutron-organization.vercel.app/Gallery/Gaurav.webp", "/images/retro_floppy_disks.png"
+                  "https://neutron-organization.vercel.app/Gallery/ARS06099.JPG", "https://neutron-organization.vercel.app/Gallery/ARS06099.JPG", "https://neutron-organization.vercel.app/Gallery/ARS07327.JPG", "https://ik.imagekit.io/yatharth/ARS03049.JPG", 
+                  "https://ik.imagekit.io/yatharth/ARS03049.JPG", "https://ik.imagekit.io/yatharth/ARS06494.JPG", "https://neutron-organization.vercel.app/Gallery/ARS07087.JPG", "https://neutron-organization.vercel.app/Gallery/Gaurav.webp",
+                  "https://ik.imagekit.io/yatharth/ARS06750.JPG", "https://ik.imagekit.io/yatharth/ARS06494.JPG", "https://neutron-organization.vercel.app/Gallery/Gaurav.webp", "https://neutron-organization.vercel.app/Gallery/ARS07087.JPG",
+                  "https://ik.imagekit.io/yatharth/ARS06494.JPG", "https://neutron-organization.vercel.app/Gallery/Gaurav.webp", "https://neutron-organization.vercel.app/Gallery/ARS06503.JPG", "https://neutron-organization.vercel.app/Gallery/Gaurav.webp",
+                  "https://neutron-organization.vercel.app/Gallery/ARS06099.JPG", "https://neutron-organization.vercel.app/Gallery/ARS06099.JPG", "https://neutron-organization.vercel.app/Gallery/ARS07327.JPG", "https://ik.imagekit.io/yatharth/ARS03049.JPG", 
+                  "https://ik.imagekit.io/yatharth/ARS03049.JPG", "https://ik.imagekit.io/yatharth/ARS06494.JPG", "https://neutron-organization.vercel.app/Gallery/ARS07087.JPG", "https://neutron-organization.vercel.app/Gallery/Gaurav.webp",
+                  "https://ik.imagekit.io/yatharth/ARS06750.JPG", "https://ik.imagekit.io/yatharth/ARS06494.JPG", "https://neutron-organization.vercel.app/Gallery/Gaurav.webp", "https://neutron-organization.vercel.app/Gallery/ARS07087.JPG",
                 ].map((src, i) => (
                   <div key={`col1-${i}`} className="bg-[#EAE8E0] p-3 md:p-5 border-2 border-[#2c2820] shadow-[6px_6px_0_rgba(44,40,32,1)] group cursor-crosshair shrink-0">
                      <div className="relative w-full aspect-auto overflow-hidden bg-black/10 glitch-slice-layer">
                         <div className="absolute inset-0 z-0 bg-[#E0DED7] animate-pulse opacity-50"></div>
-                        <img src={src} className="relative z-10 w-full h-auto min-h-[200px] object-cover mix-blend-multiply grayscale-[35%] sepia-[20%] contrast-[1.1] group-hover:grayscale-0 group-hover:sepia-[5%] group-hover:contrast-[1.2] transition-all duration-300" alt={`Gallery item ${i}`} loading="lazy" />
+                        <img src={src} className="relative z-10 w-full h-auto min-h-[200px] object-cover mix-blend-multiply grayscale-35 sepia-20 contrast-110 group-hover:grayscale-0 group-hover:sepia-5 group-hover:contrast-125 transition-all duration-300" alt={`Gallery item ${i}`} loading="lazy" />
                      </div>
                   </div>
                 ))}
              </div>
              <div className="flex-1 flex flex-col gap-6 md:gap-8 animate-scroll-vertical-reverse -mt-[450px] w-1/2 md:w-1/3">
                 {[
-                  "/images/retro_floppy_disks.png", "https://ik.imagekit.io/yatharth/ARS06494.JPG", "/images/retro_pointing_right.png", "https://neutron-organization.vercel.app/Gallery/ARS06503.JPG",
-                  "/images/retro_office_team.png", "https://neutron-organization.vercel.app/Gallery/Gaurav.webp", "/images/retro_watercooler.png", "https://ik.imagekit.io/yatharth/ARS06750.JPG",
-                  "/images/retro_pointing_left.png", "https://neutron-organization.vercel.app/Gallery/ARS07327.JPG", "/images/retro_shrugging_guy.png", "https://neutron-organization.vercel.app/Gallery/ARS06099.JPG",
-                  "/images/retro_computers_chart.png", "https://ik.imagekit.io/yatharth/ARS03049.JPG", "/images/retro_keyboard_macro.png", "https://neutron-organization.vercel.app/Gallery/ARS07087.JPG",
-                  "/images/retro_floppy_disks.png", "https://ik.imagekit.io/yatharth/ARS06494.JPG", "/images/retro_pointing_right.png", "https://neutron-organization.vercel.app/Gallery/ARS06503.JPG",
-                  "/images/retro_office_team.png", "https://neutron-organization.vercel.app/Gallery/Gaurav.webp", "/images/retro_watercooler.png", "https://ik.imagekit.io/yatharth/ARS06750.JPG",
-                  "/images/retro_pointing_left.png", "https://neutron-organization.vercel.app/Gallery/ARS07327.JPG", "/images/retro_shrugging_guy.png", "https://neutron-organization.vercel.app/Gallery/ARS06099.JPG"
+                  "https://neutron-organization.vercel.app/Gallery/ARS06099.JPG", "https://neutron-organization.vercel.app/Gallery/ARS06099.JPG", "https://neutron-organization.vercel.app/Gallery/ARS07327.JPG", "https://ik.imagekit.io/yatharth/ARS03049.JPG", 
+                  "https://ik.imagekit.io/yatharth/ARS03049.JPG", "https://ik.imagekit.io/yatharth/ARS06494.JPG", "https://neutron-organization.vercel.app/Gallery/ARS07087.JPG", "https://neutron-organization.vercel.app/Gallery/Gaurav.webp",
+                  "https://ik.imagekit.io/yatharth/ARS06750.JPG", "https://ik.imagekit.io/yatharth/ARS06494.JPG", "https://neutron-organization.vercel.app/Gallery/Gaurav.webp", "https://neutron-organization.vercel.app/Gallery/ARS07087.JPG",
+                  "https://ik.imagekit.io/yatharth/ARS06494.JPG", "https://neutron-organization.vercel.app/Gallery/Gaurav.webp", "https://neutron-organization.vercel.app/Gallery/ARS06503.JPG", "https://neutron-organization.vercel.app/Gallery/Gaurav.webp",
+                  "https://neutron-organization.vercel.app/Gallery/ARS06099.JPG", "https://neutron-organization.vercel.app/Gallery/ARS06099.JPG", "https://neutron-organization.vercel.app/Gallery/ARS07327.JPG", "https://ik.imagekit.io/yatharth/ARS03049.JPG", 
+                  "https://ik.imagekit.io/yatharth/ARS03049.JPG", "https://ik.imagekit.io/yatharth/ARS06494.JPG", "https://neutron-organization.vercel.app/Gallery/ARS07087.JPG", "https://neutron-organization.vercel.app/Gallery/Gaurav.webp",
+                  "https://ik.imagekit.io/yatharth/ARS06750.JPG", "https://ik.imagekit.io/yatharth/ARS06494.JPG", "https://neutron-organization.vercel.app/Gallery/Gaurav.webp", "https://neutron-organization.vercel.app/Gallery/ARS07087.JPG",
                 ].map((src, i) => (
                   <div key={`col2-${i}`} className="bg-[#EAE8E0] p-3 md:p-5 border-2 border-dashed border-[#2c2820] shadow-[3px_3px_0_rgba(44,40,32,1)] group cursor-crosshair shrink-0">
                      <div className="relative w-full aspect-auto overflow-hidden bg-black/10 vhs-flicker-layer">
                         <div className="absolute inset-0 z-0 bg-[#E0DED7] animate-pulse opacity-50"></div>
-                        <img src={src} className="relative z-10 w-full h-auto min-h-[250px] object-cover mix-blend-multiply grayscale-[25%] sepia-[25%] contrast-[1.05] group-hover:grayscale-[5%] group-hover:sepia-0 transition-all duration-300" alt={`Gallery item ${i}`} loading="lazy" />
+                        <img src={src} className="relative z-10 w-full h-auto min-h-[250px] object-cover mix-blend-multiply grayscale-25 sepia-25 contrast-[1.05] group-hover:grayscale-5 group-hover:sepia-0 transition-all duration-300" alt={`Gallery item ${i}`} loading="lazy" />
                      </div>
                   </div>
                 ))}
              </div>
              <div className="hidden md:flex flex-1 flex-col gap-6 md:gap-8 animate-scroll-vertical-fast w-1/3">
                 {[
-                  "https://neutron-organization.vercel.app/Gallery/Gaurav.webp", "/images/retro_keyboard_macro.png", "https://ik.imagekit.io/yatharth/ARS06494.JPG", "/images/retro_pointing_left.png",
-                  "/images/retro_office_team.png", "https://ik.imagekit.io/yatharth/ARS06750.JPG", "/images/retro_watercooler.png", "https://neutron-organization.vercel.app/Gallery/ARS07087.JPG",
-                  "https://ik.imagekit.io/yatharth/ARS03049.JPG", "/images/retro_pointing_right.png", "https://neutron-organization.vercel.app/Gallery/ARS07327.JPG", "/images/retro_shrugging_guy.png", 
-                  "https://neutron-organization.vercel.app/Gallery/ARS06099.JPG", "/images/retro_floppy_disks.png", "https://neutron-organization.vercel.app/Gallery/ARS06503.JPG", "/images/retro_computers_chart.png",
-                  "https://neutron-organization.vercel.app/Gallery/Gaurav.webp", "/images/retro_keyboard_macro.png", "https://ik.imagekit.io/yatharth/ARS06494.JPG", "/images/retro_pointing_left.png",
-                  "/images/retro_office_team.png", "https://ik.imagekit.io/yatharth/ARS06750.JPG", "/images/retro_watercooler.png", "https://neutron-organization.vercel.app/Gallery/ARS07087.JPG",
-                  "https://ik.imagekit.io/yatharth/ARS03049.JPG", "/images/retro_pointing_right.png", "https://neutron-organization.vercel.app/Gallery/ARS07327.JPG", "/images/retro_shrugging_guy.png"
+                  "https://neutron-organization.vercel.app/Gallery/ARS06099.JPG", "https://neutron-organization.vercel.app/Gallery/ARS06099.JPG", "https://neutron-organization.vercel.app/Gallery/ARS07327.JPG", "https://ik.imagekit.io/yatharth/ARS03049.JPG", 
+                  "https://ik.imagekit.io/yatharth/ARS03049.JPG", "https://ik.imagekit.io/yatharth/ARS06494.JPG", "https://neutron-organization.vercel.app/Gallery/ARS07087.JPG", "https://neutron-organization.vercel.app/Gallery/Gaurav.webp",
+                  "https://ik.imagekit.io/yatharth/ARS06750.JPG", "https://ik.imagekit.io/yatharth/ARS06494.JPG", "https://neutron-organization.vercel.app/Gallery/Gaurav.webp", "https://neutron-organization.vercel.app/Gallery/ARS07087.JPG",
+                  "https://ik.imagekit.io/yatharth/ARS06494.JPG", "https://neutron-organization.vercel.app/Gallery/Gaurav.webp", "https://neutron-organization.vercel.app/Gallery/ARS06503.JPG", "https://neutron-organization.vercel.app/Gallery/Gaurav.webp",
+                  "https://neutron-organization.vercel.app/Gallery/ARS06099.JPG", "https://neutron-organization.vercel.app/Gallery/ARS06099.JPG", "https://neutron-organization.vercel.app/Gallery/ARS07327.JPG", "https://ik.imagekit.io/yatharth/ARS03049.JPG", 
+                  "https://ik.imagekit.io/yatharth/ARS03049.JPG", "https://ik.imagekit.io/yatharth/ARS06494.JPG", "https://neutron-organization.vercel.app/Gallery/ARS07087.JPG", "https://neutron-organization.vercel.app/Gallery/Gaurav.webp",
+                  "https://ik.imagekit.io/yatharth/ARS06750.JPG", "https://ik.imagekit.io/yatharth/ARS06494.JPG", "https://neutron-organization.vercel.app/Gallery/Gaurav.webp", "https://neutron-organization.vercel.app/Gallery/ARS07087.JPG",
                 ].map((src, i) => (
                   <div key={`col3-${i}`} className="bg-[#F4F2EB] p-3 md:p-5 border-2 border-[#2c2820] shadow-[-6px_6px_0_rgba(44,40,32,1)] group cursor-crosshair shrink-0">
                      <div className="relative w-full aspect-auto overflow-hidden bg-black/10 glitch-slice-layer">
                         <div className="absolute inset-0 z-0 bg-[#E0DED7] animate-pulse opacity-50"></div>
-                        <img src={src} className="relative z-10 w-full h-auto min-h-[200px] object-cover mix-blend-multiply grayscale-[30%] sepia-[40%] contrast-[1.1] group-hover:grayscale-[5%] group-hover:sepia-[10%] transition-all duration-300" alt={`Gallery item ${i}`} loading="lazy" />
+                        <img src={src} className="relative z-10 w-full h-auto min-h-[200px] object-cover mix-blend-multiply grayscale-30 sepia-40 contrast-[1.1] group-hover:grayscale-5 group-hover:sepia-10 transition-all duration-300" alt={`Gallery item ${i}`} loading="lazy" />
                      </div>
                   </div>
                 ))}
@@ -162,7 +162,7 @@ export default function AboutPage() {
              <img 
                src="https://ik.imagekit.io/yatharth/ARS06750.JPG?updatedAt=1774806404575" 
                alt="Photon Event Action" 
-               className="object-cover object-center w-full h-full mix-blend-multiply grayscale-[25%] sepia-[25%] contrast-[1.1] group-hover:grayscale-0 group-hover:sepia-0 group-hover:contrast-[1.2] transition-all duration-500" 
+               className="object-cover object-center w-full h-full mix-blend-multiply grayscale-25 sepia-25 contrast-[1.1] group-hover:grayscale-0 group-hover:sepia-0 group-hover:contrast-[1.2] transition-all duration-500" 
              />
           </div>
 
