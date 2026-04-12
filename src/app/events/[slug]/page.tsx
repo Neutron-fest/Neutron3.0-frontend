@@ -18,20 +18,46 @@ export default function EventSlugPage() {
   const [scrollLeft, setScrollLeft] = useState(0);
   const [isRulesModalOpen, setIsRulesModalOpen] = useState(false);
   const [glitchPhase, setGlitchPhase] = useState(0);
+  const wheelDeltaRef = useRef(0);
+  const wheelRafRef = useRef<number | null>(null);
+  const pointerDownRef = useRef(false);
+  const dragAxisRef = useRef<"none" | "x" | "y">("none");
+  const dragStartXRef = useRef(0);
+  const dragStartYRef = useRef(0);
+  const dragScrollLeftRef = useRef(0);
 
   useEffect(() => {
     const el = scrollContainerRef.current;
     if (!el) return;
 
     const onWheel = (e: WheelEvent) => {
-      if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
-        e.preventDefault();
-        el.scrollLeft += e.deltaY * 1.5;
+      const target = e.target as HTMLElement | null;
+      if (target?.closest('[data-rules-scroll="true"]')) {
+        return;
       }
+
+      e.preventDefault();
+      const delta = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY;
+      const modeFactor = e.deltaMode === 1 ? 18 : e.deltaMode === 2 ? window.innerWidth : 1;
+      wheelDeltaRef.current += delta * modeFactor * 1.35;
+
+      if (wheelRafRef.current !== null) return;
+      wheelRafRef.current = window.requestAnimationFrame(() => {
+        el.scrollLeft += wheelDeltaRef.current;
+        wheelDeltaRef.current = 0;
+        wheelRafRef.current = null;
+      });
     };
 
     el.addEventListener("wheel", onWheel, { passive: false });
-    return () => el.removeEventListener("wheel", onWheel);
+    return () => {
+      el.removeEventListener("wheel", onWheel);
+      if (wheelRafRef.current !== null) {
+        window.cancelAnimationFrame(wheelRafRef.current);
+      }
+      wheelRafRef.current = null;
+      wheelDeltaRef.current = 0;
+    };
   }, []);
 
   useEffect(() => {
@@ -43,20 +69,41 @@ export default function EventSlugPage() {
 
   const onPointerDown = (e: React.PointerEvent) => {
     if (!scrollContainerRef.current) return;
-    setIsDragging(true);
-    setStartX(e.pageX - scrollContainerRef.current.offsetLeft);
-    setScrollLeft(scrollContainerRef.current.scrollLeft);
+    pointerDownRef.current = true;
+    dragAxisRef.current = "none";
+    dragStartXRef.current = e.pageX - scrollContainerRef.current.offsetLeft;
+    dragStartYRef.current = e.pageY;
+    dragScrollLeftRef.current = scrollContainerRef.current.scrollLeft;
+    setStartX(dragStartXRef.current);
+    setScrollLeft(dragScrollLeftRef.current);
+    setIsDragging(false);
   };
 
   const onPointerMove = (e: React.PointerEvent) => {
-    if (!isDragging || !scrollContainerRef.current) return;
-    e.preventDefault();
+    if (!pointerDownRef.current || !scrollContainerRef.current) return;
+
     const x = e.pageX - scrollContainerRef.current.offsetLeft;
-    const walk = (x - startX) * 2;
-    scrollContainerRef.current.scrollLeft = scrollLeft - walk;
+    const dx = x - dragStartXRef.current;
+    const dy = e.pageY - dragStartYRef.current;
+
+    if (dragAxisRef.current === "none") {
+      if (Math.abs(dx) < 6 && Math.abs(dy) < 6) return;
+      dragAxisRef.current = Math.abs(dx) > Math.abs(dy) ? "x" : "y";
+      if (dragAxisRef.current === "x") {
+        setIsDragging(true);
+      }
+    }
+
+    if (dragAxisRef.current !== "x") return;
+
+    e.preventDefault();
+    const walk = dx * 3;
+    scrollContainerRef.current.scrollLeft = dragScrollLeftRef.current - walk;
   };
 
   const onPointerUp = () => {
+    pointerDownRef.current = false;
+    dragAxisRef.current = "none";
     setIsDragging(false);
   };
 
@@ -86,23 +133,23 @@ export default function EventSlugPage() {
       <div 
         ref={scrollContainerRef}
         data-lenis-prevent="true"
-        className={`w-full h-full overflow-x-auto overflow-y-hidden flex items-center px-12 md:px-32 gap-20 md:gap-48 relative z-20 ${isDragging ? "cursor-grabbing select-none" : "cursor-grab"}`}
+        className={`w-full h-full overflow-x-auto overflow-y-hidden flex items-center px-12 md:px-32 gap-20 md:gap-48 relative z-20 overscroll-x-contain ${isDragging ? "cursor-grabbing select-none" : "cursor-grab"}`}
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
         onPointerUp={onPointerUp}
         onPointerLeave={onPointerUp}
-        style={{ scrollBehavior: isDragging ? "auto" : "smooth" }}
+        style={{ scrollBehavior: "auto", overscrollBehaviorX: "contain" }}
       >
         
         <div className="w-[85vw] md:w-[75vw] lg:w-[65vw] shrink-0 flex flex-col justify-center h-full relative">
           
-          <div className="text-cyan-400/80 text-[1.2rem] md:text-[1.5rem] uppercase tracking-[0.5em] mb-4 font-bold flex items-center gap-4">
+          <div className="text-cyan-400/80 text-[0.9rem] sm:text-[1.1rem] md:text-[1.25rem] lg:text-[1.5rem] uppercase tracking-[0.5em] mb-4 font-bold flex items-center gap-4">
               <span className="w-8 h-px bg-cyan-500" />
               {event.category}
           </div>
 
           <div className="relative group">
-            <h1 className="text-[5rem] md:text-[8rem] lg:text-[11rem] leading-[0.85] font-black tracking-tighter uppercase relative cursor-default">
+            <h1 className="text-[3.5rem] sm:text-[5rem] md:text-[7rem] lg:text-[9rem] leading-[0.85] font-black tracking-tighter uppercase relative cursor-default">
                 <span className="relative z-10">{event.title}</span>
                 
                 <span className={`absolute inset-0 text-cyan-500/30 z-0 mix-blend-screen transition-transform duration-75 ${glitchPhase === 1 ? 'translate-x-2 -translate-y-1' : 'translate-x-0'}`} aria-hidden="true">
@@ -114,8 +161,8 @@ export default function EventSlugPage() {
             </h1>
           </div>
 
-          <div className="mt-12 max-w-2xl border-l-4 border-white/20 pl-8 space-y-4">
-              <p className="text-[1.2rem] md:text-[1.6rem] leading-[1.4] text-white/70 italic">
+          <div className="mt-8 md:mt-12 max-w-2xl border-l-4 border-white/20 pl-8 space-y-4">
+              <p className="text-[0.95rem] sm:text-[1.2rem] md:text-[1.4rem] lg:text-[1.6rem] leading-[1.4] text-white/70 italic">
                 "{event.details}"
               </p>
           </div>
@@ -149,14 +196,14 @@ export default function EventSlugPage() {
 
         <div className="w-[85vw] md:w-[60vw] lg:w-[50vw] shrink-0 flex flex-col justify-center h-full relative">
            <div className="relative">
-                <div className="text-[1.8rem] md:text-[2.6rem] lg:text-[3.2rem] leading-[1.2] font-black uppercase tracking-tight text-white mb-10">
+                <div className="text-[1.05rem] sm:text-[1.3rem] md:text-[1.6rem] lg:text-[1.95rem] leading-[1.2] font-black uppercase tracking-tight text-white mb-8 md:mb-10">
                     {event.description}
                 </div>
                 
-                <ul className="space-y-4 max-w-xl">
+                <ul className="space-y-3 sm:space-y-4 md:space-y-5 max-w-xl">
                     {event.highlights.map((h, i) => (
-                        <li key={i} className="flex items-start gap-4 text-white/60 text-lg md:text-xl">
-                            <span className="text-cyan-500 mt-1 font-black">»</span>
+                        <li key={i} className="flex items-start gap-4 text-white/60 text-[0.85rem] sm:text-[0.95rem] md:text-[1.1rem] lg:text-[1.2rem]">
+                            <span className="text-cyan-500 mt-1 font-black shrink-0">»</span>
                             <span className="border-b border-transparent hover:border-cyan-500/30 transition-colors cursor-default">{h}</span>
                         </li>
                     ))}
@@ -165,7 +212,7 @@ export default function EventSlugPage() {
         </div>
 
         <div className="w-[85vw] md:w-[65vw] lg:w-[60vw] shrink-0 flex flex-col justify-center h-full">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 md:gap-12 relative">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 md:gap-10 relative">
                 <div className="hidden sm:block absolute top-1/2 left-0 w-full h-px bg-white/5 -translate-y-1/2" />
                 <div className="hidden sm:block absolute left-1/2 top-0 w-px h-full bg-white/5 -translate-x-1/2" />
 
@@ -175,15 +222,15 @@ export default function EventSlugPage() {
                    { icon: Clock, label: "TEMPORAL_OFFSET", value: event.time, color: "text-yellow-400" },
                    { icon: Cpu, label: "EXECUTION_TIMESTAMP", value: event.date, color: "text-emerald-400" }
                 ].map((item, i) => (
-                    <div key={i} className="group p-8 border border-white/5 bg-white/5 backdrop-blur-sm relative overflow-hidden transition-all hover:bg-white/10 hover:border-white/20">
+                    <div key={i} className="group p-6 md:p-8 border border-white/5 bg-white/5 backdrop-blur-sm relative overflow-hidden transition-all hover:bg-white/10 hover:border-white/20">
                         <div className="absolute top-0 right-0 w-8 h-8 flex items-center justify-center">
                             <div className="w-1.5 h-1.5 bg-white/20 rounded-full" />
                         </div>
 
-                        <div className="flex items-center gap-4 mb-4">
-                            <span className="text-[10px] font-bold text-white/40 tracking-[0.3em] uppercase">{item.label}</span>
+                        <div className="flex items-center gap-4 mb-3 md:mb-4">
+                            <span className="text-[8px] sm:text-[9px] md:text-[10px] font-bold text-white/40 tracking-[0.3em] uppercase">{item.label}</span>
                         </div>
-                        <div className="text-[2.2rem] md:text-[3rem] font-black uppercase leading-none tracking-tighter truncate">
+                        <div className="text-[1.6rem] sm:text-[2rem] md:text-[2.6rem] lg:text-[3rem] font-black uppercase leading-none tracking-tighter truncate">
                             {item.value}
                         </div>
                     </div>
@@ -192,40 +239,56 @@ export default function EventSlugPage() {
         </div>
 
         <div className="w-[90vw] md:w-[75vw] lg:w-[65vw] shrink-0 flex flex-col justify-center h-full mr-12 md:mr-24">
-            <div className="relative bg-[#0A0A0A] border border-white/10 p-12 md:p-20 overflow-hidden group/final">
+            <div className="relative bg-[#0A0A0A] border border-white/10 p-8 md:p-12 lg:p-20 overflow-hidden group/final max-h-[85dvh] md:max-h-[80dvh] overflow-y-auto overscroll-y-contain custom-scrollbar" 
+              data-rules-scroll="true"
+              style={{ WebkitOverflowScrolling: "touch", touchAction: "pan-y" }}
+              onWheel={(e) => {
+                const el = e.currentTarget;
+                const atTop = el.scrollTop <= 0;
+                const atBottom = el.scrollTop + el.clientHeight >= el.scrollHeight - 1;
+                const isScrollingUp = e.deltaY < 0;
+                const isScrollingDown = e.deltaY > 0;
+
+                if ((atTop && isScrollingUp) || (atBottom && isScrollingDown)) {
+                  e.preventDefault();
+                }
+
+                e.stopPropagation();
+              }}
+            >
                 <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-size-[40px_40px] z-0" />
                 
                 <div className="relative z-10 flex flex-col items-center text-center">
-                    <div className="flex items-center gap-3 mb-8 opacity-60">
-                         <span className="h-[2px] w-12 bg-magenta-500" />
-                         <span className="text-xs uppercase tracking-[0.5em] font-bold text-magenta-500">INITIATE_PROTOCOL</span>
-                         <span className="h-[2px] w-12 bg-magenta-500" />
+                    <div className="flex items-center gap-3 mb-6 md:mb-8 opacity-60">
+                         <span className="h-0.5 w-8 md:w-12 bg-magenta-500" />
+                         <span className="text-[7px] sm:text-[8px] md:text-[9px] lg:text-[10px] uppercase tracking-[0.5em] font-bold text-magenta-500">INITIATE_PROTOCOL</span>
+                         <span className="h-0.5 w-8 md:w-12 bg-magenta-500" />
                     </div>
 
-                    <h2 className="text-[3rem] md:text-[6rem] lg:text-[7rem] font-black leading-[0.9] uppercase mb-12 max-w-4xl cursor-default">
-                        WANT TO <span className="text-cyan-500 underline decoration-cyan-500/30 underline-offset-8">ENTER</span> THE NETWORK?
+                    <h2 className="text-[2rem] sm:text-[3rem] md:text-[4.5rem] lg:text-[5.5rem] font-black leading-[0.9] uppercase mb-8 md:mb-12 max-w-4xl cursor-default">
+                        WANT TO <span className="text-cyan-500 underline decoration-cyan-500/30 underline-offset-4 md:underline-offset-8">ENTER</span> THE NETWORK?
                     </h2>
 
-                    <div className="flex flex-col sm:flex-row gap-8 items-center">
+                    <div className="flex flex-col sm:flex-row gap-6 md:gap-8 items-center">
                         <button
                           onClick={() => setIsRulesModalOpen(true)}
-                          className="flex items-center gap-4 px-8 py-4 border border-white/20 hover:border-cyan-500 hover:bg-cyan-500/10 transition-all font-bold uppercase tracking-widest text-sm group/rules"
+                          className="flex items-center gap-3 md:gap-4 px-6 md:px-8 py-2.5 md:py-3 lg:py-4 border border-white/20 hover:border-cyan-500 hover:bg-cyan-500/10 transition-all font-bold uppercase tracking-widest text-[0.7rem] sm:text-[0.8rem] md:text-[0.9rem] group/rules active:scale-95"
                         >
-                          <List className="w-5 h-5 group-hover/rules:rotate-12 transition-transform" />
+                          <List className="w-4 h-4 md:w-5 md:h-5 group-hover/rules:rotate-12 transition-transform" />
                           VIEW_RULES
                         </button>
 
                         <button 
-                          className="group/btn relative px-12 py-5 bg-white text-black font-black uppercase tracking-[0.2em] text-xl overflow-hidden active:scale-95 transition-transform"
+                          className="group/btn relative px-8 md:px-12 py-2.5 md:py-3 lg:py-4 bg-white text-black font-black uppercase tracking-widest md:tracking-[0.2em] text-[0.8rem] sm:text-[0.9rem] md:text-[1rem] lg:text-[1.2rem] overflow-hidden active:scale-95 transition-transform"
                         >
-                            <span className="relative z-10 flex items-center gap-4">
-                                EXECUTE_NOW <ArrowRight className="group-hover/btn:translate-x-3 transition-transform" />
+                            <span className="relative z-10 flex items-center gap-2 md:gap-4">
+                                EXECUTE_NOW <ArrowRight className="group-hover/btn:translate-x-2 md:group-hover/btn:translate-x-3 transition-transform w-4 h-4 md:w-5 md:h-5" />
                             </span>
                             <div className="absolute inset-0 -translate-x-full group-hover/btn:translate-x-full bg-cyan-500/20 transition-transform duration-500 ease-in-out" />
                         </button>
                     </div>
 
-                    <div className="mt-16 text-[10px] text-white/20 tracking-[0.8em] font-bold">
+                    <div className="mt-10 md:mt-16 text-[7px] sm:text-[8px] md:text-[9px] text-white/20 tracking-[0.6em] md:tracking-[0.8em] font-bold">
                         SYSTEM_AUTH_REQUIRED // SESSION: 0x9212
                     </div>
                 </div>
@@ -241,17 +304,31 @@ export default function EventSlugPage() {
         title={event.title}
       />
 
-      <div className="absolute bottom-10 left-12 right-12 flex justify-between items-center z-30 pointer-events-none opacity-40">
-        <div className="flex items-center gap-4">
-            <span className="text-[10px] font-bold text-cyan-500 tracking-[0.2em] animate-pulse">DRAG_TO_EXPLORE</span>
-            <div className="h-px w-48 bg-cyan-500/20" />
+      <div className="absolute bottom-6 md:bottom-8 left-6 md:left-12 right-6 md:right-12 flex justify-between items-center z-30 pointer-events-none opacity-40">
+        <div className="flex items-center gap-3 md:gap-4">
+            <span className="text-[7px] sm:text-[8px] md:text-[9px] font-bold text-cyan-500 tracking-[0.2em] animate-pulse">DRAG_TO_EXPLORE</span>
+            <div className="h-px w-24 md:w-48 bg-cyan-500/20" />
         </div>
-        <div className="font-mono text-[10px] text-white/50 tracking-[0.4em]">
+        <div className="font-mono text-[7px] sm:text-[8px] md:text-[9px] text-white/50 tracking-[0.4em]">
             PHOTON_OS // v2.0.4
         </div>
       </div>
 
       <style jsx>{`
+        .custom-scrollbar::-webkit-scrollbar {
+          width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+          background: rgba(255, 255, 255, 0.05);
+          border-radius: 3px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+          background: rgba(34, 211, 238, 0.4);
+          border-radius: 3px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+          background: rgba(34, 211, 238, 0.6);
+        }
         .animate-scan {
             animation: scan 4s linear infinite;
         }

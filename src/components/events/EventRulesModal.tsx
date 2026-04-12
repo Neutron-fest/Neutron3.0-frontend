@@ -21,24 +21,30 @@ export default function EventRulesModal({ isOpen, onClose, rules, title }: Event
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = "hidden";
+      document.body.style.overscrollBehavior = "none";
     } else {
       document.body.style.overflow = "unset";
+      document.body.style.overscrollBehavior = "auto";
     }
     return () => {
       document.body.style.overflow = "unset";
+      document.body.style.overscrollBehavior = "auto";
     };
   }, [isOpen]);
 
   return (
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-500 flex items-center justify-center p-4 md:p-12 overflow-hidden" data-lenis-prevent>
+        <div className="fixed inset-0 z-200 flex items-center justify-center p-2.5 sm:p-4 md:p-10 overflow-hidden overscroll-none"
+        data-lenis-prevent
+        style={{ touchAction: "none" }}
+        >
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="absolute inset-0 bg-black/90 backdrop-blur-xl"
+            className="absolute inset-0 bg-black/80 backdrop-blur-md"
           />
 
           <motion.div
@@ -61,33 +67,42 @@ export default function EventRulesModal({ isOpen, onClose, rules, title }: Event
                 filter: "brightness(5) contrast(2) hue-rotate(-90deg)" 
             }}
             transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-            className="relative w-full max-w-5xl h-full max-h-[85vh] bg-[#050505] border-px border-cyan-500/30 shadow-[0_0_50px_rgba(6,182,212,0.15)] flex flex-col z-10 rounded-lg overflow-hidden"
+            className="relative w-full max-w-5xl h-full max-h-[90dvh] md:max-h-[85vh] bg-[#050505] border-px border-cyan-500/30 shadow-[0_0_50px_rgba(6,182,212,0.15)] flex flex-col z-10 rounded-lg overflow-hidden"
+            onWheelCapture={(e) => e.stopPropagation()}
+            onPointerMove={(e) => e.stopPropagation()}
           >
             <div className="absolute inset-0 pointer-events-none z-50 opacity-[0.03] crt-scanlines mix-blend-screen"></div>
             <div className="absolute inset-0 pointer-events-none z-100 opacity-[0.05] bg-[url('https://res.cloudinary.com/dyd911kmh/image/upload/v1640050115/glitch_u4q1zq.gif')]"></div>
 
-            <div className="flex items-center justify-between p-6 md:p-10 border-b border-white/10 bg-black/50 backdrop-blur-md relative overflow-hidden">
-                <div className="absolute inset-0 bg-cyan-500/5 animate-pulse pointer-events-none" />
-                
-                <div className="relative z-10">
-                    <h2 className="text-[2rem] md:text-[3.5rem] font-black uppercase leading-none text-white tracking-tight">
+            <div className="flex items-center justify-between gap-3 p-3 sm:p-5 md:p-8 border-b-2 sm:border-b-4 border-white/10 bg-black/50 backdrop-blur-md shrink-0">
+              <div className="relative z-10">
+                <span className="font-mono text-[0.6rem] sm:text-[0.75rem] md:text-[0.9rem] text-cyan-500 uppercase tracking-[0.15em] sm:tracking-[0.25em] md:tracking-widest font-bold block mb-1">
+                  [ System Protocol v1.4 ]
+                </span>
+                <h2 className="text-[1rem] sm:text-[1.6rem] md:text-[2.2rem] lg:text-[2.8rem] font-black uppercase leading-none text-white">
                     {title} <span className="text-cyan-500">Rules</span>
-                    </h2>
-                </div>
+                </h2>
+              </div>
 
-                <button
-                    onClick={onClose}
-                    className="relative z-10 p-3 md:p-4 border border-white/10 hover:border-cyan-500/50 hover:bg-cyan-500/10 text-white transition-all transform active:scale-95 group rounded-full"
-                >
-                    <X className="w-6 h-6 md:w-8 md:h-8 transition-transform group-hover:rotate-90" />
-                </button>
+              <button
+                onClick={onClose}
+                className="relative z-10 p-2 sm:p-2.5 md:p-3 border border-white/10 hover:border-cyan-500/50 hover:bg-cyan-500/10 text-white transition-all transform active:scale-95 group rounded-full shrink-0"
+              >
+                <X className="w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7 transition-transform group-hover:rotate-90" />
+              </button>
             </div>
 
-            <div className="flex-1 overflow-y-auto p-6 md:p-12 custom-dark-scrollbar bg-black/20">
+            <div
+              className="flex-1 min-h-0 overflow-y-auto overscroll-y-contain p-4 sm:p-6 md:p-10 custom-dark-scrollbar"
+              style={{ WebkitOverflowScrolling: "touch", touchAction: "pan-y" }}
+              onTouchMove={(e) => e.stopPropagation()}
+              onPointerDown={(e) => e.stopPropagation()}
+              onPointerMove={(e) => e.stopPropagation()}
+            >
               <RulesAccordion rules={rules} />
             </div>
 
-            <div className="p-5 border-t border-white/10 bg-black/80 flex justify-between items-center font-mono text-[0.6rem] md:text-[0.8rem] text-white/40 font-bold uppercase tracking-[0.4em]">
+            <div className="p-3 sm:p-4 md:p-6 border-t-2 sm:border-t-4 border-white/10 bg-black/80 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-1.5 sm:gap-4 font-mono text-[0.55rem] sm:text-[0.7rem] md:text-[0.85rem] text-white/40 font-bold uppercase tracking-[0.12em] sm:tracking-[0.2em] md:tracking-widest shrink-0">
               <div className="flex items-center gap-3">
                 <span className="w-2 h-2 rounded-full bg-cyan-500 animate-pulse" />
                 <span>GRID:_CONNECTED</span>

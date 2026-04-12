@@ -1,10 +1,12 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { Menu, X } from "lucide-react";
 export default function Navbar() {
   const [hovered, setHovered] = useState<string | null>(null);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const pathname = usePathname();
 
   const links = [
@@ -14,16 +16,42 @@ export default function Navbar() {
     { name: "Contact", href: "/contact" },
   ];
 
+  useEffect(() => {
+    setIsMenuOpen(false);
+  }, [pathname]);
+
+  useEffect(() => {
+    const prevBodyOverflowX = document.body.style.overflowX;
+    const prevHtmlOverflowX = document.documentElement.style.overflowX;
+    const prevBodyOverscrollX = document.body.style.overscrollBehaviorX;
+    const prevHtmlOverscrollX = document.documentElement.style.overscrollBehaviorX;
+
+    if (isMenuOpen) {
+      document.body.style.overflowX = "hidden";
+      document.documentElement.style.overflowX = "hidden";
+      document.body.style.overscrollBehaviorX = "none";
+      document.documentElement.style.overscrollBehaviorX = "none";
+    }
+
+    return () => {
+      document.body.style.overflowX = prevBodyOverflowX;
+      document.documentElement.style.overflowX = prevHtmlOverflowX;
+      document.body.style.overscrollBehaviorX = prevBodyOverscrollX;
+      document.documentElement.style.overscrollBehaviorX = prevHtmlOverscrollX;
+    };
+  }, [isMenuOpen]);
+
   return (
-    <header className="fixed top-0 left-0 w-full z-300 flex items-center justify-between px-12 py-8 pointer-events-auto mix-blend-difference group/nav">
+    <header className="fixed inset-x-0 top-0 w-screen max-w-[100vw] z-300 pointer-events-auto mix-blend-difference group/nav overflow-x-clip overscroll-x-none">
+      <div className="w-full max-w-[100vw] box-border flex items-center justify-between px-5 sm:px-8 lg:px-12 py-5 sm:py-6 lg:py-8">
       
-      <Link href="/" className="flex items-center gap-3 drop-shadow-[0_0_10px_rgba(255,255,255,0.2)] hover:scale-105 transition-transform duration-300">
-        <span className="font-audiowide text-[1.35rem] italic font-black tracking-wider text-white">
+        <Link href="/" className="flex items-center gap-3 drop-shadow-[0_0_10px_rgba(255,255,255,0.2)] hover:scale-105 transition-transform duration-300">
+        <span className="font-audiowide text-[1.05rem] sm:text-[1.2rem] lg:text-[1.35rem] italic font-black tracking-wider text-white">
           PHOTON
         </span>
       </Link>
 
-      <nav className="flex items-center gap-10">
+      <nav className="hidden lg:flex items-center gap-10">
         {links.map((link) => {
           const isActive = pathname.startsWith(link.href);
           
@@ -60,6 +88,44 @@ export default function Navbar() {
           );
         })}
       </nav>
+
+      <button
+        type="button"
+        onClick={() => setIsMenuOpen((prev) => !prev)}
+        aria-label={isMenuOpen ? "Close navigation menu" : "Open navigation menu"}
+        aria-expanded={isMenuOpen}
+        className="lg:hidden inline-flex items-center justify-center w-11 h-11 border border-white/35 bg-black/40 text-white hover:text-cyan-300 hover:border-cyan-300/80 transition-colors backdrop-blur-sm shadow-[0_0_20px_rgba(0,0,0,0.35)]"
+      >
+        {isMenuOpen ? <X size={20} /> : <Menu size={20} />}
+      </button>
+      </div>
+
+      {isMenuOpen && (
+        <div className="lg:hidden absolute top-full inset-x-0 px-5 sm:px-8 pt-1 box-border max-w-[100vw] overflow-x-hidden">
+          <nav className="relative w-full max-w-full box-border border border-white/20 bg-black/70 backdrop-blur-md shadow-[0_18px_40px_rgba(0,0,0,0.55)] max-h-[calc(100dvh-92px)] sm:max-h-[calc(100dvh-108px)] overflow-y-auto overscroll-y-contain overflow-x-hidden">
+            <div className="absolute inset-0 pointer-events-none opacity-20 bg-[linear-gradient(rgba(255,255,255,0.1)_1px,transparent_1px)] bg-size-[100%_3px]" />
+            <div className="relative z-10 py-2">
+              {links.map((link) => {
+                const isActive = pathname.startsWith(link.href);
+
+                return (
+                  <Link
+                    key={link.name}
+                    href={link.href}
+                    className={`block px-4 sm:px-5 py-3.5 sm:py-4 font-orbitron text-[0.9rem] sm:text-[0.98rem] uppercase tracking-[0.18em] border-b border-white/10 last:border-b-0 transition-colors ${
+                      isActive
+                        ? "text-cyan-300 bg-cyan-500/10"
+                        : "text-white/90 hover:text-white hover:bg-white/5"
+                    }`}
+                  >
+                    {link.name}
+                  </Link>
+                );
+              })}
+            </div>
+          </nav>
+        </div>
+      )}
 
     </header>
   );

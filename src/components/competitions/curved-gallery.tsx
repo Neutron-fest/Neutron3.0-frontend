@@ -91,6 +91,20 @@ export function CurvedGallery() {
 
   const [activeIdx, setActiveIdx] = useState(0);
   const [isGlitching, setIsGlitching] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia("(max-width: 425px)");
+    const onChange = (e: MediaQueryListEvent) => setIsMobile(e.matches);
+
+    setIsMobile(mediaQuery.matches);
+    mediaQuery.addEventListener("change", onChange);
+
+    return () => mediaQuery.removeEventListener("change", onChange);
+  }, []);
+
+  const cardWidth = isMobile ? 130 : CARD_WIDTH;
+  const cardHeight = isMobile ? 200 : CARD_HEIGHT;
 
   useEffect(() => {
     return smoothRotation.onChange((v: number) => {
@@ -213,10 +227,10 @@ export function CurvedGallery() {
                 key={comp.slug}
                 style={{
                   position: "absolute",
-                  top: `-${CARD_HEIGHT / 2}px`,
-                  left: `-${CARD_WIDTH / 2}px`,
-                  width: `${CARD_WIDTH}px`,
-                  height: `${CARD_HEIGHT}px`,
+                  top: `-${cardHeight / 2}px`,
+                  left: `-${cardWidth / 2}px`,
+                  width: `${cardWidth}px`,
+                  height: `${cardHeight}px`,
                   transform: `rotateY(${angle}deg) translateZ(${RADIUS}px)`,
                   transformStyle: "preserve-3d" as const,
                 }}

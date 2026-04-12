@@ -24,6 +24,20 @@ export function CurvedGallery() {
 
   const [activeIdx, setActiveIdx] = useState(0);
   const [isGlitching, setIsGlitching] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia("(max-width: 425px)");
+    const onChange = (e: MediaQueryListEvent) => setIsMobile(e.matches);
+
+    setIsMobile(mediaQuery.matches);
+    mediaQuery.addEventListener("change", onChange);
+
+    return () => mediaQuery.removeEventListener("change", onChange);
+  }, []);
+
+  const cardWidth = isMobile ? 130 : CARD_WIDTH;
+  const cardHeight = isMobile ? 200 : CARD_HEIGHT;
 
   useEffect(() => {
     return smoothRotation.onChange((v: number) => {
@@ -96,10 +110,12 @@ export function CurvedGallery() {
     }, 50);
   };
 
+
+  
   return (
     <div className="relative w-full h-full flex flex-col items-center justify-center overflow-hidden">
 
-      <div className="absolute top-[130px] left-1/2 -translate-x-1/2 z-50 text-center pointer-events-none">
+      <div className="absolute top-32.5 left-1/2 -translate-x-1/2 z-50 text-center pointer-events-none">
         <AnimatePresence mode="wait">
           <motion.div
             key={activeIdx}
@@ -146,10 +162,10 @@ export function CurvedGallery() {
                 key={eventItem.slug}
                 style={{
                   position: "absolute",
-                  top: `-${CARD_HEIGHT / 2}px`,
-                  left: `-${CARD_WIDTH / 2}px`,
-                  width: `${CARD_WIDTH}px`,
-                  height: `${CARD_HEIGHT}px`,
+                  top: `-${cardHeight / 2}px`,
+                  left: `-${cardWidth / 2}px`,
+                  width: `${cardWidth}px`,
+                  height: `${cardHeight}px`,
                   transform: `rotateY(${angle}deg) translateZ(${RADIUS}px)`,
                   transformStyle: "preserve-3d" as const,
                 }}
@@ -277,10 +293,10 @@ function GalleryCard({
       {isActive && (
         <>
           <div className="absolute inset-0 z-20 pointer-events-none mix-blend-screen opacity-[0.08]">
-            <img src={image} className="w-full h-full object-cover translate-x-[3px] saturate-200 hue-rotate-60" alt="" />
+            <img src={image} className="w-full h-full object-cover translate-x-0.75 saturate-200 hue-rotate-60" alt="" />
           </div>
           <div className="absolute inset-0 z-20 pointer-events-none mix-blend-screen opacity-[0.08]">
-            <img src={image} className="w-full h-full object-cover -translate-x-[3px] saturate-200 hue-rotate-[-60deg]" alt="" />
+            <img src={image} className="w-full h-full object-cover -translate-x-0.75 saturate-200 hue-rotate-[-60deg]" alt="" />
           </div>
         </>
       )}
@@ -305,8 +321,8 @@ function GalleryCard({
 
         <div className="absolute inset-0 z-20 pointer-events-none opacity-0 group-hover:opacity-50 transition-opacity duration-75 mix-blend-screen overflow-hidden">
           <div className="absolute inset-0 bg-white/10 animate-[flash_0.05s_infinite]"></div>
-          <div className="absolute inset-0 bg-cyan-500/20 translate-x-[4px] mix-blend-color-dodge animate-[vibrate_0.1s_infinite]"></div>
-          <div className="absolute inset-0 bg-red-500/20 -translate-x-[4px] mix-blend-color-burn animate-[vibrate_0.15s_infinite_reverse]"></div>
+          <div className="absolute inset-0 bg-cyan-500/20 translate-x-1 mix-blend-color-dodge animate-[vibrate_0.1s_infinite]"></div>
+          <div className="absolute inset-0 bg-red-500/20 -translate-x-1 mix-blend-color-burn animate-[vibrate_0.15s_infinite_reverse]"></div>
         </div>
 
         <div className="absolute inset-0 bg-linear-to-t from-black via-black/60 to-black/10 z-10" />
