@@ -133,18 +133,42 @@ export function CurvedGallery() {
   const prev = () => rotateTo(((activeIdx - 1) + TOTAL) % TOTAL);
   const next = () => rotateTo((activeIdx + 1) % TOTAL);
 
-  // Drag handler
-  const dragStart = useRef(0);
+  // Drag handler — tracks movement to distinguish click vs drag
+  const dragStartX = useRef(0);
+  const dragTotalDelta = useRef(0);
+  const isDraggingRef = useRef(false);
+  const [isDragging, setIsDragging] = useState(false);
+
   const onPointerDown = (e: React.PointerEvent) => {
-    dragStart.current = e.clientX;
+    dragStartX.current = e.clientX;
+    dragTotalDelta.current = 0;
+    isDraggingRef.current = false;
+    setIsDragging(false);
     (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
   };
+
   const onPointerMove = (e: React.PointerEvent) => {
     if (!(e.buttons & 1)) return;
-    const delta = e.clientX - dragStart.current;
-    dragStart.current = e.clientX;
-    rotationRef.current += delta * 0.3;
-    rawRotation.set(rotationRef.current);
+    const delta = e.clientX - dragStartX.current;
+    dragStartX.current = e.clientX;
+    dragTotalDelta.current += Math.abs(delta);
+    // Only start rotating once we've moved more than 8px (confirmed drag)
+    if (dragTotalDelta.current > 8) {
+      if (!isDraggingRef.current) {
+        isDraggingRef.current = true;
+        setIsDragging(true);
+      }
+      rotationRef.current += delta * 0.3;
+      rawRotation.set(rotationRef.current);
+    }
+  };
+
+  const onPointerUp = () => {
+    // Reset dragging state after pointer is released
+    setTimeout(() => {
+      isDraggingRef.current = false;
+      setIsDragging(false);
+    }, 50);
   };
 
   return (
@@ -176,6 +200,8 @@ export function CurvedGallery() {
         style={{ perspective: "1400px", perspectiveOrigin: "50% 50%" }}
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
+        onPointerUp={onPointerUp}
+        onPointerCancel={onPointerUp}
       >
 
 
@@ -217,6 +243,7 @@ export function CurvedGallery() {
                   isGlitching={isGlitching}
                   smoothRotation={smoothRotation}
                   angleStep={ANGLE_STEP}
+                  isDragging={isDragging}
                 />
               </div>
             );
@@ -277,6 +304,7 @@ type GalleryCardProps = {
   isGlitching: boolean;
   smoothRotation: any;
   angleStep: number;
+  isDragging: boolean;
 };
 
 function GalleryCard({
@@ -293,6 +321,7 @@ function GalleryCard({
   isGlitching,
   smoothRotation,
   angleStep,
+  isDragging,
 }: GalleryCardProps) {
   const isActive = idx === activeIdx;
 
@@ -344,7 +373,14 @@ function GalleryCard({
         </>
       )}
 
-      <Link href={`/competitions/${slug}`} className="block w-full h-full relative">
+      <Link
+        href={`/competitions/${slug}`}
+        className="block w-full h-full relative"
+        onClick={(e) => {
+          // Prevent navigation if the user was dragging
+          if (isDragging) e.preventDefault();
+        }}
+      >
         {/* Image */}
         <motion.div
           className="absolute inset-0"
