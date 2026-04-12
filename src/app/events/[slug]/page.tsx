@@ -19,7 +19,6 @@ export default function EventSlugPage() {
   const [isRulesModalOpen, setIsRulesModalOpen] = useState(false);
   const [glitchPhase, setGlitchPhase] = useState(0);
 
-  // Sync horizontal wheel scroll
   useEffect(() => {
     const el = scrollContainerRef.current;
     if (!el) return;
@@ -35,7 +34,6 @@ export default function EventSlugPage() {
     return () => el.removeEventListener("wheel", onWheel);
   }, []);
 
-  // Glitch timer for text jitter
   useEffect(() => {
     const interval = setInterval(() => {
       setGlitchPhase(prev => (prev + 1) % 4);
@@ -65,7 +63,6 @@ export default function EventSlugPage() {
   if (!event) {
     return (
       <main className="h-screen w-full bg-[#030303] flex items-center justify-center text-white font-mono uppercase tracking-[0.2em] relative overflow-hidden">
-        {/* Background Glitch */}
         <div className="absolute inset-0 opacity-10 bg-[url('https://res.cloudinary.com/dyd911kmh/image/upload/v1640050115/glitch_u4q1zq.gif')] pointer-events-none" />
         <div className="text-center relative z-10 px-6">
           <p className="text-cyan-500 mb-4 animate-pulse">ERROR_CODE:_404 // NULL_POINTER</p>
@@ -82,15 +79,10 @@ export default function EventSlugPage() {
   return (
     <main className="relative w-full h-screen bg-[#030303] text-white font-mono overflow-hidden selection:bg-cyan-500/30">
       
-      {/* ── GLOBAL GLITCH OVERLAYS ── */}
-      {/* Moving Static */}
       <div className="fixed inset-0 pointer-events-none z-[100] opacity-[0.03] contrast-200 brightness-200 bg-[url('https://res.cloudinary.com/dyd911kmh/image/upload/v1640050115/glitch_u4q1zq.gif')]"></div>
-      {/* Scanlines */}
       <div className="fixed inset-0 pointer-events-none z-[110] opacity-[0.15] bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.5)_50%)] bg-size-[100%_4px]"></div>
-      {/* Vignette */}
       <div className="fixed inset-0 pointer-events-none z-[120] bg-[radial-gradient(circle_at_50%_50%,transparent_0%,rgba(0,0,0,0.6)_100%)]"></div>
 
-      {/* ── CONTINUOUS HORIZONTAL SCROLLER ── */}
       <div 
         ref={scrollContainerRef}
         data-lenis-prevent="true"
@@ -102,7 +94,6 @@ export default function EventSlugPage() {
         style={{ scrollBehavior: isDragging ? "auto" : "smooth" }}
       >
         
-        {/* PANEL 1: IDENTITY */}
         <div className="w-[85vw] md:w-[75vw] lg:w-[65vw] shrink-0 flex flex-col justify-center h-full relative">
           
           <div className="text-cyan-400/80 text-[1.2rem] md:text-[1.5rem] uppercase tracking-[0.5em] mb-4 font-bold flex items-center gap-4">
@@ -112,10 +103,8 @@ export default function EventSlugPage() {
 
           <div className="relative group">
             <h1 className="text-[5rem] md:text-[8rem] lg:text-[11rem] leading-[0.85] font-black tracking-tighter uppercase relative cursor-default">
-                {/* Main Text */}
                 <span className="relative z-10">{event.title}</span>
                 
-                {/* Glitch Shadows */}
                 <span className={`absolute inset-0 text-cyan-500/30 z-0 mix-blend-screen transition-transform duration-75 ${glitchPhase === 1 ? 'translate-x-2 -translate-y-1' : 'translate-x-0'}`} aria-hidden="true">
                     {event.title}
                 </span>
@@ -132,13 +121,10 @@ export default function EventSlugPage() {
           </div>
         </div>
 
-        {/* PANEL 2: CINEMATIC VISUAL */}
         <div className="w-[85vw] md:w-[65vw] lg:w-[55vw] h-[65vh] md:h-[75vh] flex-shrink-0 relative group">
-          {/* Decorative Corner Brackets */}
           <div className="absolute -top-4 -left-4 w-12 h-12 border-t-2 border-l-2 border-cyan-500 transition-all group-hover:w-16 group-hover:h-16" />
           <div className="absolute -bottom-4 -right-4 w-12 h-12 border-b-2 border-r-2 border-magenta-500 transition-all group-hover:w-16 group-hover:h-16" />
 
-          {/* Glitch Slices Layer */}
           <div className="absolute inset-0 z-20 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity bg-[linear-gradient(transparent_45%,rgba(6,182,212,0.2)_50%,transparent_55%)] bg-size-[100%_200%] animate-scan" />
 
           <div className="relative w-full h-full overflow-hidden border border-white/10 shadow-[0_0_100px_rgba(0,0,0,0.8)]">
@@ -148,7 +134,6 @@ export default function EventSlugPage() {
                 className="object-cover w-full h-full grayscale group-hover:grayscale-0 contrast-125 brightness-75 group-hover:brightness-105 transition-all duration-500 group-hover:scale-110"
                 draggable={false}
             />
-            {/* RGB Fringe on hover */}
             <div className="absolute inset-0 z-10 pointer-events-none mix-blend-screen opacity-0 group-hover:opacity-40 overflow-hidden">
                 <img src={event.image} className="absolute inset-0 w-full h-full object-cover translate-x-2 text-cyan-500 filter invert" alt="" />
                 <img src={event.image} className="absolute inset-0 w-full h-full object-cover -translate-x-2 text-magenta-500" alt="" />
@@ -162,7 +147,6 @@ export default function EventSlugPage() {
           </div>
         </div>
 
-        {/* PANEL 3: THE INTEL FEED */}
         <div className="w-[85vw] md:w-[60vw] lg:w-[50vw] flex-shrink-0 flex flex-col justify-center h-full relative">
            <div className="relative">
                 <div className="text-[1.8rem] md:text-[2.6rem] lg:text-[3.2rem] leading-[1.2] font-black uppercase tracking-tight text-white mb-10">
@@ -180,10 +164,8 @@ export default function EventSlugPage() {
            </div>
         </div>
 
-        {/* PANEL 4: THE GRID DATA */}
         <div className="w-[85vw] md:w-[65vw] lg:w-[60vw] flex-shrink-0 flex flex-col justify-center h-full">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 md:gap-12 relative">
-                {/* Visual Connector Lines */}
                 <div className="hidden sm:block absolute top-1/2 left-0 w-full h-[1px] bg-white/5 -translate-y-1/2" />
                 <div className="hidden sm:block absolute left-1/2 top-0 w-[1px] h-full bg-white/5 -translate-x-1/2" />
 
@@ -194,7 +176,6 @@ export default function EventSlugPage() {
                    { icon: Cpu, label: "EXECUTION_TIMESTAMP", value: event.date, color: "text-emerald-400" }
                 ].map((item, i) => (
                     <div key={i} className="group p-8 border border-white/5 bg-white/5 backdrop-blur-sm relative overflow-hidden transition-all hover:bg-white/10 hover:border-white/20">
-                        {/* Box Highlight Corner */}
                         <div className="absolute top-0 right-0 w-8 h-8 flex items-center justify-center">
                             <div className="w-1.5 h-1.5 bg-white/20 rounded-full" />
                         </div>
@@ -210,10 +191,8 @@ export default function EventSlugPage() {
             </div>
         </div>
 
-        {/* PANEL 5: EXECUTION POINT */}
         <div className="w-[90vw] md:w-[75vw] lg:w-[65vw] flex-shrink-0 flex flex-col justify-center h-full mr-12 md:mr-24">
             <div className="relative bg-[#0A0A0A] border border-white/10 p-12 md:p-20 overflow-hidden group/final">
-                {/* Moving Grid Background */}
                 <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-size-[40px_40px] z-0" />
                 
                 <div className="relative z-10 flex flex-col items-center text-center">
@@ -242,7 +221,6 @@ export default function EventSlugPage() {
                             <span className="relative z-10 flex items-center gap-4">
                                 EXECUTE_NOW <ArrowRight className="group-hover/btn:translate-x-3 transition-transform" />
                             </span>
-                            {/* Glitch Button Animation Overlay */}
                             <div className="absolute inset-0 -translate-x-full group-hover/btn:translate-x-full bg-cyan-500/20 transition-transform duration-500 ease-in-out" />
                         </button>
                     </div>
@@ -263,7 +241,6 @@ export default function EventSlugPage() {
         title={event.title}
       />
 
-      {/* Persistence helper bottom */}
       <div className="absolute bottom-10 left-12 right-12 flex justify-between items-center z-30 pointer-events-none opacity-40">
         <div className="flex items-center gap-4">
             <span className="text-[10px] font-bold text-cyan-500 tracking-[0.2em] animate-pulse">DRAG_TO_EXPLORE</span>

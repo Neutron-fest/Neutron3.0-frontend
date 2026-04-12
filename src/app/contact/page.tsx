@@ -3,7 +3,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 
-/* ── tiny hook: random glitch burst ─────────────────────────── */
 function useGlitchPulse(selector: string, interval = 1800) {
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -31,7 +30,6 @@ export default function ContactPage() {
   const rootRef   = useGlitchPulse("[data-glitch-target]");
   const [tick, setTick] = useState(0);
 
-  /* perpetual RGB-offset flicker on the big headline */
   useEffect(() => {
     const id = setInterval(() => setTick(t => t + 1), 3000);
     return () => clearInterval(id);
@@ -44,9 +42,6 @@ export default function ContactPage() {
       className="relative min-h-screen w-full overflow-hidden bg-black text-white selection:bg-[#ff003c] selection:text-white"
     >
 
-      {/* ══════════════════════════════════════════════════
-          LAYER 0 – Full-bleed BG image
-      ══════════════════════════════════════════════════ */}
       <div className="fixed inset-0 z-0">
         <Image
           src="https://ik.imagekit.io/yatharth/CONTACT.png"
@@ -57,17 +52,10 @@ export default function ContactPage() {
           className="object-cover object-center"
           style={{ filter: "grayscale(0.25) contrast(1.2) brightness(0.25) blur(8px)" }}
         />
-        {/* deep vignette — edges bleed to pure black */}
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_80%_at_50%_45%,transparent_25%,rgba(0,0,0,0.6)_55%,rgba(0,0,0,0.93)_80%,#000_100%)]" />
-        {/* additional bottom fade for content readability */}
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/90" />
       </div>
 
-      {/* ══════════════════════════════════════════════════
-          LAYER 1 – CRT / Noise overlays (fixed)
-      ══════════════════════════════════════════════════ */}
-
-      {/* grain / noise */}
       <div
         className="fixed inset-0 z-10 pointer-events-none opacity-[0.12] mix-blend-overlay"
         style={{
@@ -76,7 +64,6 @@ export default function ContactPage() {
         }}
       />
 
-      {/* vignette rim */}
       <div
         className="fixed inset-0 z-10 pointer-events-none"
         style={{
@@ -85,12 +72,8 @@ export default function ContactPage() {
         }}
       />
 
-      {/* ══════════════════════════════════════════════════
-          LAYER 2 – Page content (scrollable)
-      ══════════════════════════════════════════════════ */}
       <main className="relative z-20 min-h-screen flex flex-col justify-end px-8 md:px-20 pb-16 pt-32">
 
-        {/* ── STATUS BAR top-left ─────────────────────── */}
         <div
           className="fixed top-28 left-8 md:left-20 flex flex-col gap-1 opacity-70"
           style={{ fontFamily: "var(--font-space-mono)", fontSize: 11 }}
@@ -100,9 +83,8 @@ export default function ContactPage() {
           <span className="text-white/30 tracking-widest">FREQ: 91.5 MHz ██████░░</span>
         </div>
 
-        {/* ── DECORATIVE corner brackets ───────────────── */}
         <div className="fixed top-24 right-8 md:right-20 w-16 h-16 border-t border-r border-white/20 pointer-events-none" />
-        <div className="fixed bottom-8 left-8 md:left-20 w-16 h-16 border-b border-l border-white/20 pointer-events-none" />        {/* ── SUBHEADLINE ─────────────────────────────── */}
+        <div className="fixed bottom-8 left-8 md:left-20 w-16 h-16 border-b border-l border-white/20 pointer-events-none" />
         <p
           className="max-w-lg mb-16 leading-relaxed text-gray-300"
           style={{ fontSize: "clamp(0.85rem, 1.5vw, 1.15rem)" }}
@@ -119,10 +101,8 @@ export default function ContactPage() {
           , call us today!
         </p>
 
-        {/* ── CONTACT GRID ────────────────────────────── */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 border-t border-white/10 pt-10">
 
-          {/* General Enquiries */}
           <div className="group flex flex-col gap-3">
             <h3
               className="text-xs tracking-[0.25em] uppercase mb-1"
@@ -139,7 +119,6 @@ export default function ContactPage() {
             </a>
           </div>
 
-          {/* Visit us */}
           <div className="group flex flex-col gap-3">
             <h3
               className="text-xs tracking-[0.25em] uppercase mb-1"
@@ -158,7 +137,6 @@ export default function ContactPage() {
             </address>
           </div>
 
-          {/* Social */}
           <div className="group flex flex-col gap-3">
             <h3
               className="text-xs tracking-[0.25em] uppercase mb-1"
@@ -186,7 +164,6 @@ export default function ContactPage() {
 
         </div>
 
-        {/* ── tiny CRT footer stamp ───────────────────── */}
         <p
           className="mt-10 text-white/20 text-[10px] tracking-widest"
           style={{ fontFamily: "var(--font-space-mono)" }}
@@ -195,7 +172,6 @@ export default function ContactPage() {
         </p>
       </main>
 
-      {/* ── page-scoped keyframes ───────────────────── */}
       <style>{`
         @keyframes contact-bar-sweep {
           0%   { top: -2px; opacity: 0; }
@@ -208,7 +184,6 @@ export default function ContactPage() {
           50%       { opacity: 1;   transform: scaleX(1); }
         }
 
-        /* data-glitch attribute fires the burst */
         [data-glitch-target][data-glitch="1"] {
           animation: contact-glitch-burst 0.15s steps(2) forwards;
         }

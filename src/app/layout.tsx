@@ -55,7 +55,7 @@ export default function RootLayout({
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} ${spaceMono.variable} ${audiowide.variable} ${orbitron.variable} ${rubicglitch.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col relative overflow-hidden">
+      <body className="min-h-full flex flex-col relative overflow-x-clip">
         <SmoothScroll>
           <Navbar />
           <ClientLoadingWrapper>

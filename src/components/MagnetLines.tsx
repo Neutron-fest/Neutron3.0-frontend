@@ -70,23 +70,23 @@ const MagnetLines: React.FC<MagnetLinesProps> = ({
     <span
       key={i}
       className="magnet-line block origin-center rounded-full"
-      style={{
-        backgroundColor: lineColor,
-        width: lineWidth,
-        height: lineHeight,
-        boxShadow: `0 0 15px ${lineColor}66`,
-        //@ts-ignore
-        '--rotate': `${baseAngle}deg`,
-        transform: 'rotate(var(--rotate))',
-        willChange: 'transform',
-        filter: 'url(#roughEdge)',
-      }}
+      style={
+        {
+          backgroundColor: lineColor,
+          width: lineWidth,
+          height: lineHeight,
+          boxShadow: `0 0 15px ${lineColor}66`,
+          "--rotate": `${baseAngle}deg`,
+          transform: "rotate(var(--rotate))",
+          willChange: "transform",
+          filter: "url(#roughEdge)",
+        } as React.CSSProperties
+      }
     />
   ));
 
   return (
     <div className="relative w-full h-full overflow-hidden bg-transparent">
-      {/* SVG Filters for Roughness and Grain */}
       <svg className="absolute invisible w-0 h-0">
         <defs>
           <filter id="roughEdge">
@@ -96,7 +96,6 @@ const MagnetLines: React.FC<MagnetLinesProps> = ({
         </defs>
       </svg>
 
-      {/* Grain Overlay - More subtle */}
       <div 
         className="absolute inset-0 pointer-events-none opacity-[0.08] mix-blend-overlay z-10"
         style={{

@@ -18,7 +18,6 @@ interface RulesModalProps {
 }
 
 export default function RulesModal({ isOpen, onClose, rules, title }: RulesModalProps) {
-  // Prevent scrolling when modal is open
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = "hidden";

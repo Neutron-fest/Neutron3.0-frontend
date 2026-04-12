@@ -7,7 +7,6 @@ import { Ticket, MapPin, Clock, ChevronLeft, ChevronRight } from "lucide-react";
 
 import { EVENTS } from "@/data/events";
 
-
 const CARD_WIDTH = 250;
 const CARD_HEIGHT = 350;
 const RADIUS = 600;
@@ -26,23 +25,19 @@ export function CurvedGallery() {
   const [activeIdx, setActiveIdx] = useState(0);
   const [isGlitching, setIsGlitching] = useState(false);
 
-  // Keep track of smooth rotation for active index
   useEffect(() => {
     return smoothRotation.onChange((v: number) => {
-      // When rotation = -(idx * ANGLE_STEP), that card is front-facing
       const normalized = ((-v % 360) + 360) % 360;
       const idx = Math.round(normalized / ANGLE_STEP) % TOTAL;
       setActiveIdx(idx);
     });
   }, []);
 
-  // Wheel scroll handler
   const handleWheel = useCallback((e: WheelEvent) => {
     e.preventDefault();
     const delta = e.deltaX !== 0 ? e.deltaX : e.deltaY;
     rotationRef.current -= delta * 0.08;
     rawRotation.set(rotationRef.current);
-    // trigger glitch burst briefly
     setIsGlitching(true);
     clearTimeout((window as any).__glitchTimer);
     (window as any).__glitchTimer = setTimeout(() => setIsGlitching(false), 300);
@@ -59,7 +54,6 @@ export function CurvedGallery() {
 
   const rotateTo = (targetIdx: number) => {
     const newRotation = -(targetIdx * ANGLE_STEP);
-    // Walk toward it without jumping
     rotationRef.current = newRotation;
     rawRotation.set(newRotation);
   };
@@ -67,24 +61,44 @@ export function CurvedGallery() {
   const prev = () => rotateTo(((activeIdx - 1) + TOTAL) % TOTAL);
   const next = () => rotateTo((activeIdx + 1) % TOTAL);
 
-  // Drag handler
-  const dragStart = useRef(0);
+  const dragStartX = useRef(0);
+  const dragTotalDelta = useRef(0);
+  const isDraggingRef = useRef(false);
+  const carouselPointerActiveRef = useRef(false);
+
   const onPointerDown = (e: React.PointerEvent) => {
-    dragStart.current = e.clientX;
+    if ((e.target as HTMLElement).closest("a[href]")) return;
+    carouselPointerActiveRef.current = true;
+    dragStartX.current = e.clientX;
+    dragTotalDelta.current = 0;
+    isDraggingRef.current = false;
     (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
   };
+
   const onPointerMove = (e: React.PointerEvent) => {
-    if (!(e.buttons & 1)) return;
-    const delta = e.clientX - dragStart.current;
-    dragStart.current = e.clientX;
-    rotationRef.current += delta * 0.3;
-    rawRotation.set(rotationRef.current);
+    if (!carouselPointerActiveRef.current || !(e.buttons & 1)) return;
+    const delta = e.clientX - dragStartX.current;
+    dragStartX.current = e.clientX;
+    dragTotalDelta.current += Math.abs(delta);
+    if (dragTotalDelta.current > 8) {
+      if (!isDraggingRef.current) {
+        isDraggingRef.current = true;
+      }
+      rotationRef.current += delta * 0.3;
+      rawRotation.set(rotationRef.current);
+    }
+  };
+
+  const onPointerUp = () => {
+    carouselPointerActiveRef.current = false;
+    setTimeout(() => {
+      isDraggingRef.current = false;
+    }, 50);
   };
 
   return (
     <div className="relative w-full h-full flex flex-col items-center justify-center overflow-hidden">
 
-      {/* ── DYNAMIC DETAIL (Gamily Style) ── */}
       <div className="absolute top-[130px] left-1/2 -translate-x-1/2 z-50 text-center pointer-events-none">
         <AnimatePresence mode="wait">
           <motion.div
@@ -103,20 +117,16 @@ export function CurvedGallery() {
         </AnimatePresence>
       </div>
 
-      {/* ── 3D REEL CONTAINER ── */}
       <div
         ref={trackRef}
         className="relative w-full flex-1 flex items-center justify-center cursor-grab active:cursor-grabbing select-none"
         style={{ perspective: "1400px", perspectiveOrigin: "50% 50%" }}
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
+        onPointerUp={onPointerUp}
+        onPointerCancel={onPointerUp}
       >
 
-
-        {/* ── SPINNING WHEEL ──
-            The wheel is a zero-size div pinned to the centre of the perspective container.
-            Each card slot inside does:  rotateY(angle)  →  translateZ(radius)
-            This is the standard carousel transform — cards face the camera at angle 0. */}
         <motion.div
           style={{
             rotateY: smoothRotation,
@@ -151,18 +161,17 @@ export function CurvedGallery() {
                   isGlitching={isGlitching}
                   smoothRotation={smoothRotation}
                   angleStep={ANGLE_STEP}
+                  isDraggingRef={isDraggingRef}
                 />
               </div>
             );
           })}
         </motion.div>
 
-        {/* Left / Right edge fade */}
         <div className="absolute inset-y-0 left-0 w-40 bg-linear-to-r from-black to-transparent z-150 pointer-events-none" />
         <div className="absolute inset-y-0 right-0 w-40 bg-linear-to-l from-black to-transparent z-150 pointer-events-none" />
       </div>
 
-      {/* ── NAVIGATION: ARROWS & DOTS ── */}
       <div className="absolute bottom-16 md:bottom-24 z-50 flex items-center gap-6 md:gap-100">
         <button
           onClick={prev}
@@ -196,7 +205,6 @@ export function CurvedGallery() {
   );
 }
 
-// ── Inline card component for self-contained transform logic ──
 type GalleryCardProps = {
   title: string;
   image: string;
@@ -211,6 +219,7 @@ type GalleryCardProps = {
   isGlitching: boolean;
   smoothRotation: any;
   angleStep: number;
+  isDraggingRef: React.MutableRefObject<boolean>;
 };
 
 function GalleryCard({
@@ -227,6 +236,7 @@ function GalleryCard({
   isGlitching,
   smoothRotation,
   angleStep,
+  isDraggingRef,
 }: GalleryCardProps) {
   const isActive = idx === activeIdx;
 
@@ -253,10 +263,8 @@ function GalleryCard({
       style={{ scale, opacity }}
       className="relative w-full h-full rounded-xl overflow-hidden border border-white/10 shadow-[0_30px_80px_rgba(0,0,0,0.9)] group"
     >
-      {/* CRT Scanlines */}
       <div className="absolute inset-0 z-30 pointer-events-none opacity-[0.12] bg-[linear-gradient(rgba(0,0,0,0)_50%,rgba(0,0,0,0.3)_50%)] bg-size-[100%_3px]" />
 
-      {/* Glitch overlay burst during scroll */}
       {isGlitching && (
         <div className="absolute inset-0 z-40 pointer-events-none overflow-hidden">
           <div className="absolute inset-0 mix-blend-screen opacity-20 bg-cyan-500/30" />
@@ -266,7 +274,6 @@ function GalleryCard({
         </div>
       )}
 
-      {/* RGB Split on active */}
       {isActive && (
         <>
           <div className="absolute inset-0 z-20 pointer-events-none mix-blend-screen opacity-[0.08]">
@@ -278,8 +285,13 @@ function GalleryCard({
         </>
       )}
 
-      <Link href={`/events/${slug}`} className="block w-full h-full relative">
-        {/* Image */}
+      <Link
+        href={`/events/${slug}`}
+        className="block w-full h-full relative z-[5]"
+        onClick={(e) => {
+          if (isDraggingRef.current) e.preventDefault();
+        }}
+      >
         <motion.div
           className="absolute inset-0"
           style={{ filter: useTransform(imgBrightness, (b) => `brightness(${b}) contrast(1.2)`) }}
@@ -291,17 +303,14 @@ function GalleryCard({
           />
         </motion.div>
 
-        {/* Glitch Overlay on Hover */}
         <div className="absolute inset-0 z-20 pointer-events-none opacity-0 group-hover:opacity-50 transition-opacity duration-75 mix-blend-screen overflow-hidden">
           <div className="absolute inset-0 bg-white/10 animate-[flash_0.05s_infinite]"></div>
           <div className="absolute inset-0 bg-cyan-500/20 translate-x-[4px] mix-blend-color-dodge animate-[vibrate_0.1s_infinite]"></div>
           <div className="absolute inset-0 bg-red-500/20 -translate-x-[4px] mix-blend-color-burn animate-[vibrate_0.15s_infinite_reverse]"></div>
         </div>
 
-        {/* Gradient — strong bottom for readability */}
         <div className="absolute inset-0 bg-linear-to-t from-black via-black/60 to-black/10 z-10" />
 
-        {/* Tags */}
         <div className="absolute top-3 left-3 right-3 z-20 flex justify-between items-center">
           <span className="px-2 py-0.5 text-[7px] font-mono uppercase tracking-[0.2em] bg-black/50 border border-white/10 rounded-sm text-cyan-300 backdrop-blur-sm">
             {category}
@@ -312,11 +321,8 @@ function GalleryCard({
           </span>
         </div>
 
-        {/* ── BOTTOM CONTENT BLOCK ── */}
-        {/* Always-visible bottom section */}
         <div className="absolute bottom-0 left-0 right-0 z-20 px-4 pb-4">
 
-          {/* Stats grid — slides in on hover above the title */}
           <div className="overflow-hidden">
             <div className="translate-y-[120%] group-hover:translate-y-0 transition-transform duration-500 ease-out pb-3">
               <div className="flex flex-col gap-2">
@@ -339,21 +345,17 @@ function GalleryCard({
             </div>
           </div>
 
-          {/* Hairline */}
           <div className="h-px bg-linear-to-r from-white/20 via-white/10 to-transparent mb-3" />
 
-          {/* Title — always visible */}
           <h2 className="text-[1.35rem] font-black uppercase tracking-tight leading-tight mb-1 group-hover:text-cyan-400 group-hover:animate-[vibrate_0.1s_infinite] transition-colors duration-300 drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)] relative z-30">
             {title}
           </h2>
 
-          {/* Date */}
           <p className="text-[7px] font-mono text-white/40 uppercase tracking-[0.4em] mb-2">
             Schedule: {date}
           </p>
         </div>
 
-        {/* Corner accents */}
         <div className="absolute top-3 left-3 w-3 h-3 border-l border-t border-white/15 z-20" />
         <div className="absolute top-3 right-3 w-3 h-3 border-r border-t border-white/15 z-20" />
       </Link>

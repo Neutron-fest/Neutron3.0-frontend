@@ -18,7 +18,6 @@ const BackgroundVideo: React.FC<BackgroundVideoProps> = ({ src }) => {
     const sync = () => {
       if (!v2.current || !v3.current) return;
       
-      // Keep videos roughly in sync
       if (Math.abs(v2.current.currentTime - main.currentTime) > 0.1) {
           v2.current.currentTime = main.currentTime;
       }
@@ -33,9 +32,7 @@ const BackgroundVideo: React.FC<BackgroundVideoProps> = ({ src }) => {
 
   return (
     <div className="absolute inset-0 z-0 overflow-hidden bg-[#1c151b]">
-      {/* Container for the glitching effect */}
       <div className="relative w-full h-full glitch-wrapper">
-        {/* Base Layer - The main video */}
         <video 
           ref={v1}
           autoPlay 
@@ -47,7 +44,6 @@ const BackgroundVideo: React.FC<BackgroundVideoProps> = ({ src }) => {
           <source src={src} type="video/mp4" />
         </video>
 
-        {/* Glitch Layer 1 - Magenta/Red Shifted */}
         <video 
           ref={v2}
           autoPlay 
@@ -59,7 +55,6 @@ const BackgroundVideo: React.FC<BackgroundVideoProps> = ({ src }) => {
           <source src={src} type="video/mp4" />
         </video>
 
-        {/* Glitch Layer 2 - Cyan Shifted */}
         <video 
           ref={v3}
           autoPlay 
@@ -71,7 +66,6 @@ const BackgroundVideo: React.FC<BackgroundVideoProps> = ({ src }) => {
           <source src={src} type="video/mp4" />
         </video>
         
-        {/* Overlaying Scanlines/Interference during major glitches */}
         <div className="glitch-overlay absolute inset-0 bg-white opacity-0 mix-blend-overlay pointer-events-none"></div>
       </div>
 

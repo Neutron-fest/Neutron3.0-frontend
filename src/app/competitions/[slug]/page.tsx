@@ -6,7 +6,6 @@ import { useParams } from "next/navigation";
 import { ChevronLeft, ArrowRight, List } from "lucide-react";
 import RulesModal from "@/components/competitions/RulesModal";
 
-// ─── DATA ────────────────────────────────────────────────────────────────────
 
 const COMPETITIONS: Record<string, {
   title: string;
@@ -184,7 +183,6 @@ export default function CompetitionSlugPage() {
     if (!el) return;
 
     const onWheel = (e: WheelEvent) => {
-      // If the scroll is happening vertically and not horizontally, route vertical scroll into horizontal
       if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
         e.preventDefault();
         el.scrollLeft += e.deltaY;
@@ -236,11 +234,9 @@ export default function CompetitionSlugPage() {
 
   return (
     <main className="relative w-full h-screen bg-[#F4F2EB] text-[#2c2820] font-retro-serif overflow-hidden selection:bg-[#E58B43] selection:text-white">
-      {/* ── GLOBAL NOISE & SCANLINES ── */}
       <div className="fixed inset-0 pointer-events-none z-[100] opacity-40 mix-blend-multiply" style={{ backgroundImage: "url('data:image/svg+xml,%3Csvg viewBox=%220 0 200 200%22 xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cfilter id=%22noiseFilter%22%3E%3CfeTurbulence type=%22fractalNoise%22 baseFrequency=%220.8%22 numOctaves=%223%22 stitchTiles=%22stitch%22/%3E%3C/filter%3E%3Crect width=%22100%25%22 height=%22100%25%22 filter=%22url(%23noiseFilter)%22/%3E%3C/svg%3E')" }}></div>
       <div className="fixed inset-0 pointer-events-none z-[50] opacity-10 crt-scanlines mix-blend-color-burn"></div>
 
-      {/* ── CONTINUOUS HORIZONTAL SCROLLER ── */}
       <div 
         ref={scrollContainerRef}
         data-lenis-prevent="true"
@@ -252,7 +248,6 @@ export default function CompetitionSlugPage() {
         style={{ scrollBehavior: isDragging ? "auto" : "smooth" }}
       >
         
-        {/* PANEL 1: TITLE & SUBTITLE */}
         <div className="w-[85vw] md:w-[70vw] lg:w-[60vw] shrink-0 flex flex-col justify-center h-full relative group">
           
           <div className="text-[1.5rem] uppercase tracking-[0.4em] text-[#E58B43] mb-6 font-bold select-none">{comp.category}</div>
@@ -264,7 +259,6 @@ export default function CompetitionSlugPage() {
           <p className="max-w-[80vw] md:max-w-3xl text-[1.8rem] md:text-[2.2rem] leading-[1.3] text-[#4d473d] mt-10 pointer-events-none">{comp.subtitle}</p>
         </div>
 
-        {/* PANEL 2: VINTAGE IMAGE */}
         <div className="w-[85vw] md:w-[60vw] lg:w-[50vw] h-[60vh] md:h-[70vh] flex-shrink-0 relative group cursor-crosshair">
           <div className="absolute inset-0 z-20 glitch-slice-layer opacity-100 transition-opacity duration-300 pointer-events-none mix-blend-screen bg-[#D84B4B]/10"></div>
           <img 
@@ -275,7 +269,6 @@ export default function CompetitionSlugPage() {
           />
         </div>
 
-        {/* PANEL 3: STORY */}
         <div className="w-[85vw] md:w-[60vw] lg:w-[50vw] flex-shrink-0 flex flex-col justify-center h-full relative cursor-auto pointer-events-auto">
           <div className="font-serif text-[8rem] md:text-[12rem] text-[#E58B43] leading-none mb-[-5rem] md:mb-[-8rem] opacity-30 select-none pointer-events-none">"</div>
           <div className="text-[1.8rem] md:text-[2.8rem] leading-[1.4] text-[#2c2820] tracking-tight whitespace-normal font-medium">
@@ -283,7 +276,6 @@ export default function CompetitionSlugPage() {
           </div>
         </div>
 
-        {/* PANEL 4: MISSION INTEL */}
         <div className="w-[85vw] md:w-[60vw] lg:w-[55vw] flex-shrink-0 flex flex-col justify-center h-full cursor-auto pointer-events-auto">
           <h2 className="text-[3rem] md:text-[5rem] font-bold mb-16 border-b-[6px] border-[#2c2820] pb-6 inline-block uppercase self-start leading-none pointer-events-none text-[#2c2820]">Mission Intel</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-20 gap-y-16">
@@ -306,7 +298,6 @@ export default function CompetitionSlugPage() {
           </div>
         </div>
 
-        {/* PANEL 5: PROTOCOL & EXECUTE */}
         <div className="w-[90vw] md:w-[75vw] lg:w-[65vw] flex-shrink-0 flex flex-col justify-center h-full mr-12 md:mr-24 pointer-events-auto cursor-auto">
           <div className="bg-[#EAE8E0] p-8 md:p-14 border-[6px] border-[#2c2820] shadow-[-10px_10px_0_rgba(44,40,32,1)] md:shadow-[-20px_20px_0_rgba(44,40,32,1)] relative max-h-[90vh] overflow-y-auto custom-scrollbar">
             <h3 className="text-[2.2rem] md:text-[3rem] font-bold uppercase mb-6 text-[#2c2820] pointer-events-none">Protocol Rules</h3>
@@ -351,7 +342,6 @@ export default function CompetitionSlugPage() {
         title={comp.title}
       />
 
-      {/* Persistent helper text */}
       <div className="absolute bottom-8 left-12 text-[1rem] md:text-[1.2rem] font-bold text-[#D84B4B] tracking-[0.2em] uppercase opacity-80 pointer-events-none z-30">
         ← Drag to explore →
       </div>

@@ -4,14 +4,12 @@ import { Scissors, Phone } from "lucide-react";
 export default function AboutPage() {
   return (
     <div className="w-full max-w-[100vw] min-h-screen bg-[#F4F2EB] text-[#2c2820] font-retro-serif overflow-x-hidden relative z-10 selection:bg-[#E58B43] selection:text-white">
-      {/* Global Noise & Scanline Overlay */}
       <div className="fixed inset-0 pointer-events-none z-100 opacity-40 mix-blend-multiply" style={{ backgroundImage: "url('data:image/svg+xml,%3Csvg viewBox=%220 0 200 200%22 xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cfilter id=%22noiseFilter%22%3E%3CfeTurbulence type=%22fractalNoise%22 baseFrequency=%220.8%22 numOctaves=%223%22 stitchTiles=%22stitch%22/%3E%3C/filter%3E%3Crect width=%22100%25%22 height=%22100%25%22 filter=%22url(%23noiseFilter)%22/%3E%3C/svg%3E')" }}></div>
       <div className="fixed inset-0 pointer-events-none z-50 opacity-10 crt-scanlines mix-blend-color-burn"></div>
 
       <div className="max-w-[1300px] mx-auto px-6 pt-40 pb-16 text-center">
         <h1 className="text-5xl md:text-[5.5rem] leading-[1.05] mb-12 max-w-5xl mx-auto font-medium tracking-tight relative group">
           <span className="relative z-10">We are not building a festival, we are engineering a new reality where art, technology, and human connection collide.</span>
-          {/* Intense Glitch layers on hover */}
           <span className="absolute inset-0 text-[#D84B4B] -translate-x-1.5 translate-y-1.5 opacity-100 z-0 transition-none animate-shatter mix-blend-multiply" aria-hidden="true">We are not building a festival, we are engineering a new reality where art, technology, and human connection collide.</span>
           <span className="absolute inset-0 text-[#4B7CD8] translate-x-1.5 -translate-y-1.5 opacity-100 z-0 transition-none animate-shatter mix-blend-multiply delay-75" aria-hidden="true" style={{ animationDirection: 'reverse' }}>We are not building a festival, we are engineering a new reality where art, technology, and human connection collide.</span>
         </h1>

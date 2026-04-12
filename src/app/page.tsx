@@ -20,30 +20,23 @@ export default function Home() {
     let isNavigating = false;
 
     const renderLoop = () => {
-      // Lerp current zoom towards target
       currentZoom.current += (targetZoom.current - currentZoom.current) * 0.08;
 
       if (containerRef.current) {
-        // Curve the zoom feeling so it accelerates matching visual closeness
         const zoomPhase = Math.pow(currentZoom.current, 1.8);
-        const scale = 1 + zoomPhase * 60; // Increased scale to punch entirely past the bezels
+        const scale = 1 + zoomPhase * 60;
         
         containerRef.current.style.transform = `scale(${scale})`;
-        // The transform origin determines what we zoom into. 
-        // Decreased the Y axis percentage to aim "higher" into the actual screen
         containerRef.current.style.transformOrigin = `83% 62%`; 
       }
 
-      // Transition condition
       if (currentZoom.current > 0.99 && targetZoom.current === 1 && !isNavigating) {
          isNavigating = true;
          setIsTransitioning(true);
          
-         // Give user enough time to see the glitch before navigation
          setTimeout(() => {
             router.push('/competitions');
             
-            // Clean up state in case they navigate back
             setTimeout(() => {
                 setIsTransitioning(false);
                 targetZoom.current = 0;
@@ -63,7 +56,6 @@ export default function Home() {
 
   useEffect(() => {
     const handleWheel = (e: WheelEvent) => {
-      // Prevent normal scroll bubbling
       e.preventDefault();
       
       const speed = 0.001;
@@ -72,7 +64,6 @@ export default function Home() {
       if (scrollTimeout.current) clearTimeout(scrollTimeout.current);
       
       scrollTimeout.current = setTimeout(() => {
-        // Magnetic effect check when scrolling stops
         if (targetZoom.current > 0.35) {
           targetZoom.current = 1;
         } else {
@@ -81,7 +72,6 @@ export default function Home() {
       }, 100);
     };
 
-    // Passive false ensures preventDefault works
     window.addEventListener('wheel', handleWheel, { passive: false });
 
     return () => {

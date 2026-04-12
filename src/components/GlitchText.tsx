@@ -35,7 +35,6 @@ const GlitchText: FC<GlitchTextProps> = ({
           pointer-events: none;
         }
 
-        /* Base Layer with constant slight jitter */
         .glitch-base {
           position: relative;
           z-index: 5;
@@ -43,7 +42,6 @@ const GlitchText: FC<GlitchTextProps> = ({
           animation: ${enableOnHover ? 'none' : 'flicker 3s infinite steps(1)'};
         }
 
-        /* Red/Magenta Layer - Intense Jitter */
         .glitch-red {
           color: #ff00c1;
           z-index: 4;
@@ -53,7 +51,6 @@ const GlitchText: FC<GlitchTextProps> = ({
           mix-blend-mode: screen;
         }
 
-        /* Cyan Layer - Intense Jitter */
         .glitch-cyan {
           color: #00fff9;
           z-index: 3;
@@ -63,7 +60,6 @@ const GlitchText: FC<GlitchTextProps> = ({
           mix-blend-mode: screen;
         }
 
-        /* Yellow/White Flash Layer - Extra Intensity */
         .glitch-flash {
           color: #fff;
           z-index: 2;
