@@ -14,38 +14,31 @@ export default function Home() {
   const currentZoom = useRef(0);
   const scrollTimeout = useRef<NodeJS.Timeout | null>(null);
 
-  // ── Smooth zoom render loop ──────────────────────────────────────────────
   useEffect(() => {
     let animationFrameId: number;
     let isNavigating = false;
     
-    // Prefetch for faster transitions
     router.prefetch('/competitions');
 
     const renderLoop = () => {
-      // More aggressive smooth interpolation
       currentZoom.current += (targetZoom.current - currentZoom.current) * 0.15; 
       const z = currentZoom.current;
 
       if (containerRef.current) {
-        // Curve the zoom feeling (slow at first, intensely fast at the end)
         const zoomPhase = Math.pow(z, 2.2);
         const scale = 1 + zoomPhase * 100; // Deep dive into the photon
         
-        // DIRECT DOM UPDATE: Bypass React re-renders for 60fps smoothness
         containerRef.current.style.transform = `scale(${scale})`;
         
         const g = Math.max(0, (z - 0.25) / 0.75); 
         containerRef.current.style.setProperty('--g-intense', g.toFixed(3));
       }
 
-      // Navigate when heavily zoomed (Threshold lowered for snappier feel)
       if (z > 0.88 && !isNavigating) {
         isNavigating = true;
         setIsTransitioning(true);
         router.push('/competitions');
         
-        // Auto-reset state if user comes back later
         setTimeout(() => {
           setIsTransitioning(false);
           if (containerRef.current) {
@@ -65,12 +58,10 @@ export default function Home() {
     return () => cancelAnimationFrame(animationFrameId);
   }, [router]);
 
-  // ── Scroll / wheel handler ─────────────────────────────────────────────
   useEffect(() => {
     const handleWheel = (e: WheelEvent) => {
       e.preventDefault();
       
-      // Dynamic speed based on user scroll intensity
       const baseSpeed = Math.min(0.015, Math.abs(e.deltaY) * 0.00025);
       const direction = Math.sign(e.deltaY);
       
@@ -79,9 +70,9 @@ export default function Home() {
       if (scrollTimeout.current) clearTimeout(scrollTimeout.current);
       scrollTimeout.current = setTimeout(() => {
         if (targetZoom.current > 0.15) {
-          targetZoom.current = 1; // Auto-finish transition if scrolled past threshold
+          targetZoom.current = 1;
         } else {
-          targetZoom.current = 0; // Return to 0 if not far enough
+          targetZoom.current = 0;
         }
       }, 100);
     };
@@ -92,16 +83,13 @@ export default function Home() {
 
   return (
     <>
-      {/* ── Glitch & breaking overlay (driven by CSS vars for speed) ────── */}
       <div
         className="fixed inset-0 pointer-events-none"
         style={{
           zIndex: 9999,
-          // CSS Variable derived from JS render loop
           "--g-v": "var(--g-intense, 0)"
         } as React.CSSProperties}
       >
-        {/* Chromatic aberration layers */}
         <div
           className="absolute inset-0"
           style={{
@@ -122,7 +110,6 @@ export default function Home() {
           } as React.CSSProperties}
         />
 
-        {/* Glitch scanline bars */}
         <div
           className="absolute inset-0 pointer-events-none"
           style={{
@@ -147,7 +134,6 @@ export default function Home() {
           } as React.CSSProperties}
         />
 
-        {/* Screen shatter / white flash at peak */}
         <div
           className="absolute inset-0"
           style={{
@@ -157,7 +143,6 @@ export default function Home() {
           } as React.CSSProperties}
         />
 
-        {/* Dystopian error text */}
         <div
           className="absolute inset-0 flex items-center justify-center"
           style={{ 
@@ -179,13 +164,11 @@ export default function Home() {
           </span>
         </div>
 
-        {/* Film grain intensifies */}
         <div className="absolute inset-0" style={{ opacity: `calc(var(--g-v) * 0.75)` } as React.CSSProperties}>
           <Noise patternAlpha={50} patternRefreshInterval={1} />
         </div>
       </div>
 
-      {/* ── Navigation flash ───────────────────────────────────────────── */}
       <div
         className="fixed inset-0 pointer-events-none"
         style={{
@@ -200,7 +183,6 @@ export default function Home() {
         <Noise patternAlpha={100} patternRefreshInterval={1} />
       </div>
 
-      {/* ── Main hero container ─────────────────────────────────────────── */}
       <div
         ref={containerRef}
         className="fixed inset-0 w-full h-full bg-black overflow-hidden"
@@ -208,7 +190,6 @@ export default function Home() {
       >
         <HeroScene />
 
-        {/* ─ CRT film grain overlay ─ */}
         <div className="absolute inset-0 pointer-events-none" style={{ zIndex: 100 }}>
           <Noise patternAlpha={12} patternRefreshInterval={2} patternSize={1000} />
           <div
@@ -220,7 +201,6 @@ export default function Home() {
           />
         </div>
 
-        {/* ─ HUD corners ─ */}
         <div className="absolute top-12 left-12 flex flex-col gap-2 pointer-events-none z-10 opacity-25">
           <div className="flex items-center gap-2">
             <div className="w-1.5 h-1.5 bg-cyan-400 rounded-full animate-pulse shadow-[0_0_8px_#22d3ee]" />
@@ -233,13 +213,11 @@ export default function Home() {
           [ SECTOR_∞ : WAVE_STABLE ]
         </div>
 
-        {/* ─ Scroll hint ─ */}
         <div
           className="absolute bottom-10 left-1/2 pointer-events-none"
           style={{
             zIndex: 30,
             transform: 'translateX(-50%)',
-            // Driven by CSS var directly
             opacity: `calc(1 - var(--g-intense, 0) * 5)`,
             transition: 'opacity 0.2s',
           } as React.CSSProperties}

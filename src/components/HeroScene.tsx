@@ -2,7 +2,6 @@
 
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 
-// ─── Physics properties per beam ─────────────────────────────────────────────
 const BEAM_PHYSICS = [
   { wavelength: 450,  frequency: '666.7 THz', energy: '2.76 eV', type: 'Visible · Violet'  },
   { wavelength: 510,  frequency: '588.2 THz', energy: '2.43 eV', type: 'Visible · Green'   },
@@ -18,7 +17,6 @@ const BEAM_PHYSICS = [
   { wavelength: 1064, frequency: '281.7 THz', energy: '1.17 eV', type: 'IR · Nd:YAG'       },
 ];
 
-// ─── Quantum equation lines (more, varied) ────────────────────────────────────
 const QUANTUM_LINES = [
   "iℏ ∂ψ/∂t = [-ℏ²/2m ∇² + V(r)]ψ",
   "E = hν = ℏω = pc",
@@ -57,27 +55,24 @@ const QUANTUM_LINES = [
   "T_photon = 0 ⟹ E=pc",
 ];
 
-// ─── Seeded RNG ───────────────────────────────────────────────────────────────
 function makeRng(seed: number) {
   let s = seed;
   return () => { s = (s * 16807) % 2147483647; return (s - 1) / 2147483646; };
 }
 
-// ─── Beam definition ──────────────────────────────────────────────────────────
 interface Beam {
   angle: number;
-  curveAngle: number;    // how much the beam curves (radians)
-  curveDir: number;      // +1 or -1 (CW or CCW curve)
+  curveAngle: number;
+  curveDir: number;
   color: [number,number,number];
   speed: number;
   amplitude: number;
   phaseOffset: number;
-  length: number;        // px from center
+  length: number;
   width: number;
   opacity: number;
   isZigZag: boolean;
   physics: typeof BEAM_PHYSICS[0];
-  // Sampled hit-test points (set during draw)
   hitPoints: { x: number; y: number }[];
 }
 
@@ -94,10 +89,10 @@ function buildBeams(count: number, W: number, H: number): Beam[] {
     curveAngle:  (rng() - 0.5) * Math.PI * 1.8,
     curveDir:    rng() > 0.5 ? 1 : -1,
     color:       palette[i % palette.length],
-    speed:       1.2 + rng() * 2.5, // Increased base speed
+    speed:       1.2 + rng() * 2.5,
     amplitude:   10 + rng() * 25,
     phaseOffset: rng() * Math.PI * 2,
-    length:      diag * (0.6 + rng() * 0.5), // Guaranteed to reach edges
+    length:      diag * (0.6 + rng() * 0.5),
     width:       1.2 + rng() * 2.2,
     opacity:     0.5 + rng() * 0.45,
     isZigZag:    i % 11 === 0,
@@ -106,7 +101,6 @@ function buildBeams(count: number, W: number, H: number): Beam[] {
   }));
 }
 
-// ─── Canvas hook ──────────────────────────────────────────────────────────────
 export function useHeroCanvas(
   canvasRef: React.RefObject<HTMLCanvasElement | null>,
   beamsRef: React.MutableRefObject<Beam[]>,
@@ -131,13 +125,11 @@ export function useHeroCanvas(
       const W = canvas.width, H = canvas.height;
       const diag = Math.sqrt(W * W + H * H);
       
-      // Update length of existing beams instead of full rebuild
       if (!beamsRef.current || beamsRef.current.length === 0) {
         beamsRef.current = buildBeams(20, W, H);
       } else {
         beamsRef.current.forEach(beam => {
           beam.length = diag * (0.6 + Math.random() * 0.5);
-          // Pre-allocate hitPoints if needed, but for now we'll just clear the array
           beam.hitPoints = [];
         });
       }
@@ -145,14 +137,13 @@ export function useHeroCanvas(
     resize();
     window.addEventListener('resize', resize);
 
-    // ── Typewriter State ──
     const colors = [
-      '#22d3ee', // cyan 400
-      '#4ade80', // green 400
-      '#a78bfa', // violet 400
-      '#fbbf24', // amber 400
-      '#f87171', // red 400
-      '#34d399', // emerald 400
+      '#22d3ee',
+      '#4ade80',
+      '#a78bfa',
+      '#fbbf24',
+      '#f87171',
+      '#34d399',
     ];
     
     const quantumState = QUANTUM_LINES.map((text, i) => ({
@@ -167,8 +158,8 @@ export function useHeroCanvas(
 
     const drawBeam = (beam: Beam, cx: number, cy: number) => {
       const [r, g, b] = beam.color;
-      const STEPS = 60; // Reduced steps for performance
-      beam.hitPoints.length = 0; // Reuse array
+      const STEPS = 60;
+      beam.hitPoints.length = 0;
 
       const startAngle = beam.angle;
       const endAngle   = beam.angle + beam.curveAngle * beam.curveDir;
@@ -195,7 +186,6 @@ export function useHeroCanvas(
         if (i % 6 === 0) beam.hitPoints.push({ x, y });
       }
 
-      // Multi-stroke glow is already quite efficient
       ctx.lineCap = 'round';
       ctx.lineJoin = 'round';
       ctx.strokeStyle = `rgba(${r},${g},${b},${beam.opacity * 0.1})`;
@@ -212,7 +202,6 @@ export function useHeroCanvas(
     const drawTypewriter = (W: number, H: number) => {
       ctx.textBaseline = 'top';
       
-      // Update state
       quantumState.forEach((line, i) => {
         if (!line.finished) {
           if (line.stagger > 0) {
@@ -222,7 +211,6 @@ export function useHeroCanvas(
             if (line.charIndex >= line.full.length) {
               line.finished = true;
             }
-            // Randomly reset finished lines occasionally
             if (line.finished && Math.random() < 0.005) {
               line.text = '';
               line.charIndex = 0;
@@ -238,32 +226,25 @@ export function useHeroCanvas(
         }
       });
 
-      // ── TYPEWRITER RENDERING ──
-
-      // 1. Left Column (High visibility, 18px)
       ctx.font = '18px "Space Mono", monospace';
       ctx.textAlign = 'left';
       quantumState.slice(0, 15).forEach((line, i) => {
         const txt = line.full.substring(0, line.charIndex);
-        const py = H - 550 + i * 30; // 30px spacing for 18px font
+        const py = H - 550 + i * 30;
         ctx.fillStyle = line.color;
-        // Glow pass
         ctx.globalAlpha = 0.25;
         ctx.fillText(txt, 51, py);
         ctx.fillText(txt, 49, py);
-        // Main pass
         ctx.globalAlpha = 0.8;
         ctx.fillText(txt, 50, py);
       });
 
-      // 2. Right Column (Smaller, more subtle, 14px)
       ctx.font = '14px "Space Mono", monospace';
       ctx.textAlign = 'right';
       quantumState.slice(22).forEach((line, i) => {
         const txt = line.full.substring(0, line.charIndex);
-        const py = H - 550 + i * 24; // 24px spacing for 14px font
+        const py = H - 550 + i * 24;
         ctx.fillStyle = line.color;
-        // Subtle main pass only
         ctx.globalAlpha = 0.3;
         ctx.fillText(txt, W - 50, py);
       });
@@ -278,7 +259,6 @@ export function useHeroCanvas(
       const cy = H / 2;
       const diag = Math.sqrt(W * W + H * H);
 
-      // ── Background ────────────────────────────────────────
       ctx.globalAlpha = 1;
       const bg = ctx.createRadialGradient(cx, cy, 0, cx, cy, diag * 0.65);
       bg.addColorStop(0,   'rgba(15,5,42,1)');
@@ -288,7 +268,6 @@ export function useHeroCanvas(
       ctx.fillStyle = bg;
       ctx.fillRect(0, 0, W, H);
 
-      // ── Glitch timing ─────────────────────────────────────
       glitchTimer++;
       if (glitchTimer > 70 + Math.random() * 110) {
         glitchActive = true; glitchTimer = 0;
@@ -297,16 +276,13 @@ export function useHeroCanvas(
       }
       if (glitchActive && glitchTimer > 3) glitchActive = false;
 
-      // Screen flicker
       if (Math.random() < 0.02) flickerOpacity = 0.25 + Math.random() * 0.6;
       else flickerOpacity += (1 - flickerOpacity) * 0.2;
 
       ctx.globalAlpha = flickerOpacity;
 
-      // ── Draw beams ────────────────────────────────────────
       beamsRef.current.forEach(beam => drawBeam(beam, cx, cy));
 
-      // ── Wave-packet polar ring ────────────────────────────
       ctx.globalAlpha = flickerOpacity * 0.8;
       const ringR = Math.min(W, H) * 0.42;
       const kVals = [4.0, 4.1, 4.7, 4.8];
@@ -314,7 +290,7 @@ export function useHeroCanvas(
       kVals.forEach((k, ki) => {
         const baseR = ringR * (0.85 + ki * 0.022);
         ctx.beginPath();
-        for (let deg = 0; deg <= 360; deg += 2) { // Increased skip
+        for (let deg = 0; deg <= 360; deg += 2) {
           const a = (deg * Math.PI) / 180;
           const tFrac = deg / 360;
           const wave = Math.sin(k * 8 * tFrac * Math.PI + t * 0.55 + ki * 0.3) * 26
@@ -328,7 +304,6 @@ export function useHeroCanvas(
         const alpha = ki < 2 ? 0.55 : 0.38;
         const wCol  = ki < 2 ? `rgba(147,197,253,${alpha})` : `rgba(196,181,253,${alpha})`;
         
-        // Multi-stroke instead of shadowBlur
         ctx.strokeStyle = wCol;
         ctx.globalAlpha = 0.2;
         ctx.lineWidth = 4;
@@ -338,7 +313,6 @@ export function useHeroCanvas(
         ctx.stroke();
       });
 
-      // Constructive-interference pink ring
       ctx.beginPath();
       for (let deg = 0; deg <= 360; deg += 2) {
         const a = (deg * Math.PI) / 180;
@@ -354,20 +328,16 @@ export function useHeroCanvas(
       ctx.strokeStyle = 'rgba(244,114,182,0.85)';
       ctx.lineWidth = 2;
       ctx.stroke();
-      // Outer glow for pink ring
       ctx.strokeStyle = 'rgba(244,114,182,0.15)';
       ctx.lineWidth = 8;
       ctx.stroke();
 
-      // ── Typewriter ─ 
       drawTypewriter(W, H);
 
-      // ── SUPERSCALED photon core ───────────────────────────
       ctx.globalAlpha = flickerOpacity;
       const pulse = 1 + Math.sin(t * 2.1) * 0.07;
-      const coreR  = Math.min(W, H) * 0.175 * pulse;   // much bigger
+      const coreR  = Math.min(W, H) * 0.175 * pulse;
 
-      // Giant far halo
       const halo1 = ctx.createRadialGradient(cx, cy, 0, cx, cy, coreR * 3.2);
       halo1.addColorStop(0,   'rgba(200,180,255,0.14)');
       halo1.addColorStop(0.4, 'rgba(6,182,212,0.07)');
@@ -376,7 +346,6 @@ export function useHeroCanvas(
       ctx.fillStyle = halo1;
       ctx.beginPath(); ctx.arc(cx, cy, coreR * 3.2, 0, Math.PI*2); ctx.fill();
 
-      // Mid violet halo
       const halo2 = ctx.createRadialGradient(cx, cy, 0, cx, cy, coreR * 1.6);
       halo2.addColorStop(0,   'rgba(167,139,250,0.6)');
       halo2.addColorStop(0.5, 'rgba(124,58,237,0.35)');
@@ -384,7 +353,6 @@ export function useHeroCanvas(
       ctx.fillStyle = halo2;
       ctx.beginPath(); ctx.arc(cx, cy, coreR * 1.6, 0, Math.PI*2); ctx.fill();
 
-      // Bright cyan shell
       const halo3 = ctx.createRadialGradient(cx, cy, 0, cx, cy, coreR);
       halo3.addColorStop(0,   'rgba(255,255,255,0.95)');
       halo3.addColorStop(0.2, 'rgba(165,243,252,0.85)');
@@ -394,7 +362,6 @@ export function useHeroCanvas(
       ctx.fillStyle = halo3;
       ctx.beginPath(); ctx.arc(cx, cy, coreR, 0, Math.PI*2); ctx.fill();
 
-      // Starburst rays (more rays, longer)
       const burstCt = 24;
       for (let i = 0; i < burstCt; i++) {
         const a = (i / burstCt) * Math.PI * 2 + t * 0.04;
@@ -412,7 +379,6 @@ export function useHeroCanvas(
         ctx.stroke();
       }
 
-      // Blazing white hot core
       const hotCore = ctx.createRadialGradient(cx, cy, 0, cx, cy, coreR * 0.22 * pulse);
       hotCore.addColorStop(0, 'rgba(255,255,255,1)');
       hotCore.addColorStop(0.6,'rgba(255,255,255,0.95)');
@@ -420,14 +386,12 @@ export function useHeroCanvas(
       ctx.fillStyle = hotCore;
       ctx.beginPath(); ctx.arc(cx, cy, coreR * 0.22 * pulse, 0, Math.PI*2); ctx.fill();
 
-      // ── CRT scanlines ─────────────────────────────────────
       ctx.globalAlpha = 0.05;
       for (let sy = 0; sy < H; sy += 4) {
         ctx.fillStyle = 'rgba(0,0,0,1)';
         ctx.fillRect(0, sy, W, 1.5);
       }
 
-      // ── Glitch horizontal bar ─────────────────────────────
       if (glitchActive) {
         ctx.globalAlpha = 0.6;
         const offset = (Math.random() - 0.5) * 80;
@@ -439,7 +403,6 @@ export function useHeroCanvas(
         ctx.fillRect(0, glitchY, W, glitchH);
       }
 
-      // ── Vignette ──────────────────────────────────────────
       ctx.globalAlpha = 1;
       const vig = ctx.createRadialGradient(cx, cy, diag*0.2, cx, cy, diag*0.8);
       vig.addColorStop(0, 'transparent');
@@ -447,7 +410,7 @@ export function useHeroCanvas(
       ctx.fillStyle = vig;
       ctx.fillRect(0, 0, W, H);
 
-      t += 0.024; // Faster time progression
+      t += 0.024;
       raf = requestAnimationFrame(draw);
     };
 
@@ -456,8 +419,6 @@ export function useHeroCanvas(
   }, [canvasRef, beamsRef, onBeamHover]);
 }
 
-
-// ─── Beam tooltip ─────────────────────────────────────────────────────────────
 interface TooltipState {
   beam: Beam;
   x: number;
@@ -512,7 +473,6 @@ function BeamTooltip({ tooltip }: { tooltip: TooltipState | null }) {
   );
 }
 
-// ─── Persistent screen glitch overlay ────────────────────────────────────────
 function GlitchOverlay() {
   return (
     <div className="absolute inset-0 pointer-events-none" style={{ zIndex: 50 }}>
@@ -528,7 +488,6 @@ function GlitchOverlay() {
         width: '35%', height: '2px', background: 'rgba(236,72,153,0.4)',
         animation: 'block-glitch-h 8.2s steps(1) infinite', mixBlendMode: 'screen',
       }} />
-      {/* Random flicker row */}
       <div className="absolute left-0 right-0" style={{
         height: '1px', background: 'rgba(255,255,255,0.15)',
         animation: 'row-flicker 3.1s steps(1) infinite',
@@ -565,7 +524,6 @@ function GlitchOverlay() {
   );
 }
 
-// ─── Main HeroScene ───────────────────────────────────────────────────────────
 export default function HeroScene() {
   const canvasRef  = useRef<HTMLCanvasElement>(null);
   const beamsRef   = useRef<Beam[]>([]);
@@ -577,7 +535,6 @@ export default function HeroScene() {
 
   useHeroCanvas(canvasRef, beamsRef, onBeamHover);
 
-  // Mouse move → hit test beams
   const handleMouseMove = useCallback((e: React.MouseEvent) => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -609,7 +566,6 @@ export default function HeroScene() {
       onMouseLeave={handleMouseLeave}
       style={{ willChange: 'transform, opacity' }}
     >
-      {/* Full-screen animated canvas */}
       <canvas
         ref={canvasRef}
         className="absolute inset-0 w-full h-full"
