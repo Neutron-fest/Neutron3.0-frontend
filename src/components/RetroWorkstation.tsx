@@ -5,7 +5,8 @@ import Image from 'next/image';
 
 const RetroWorkstation = () => {
   return (
-    <div className="relative w-full max-w-3xl mr-auto group perspective-1000">
+    <div className="relative w-full max-w-3xl ml-auto group perspective-1000">
+
       <div className="relative animate-[float_6s_ease-in-out_infinite]">
         
         <div className="relative z-0">
