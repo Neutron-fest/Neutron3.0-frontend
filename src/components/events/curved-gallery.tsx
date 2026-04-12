@@ -5,74 +5,8 @@ import { motion, useMotionValue, useSpring, useTransform, AnimatePresence } from
 import Link from "next/link";
 import { Ticket, MapPin, Clock, ChevronLeft, ChevronRight } from "lucide-react";
 
-const EVENTS = [
-  {
-    title: "Cyber Security Summit",
-    image: "https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&q=80&w=800",
-    slug: "cyber-security-summit",
-    category: "Conference",
-    date: "OCT 24, 2026",
-    details: "Global experts on next-gen threats",
-    ticketPrice: "Free",
-    location: "Main Auditorium",
-    time: "10:00 AM",
-  },
-  {
-    title: "AI Workshop",
-    image: "https://images.unsplash.com/photo-1677442136019-21780ecad995?auto=format&fit=crop&q=80&w=800",
-    slug: "ai-workshop",
-    category: "Workshop",
-    date: "NOV 12, 2026",
-    details: "Hands-on LLM fine-tuning",
-    ticketPrice: "$50",
-    location: "Lab 4B",
-    time: "2:00 PM",
-  },
-  {
-    title: "Quantum Keynote",
-    image: "https://images.unsplash.com/photo-1635070041078-e363dbe005cb?auto=format&fit=crop&q=80&w=800",
-    slug: "quantum-keynote",
-    category: "Keynote",
-    date: "DEC 05, 2026",
-    details: "The future of quantum computing",
-    ticketPrice: "Free",
-    location: "Virtual",
-    time: "6:00 PM",
-  },
-  {
-    title: "DevRel Meetup",
-    image: "https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&q=80&w=800",
-    slug: "devrel-meetup",
-    category: "Networking",
-    date: "JAN 15, 2027",
-    details: "Connecting developer advocates",
-    ticketPrice: "Free",
-    location: "Rooftop Cafe",
-    time: "5:30 PM",
-  },
-  {
-    title: "Tech Career Fair",
-    image: "https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&q=80&w=800",
-    slug: "tech-career-fair",
-    category: "Career",
-    date: "FEB 22, 2027",
-    details: "Meet top tech recruiters",
-    ticketPrice: "Free",
-    location: "Exhibition Hall",
-    time: "9:00 AM",
-  },
-  {
-    title: "Founder's Pitch",
-    image: "https://images.unsplash.com/photo-1538370965046-79c0d6907d47?auto=format&fit=crop&q=80&w=800",
-    slug: "founders-pitch",
-    category: "Startups",
-    date: "MAR 10, 2027",
-    details: "Seed round pitching session",
-    ticketPrice: "Invite",
-    location: "Innovation Hub",
-    time: "4:00 PM",
-  },
-];
+import { EVENTS } from "@/data/events";
+
 
 const CARD_WIDTH = 250;
 const CARD_HEIGHT = 350;
