@@ -32,7 +32,7 @@ export default function EventRulesModal({ isOpen, onClose, rules, title }: Event
   return (
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-[500] flex items-center justify-center p-4 md:p-12 overflow-hidden" data-lenis-prevent>
+        <div className="fixed inset-0 z-500 flex items-center justify-center p-4 md:p-12 overflow-hidden" data-lenis-prevent>
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -61,10 +61,10 @@ export default function EventRulesModal({ isOpen, onClose, rules, title }: Event
                 filter: "brightness(5) contrast(2) hue-rotate(-90deg)" 
             }}
             transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-            className="relative w-full max-w-5xl h-full max-h-[85vh] bg-[#050505] border-[1px] border-cyan-500/30 shadow-[0_0_50px_rgba(6,182,212,0.15)] flex flex-col z-10 rounded-lg overflow-hidden"
+            className="relative w-full max-w-5xl h-full max-h-[85vh] bg-[#050505] border-px border-cyan-500/30 shadow-[0_0_50px_rgba(6,182,212,0.15)] flex flex-col z-10 rounded-lg overflow-hidden"
           >
             <div className="absolute inset-0 pointer-events-none z-50 opacity-[0.03] crt-scanlines mix-blend-screen"></div>
-            <div className="absolute inset-0 pointer-events-none z-[100] opacity-[0.05] bg-[url('https://res.cloudinary.com/dyd911kmh/image/upload/v1640050115/glitch_u4q1zq.gif')]"></div>
+            <div className="absolute inset-0 pointer-events-none z-100 opacity-[0.05] bg-[url('https://res.cloudinary.com/dyd911kmh/image/upload/v1640050115/glitch_u4q1zq.gif')]"></div>
 
             <div className="flex items-center justify-between p-6 md:p-10 border-b border-white/10 bg-black/50 backdrop-blur-md relative overflow-hidden">
                 <div className="absolute inset-0 bg-cyan-500/5 animate-pulse pointer-events-none" />

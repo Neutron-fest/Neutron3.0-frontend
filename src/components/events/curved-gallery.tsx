@@ -287,7 +287,7 @@ function GalleryCard({
 
       <Link
         href={`/events/${slug}`}
-        className="block w-full h-full relative z-[5]"
+        className="block w-full h-full relative z-5"
         onClick={(e) => {
           if (isDraggingRef.current) e.preventDefault();
         }}
