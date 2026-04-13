@@ -248,19 +248,18 @@ export function AuthProvider({ children }: AuthProviderProps) {
         cacheUser(response.data.data.user);
       }
     } catch (error: unknown) {
+      const status = (error as any)?.response?.status;
+
       if ((error as any)?.response?.data?.error === "SOCKET_NOT_CONNECTED") {
         console.warn("Auth check paused until socket reconnects.");
       }
 
-      if (isExplicitAuthRejection(error)) {
+      if (isExplicitAuthRejection(error) || status === 401 || status === 403) {
         setUser(null);
         cacheUser(null);
-      } else if (
-        (error as any).response?.status >= 500 ||
-        !(error as any).response
-      ) {
+      } else if (status >= 500 || !(error as any).response) {
         console.warn("Auth check skipped due to backend/network issue.");
-      } else if ((error as any).response?.status !== 401) {
+      } else if (status !== 401) {
         console.error("Auth check failed:", error);
       }
     } finally {

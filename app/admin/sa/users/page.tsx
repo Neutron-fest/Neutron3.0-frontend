@@ -212,7 +212,7 @@ function UserAvatar({ name }: any) {
   return (
     <Box sx={{ position: "relative", width: 36, height: 36, flexShrink: 0 }}>
       <Image
-        src="/images/bg.jpeg"
+        src="/images/hero_glitch.png"
         alt={name || "User"}
         fill
         sizes="36px"

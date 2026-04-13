@@ -1,8 +1,15 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono, Space_Mono, Audiowide, Orbitron, Rubik_Glitch } from "next/font/google";
+import {
+  Geist,
+  Geist_Mono,
+  Space_Mono,
+  Audiowide,
+  Orbitron,
+  Rubik_Glitch,
+} from "next/font/google";
 import "./globals.css";
-import ClientLoadingWrapper from "@/components/ClientLoadingWrapper";
-import SmoothScroll from "@/components/SmoothScroll";
+import { AppProviders } from "@/providers/AppProviders";
+import RouteAwareRootShell from "@/components/RouteAwareRootShell";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -35,15 +42,12 @@ const rubicglitch = Rubik_Glitch({
   variable: "--font-rubicglitch",
   subsets: ["latin"],
   weight: "400",
-})
+});
 
 export const metadata: Metadata = {
   title: "Photon",
   description: "Advanced Agentic Coding",
 };
-
-import Navbar from "@/components/Navbar";
-import PageTransition from "@/components/PageTransition";
 
 export default function RootLayout({
   children,
@@ -56,12 +60,9 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} ${spaceMono.variable} ${audiowide.variable} ${orbitron.variable} ${rubicglitch.variable} h-full antialiased overflow-hidden`}
     >
       <body className="h-full flex flex-col relative overflow-hidden overscroll-none">
-        <SmoothScroll>
-          <Navbar />
-          <ClientLoadingWrapper>
-            <PageTransition>{children}</PageTransition>
-          </ClientLoadingWrapper>
-        </SmoothScroll>
+        <AppProviders>
+          <RouteAwareRootShell>{children}</RouteAwareRootShell>
+        </AppProviders>
       </body>
     </html>
   );

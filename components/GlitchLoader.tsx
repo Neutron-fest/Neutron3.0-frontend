@@ -1,21 +1,24 @@
-"use client"
+"use client";
 
-import React, { useState, useEffect } from 'react';
-import Noise from './Noise';
+import React, { useState, useEffect } from "react";
+import Noise from "./Noise";
 
 interface GlitchLoaderProps {
   onComplete?: () => void;
   isLoading?: boolean;
 }
 
-const GlitchLoader: React.FC<GlitchLoaderProps> = ({ onComplete, isLoading = true }) => {
+const GlitchLoader: React.FC<GlitchLoaderProps> = ({
+  onComplete,
+  isLoading = true,
+}) => {
   const [progress, setProgress] = useState(0);
   const [isVisible, setIsVisible] = useState(true);
 
   useEffect(() => {
     if (isLoading) {
       const interval = setInterval(() => {
-        setProgress(prev => {
+        setProgress((prev) => {
           if (prev >= 20) return prev;
           return prev + 1;
         });
@@ -37,12 +40,12 @@ const GlitchLoader: React.FC<GlitchLoaderProps> = ({ onComplete, isLoading = tru
   if (!isVisible) return null;
 
   return (
-    <div className={`fixed inset-0 z-9999 bg-black flex items-center justify-center transition-all duration-700 overflow-hidden ${!isLoading ? 'opacity-0 scale-105 blur-lg' : 'opacity-100'}`}>
-      
+    <div
+      className={`fixed inset-0 z-9999 bg-black flex items-center justify-center transition-all duration-700 overflow-hidden ${!isLoading ? "opacity-0 scale-105 blur-lg" : "opacity-100"}`}
+    >
       <div className="crt-bezel"></div>
 
-      <div className="relative w-full h-full max-w-[95vw] max-h-[92vh] retro-blue-bg overflow-hidden flex flex-col items-center justify-center border-radius-crt">
-        
+      <div className="relative w-full h-full max-w-[95vw] max-h-[92vh] retro-blue-bg overflow-hidden flex flex-col items-center justify-center rounded-[6rem]">
         <div className="crt-vignette"></div>
         <div className="crt-glass-glow"></div>
         <div className="crt-scanlines"></div>
@@ -51,13 +54,16 @@ const GlitchLoader: React.FC<GlitchLoaderProps> = ({ onComplete, isLoading = tru
         </div>
 
         <div className="relative z-10 flex flex-col items-center w-full max-w-4xl px-12 vhs-flicker-layer scale-[0.92] filter blur-[0.4px]">
-          
           <div className="flex items-center gap-10 mb-12">
             <div className="relative w-28 h-28 flex flex-col justify-between overflow-hidden">
-               {[...Array(12)].map((_, i) => (
-                  <div key={i} className="w-full bg-white opacity-90 skew-x-[-20deg]" style={{ height: '3px' }}></div>
-               ))}
-               <div className="absolute inset-0 border-10 border-white rounded-full skew-x-[-20deg] mix-blend-difference"></div>
+              {[...Array(12)].map((_, i) => (
+                <div
+                  key={i}
+                  className="w-full bg-white opacity-90 skew-x-[-20deg]"
+                  style={{ height: "3px" }}
+                ></div>
+              ))}
+              <div className="absolute inset-0 border-10 border-white rounded-full skew-x-[-20deg] mix-blend-difference"></div>
             </div>
 
             <div className="flex flex-col">
@@ -73,48 +79,26 @@ const GlitchLoader: React.FC<GlitchLoaderProps> = ({ onComplete, isLoading = tru
           </div>
 
           <div className="flex flex-col items-center gap-6 w-full">
-             <div className="w-full max-w-lg p-2 border-2 border-white/80 bg-black/40 shadow-[4px_4px_0_rgba(0,0,0,0.5)]">
-                <div className="flex gap-1.5 h-8">
-                   {[...Array(20)].map((_, i) => (
-                      <div 
-                        key={i} 
-                        className={`segmented-bar-block flex-1 h-full ${i >= progress ? 'empty' : 'vhs-jitter-subtle'}`} 
-                      />
-                   ))}
-                </div>
-             </div>
+            <div className="w-full max-w-lg p-2 border-2 border-white/80 bg-black/40 shadow-[4px_4px_0_rgba(0,0,0,0.5)]">
+              <div className="flex gap-1.5 h-8">
+                {[...Array(20)].map((_, i) => (
+                  <div
+                    key={i}
+                    className={`segmented-bar-block flex-1 h-full ${i >= progress ? "empty" : "vhs-jitter-subtle"}`}
+                  />
+                ))}
+              </div>
+            </div>
           </div>
 
           <div className="mt-28 font-mono text-[20px] text-white tracking-widest text-center px-4 uppercase filter blur-[0.2px]">
-             Copyright (c) Photon Development Studio AB, 2026. All Rights Reserved.
+            Copyright (c) Photon Development Studio AB, 2026. All Rights
+            Reserved.
           </div>
         </div>
 
-        <div className="absolute w-full h-[3px] bg-white/10 animate-[tracking-line_3.5s_linear_infinite] pointer-events-none z-20"></div>
+        <div className="absolute w-full h-0.75 bg-white/10 animate-[tracking-line_3.5s_linear_infinite] pointer-events-none z-20"></div>
       </div>
-
-      <style jsx>{`
-        .border-radius-crt { border-radius: 6rem; }
-        .font-serif { font-family: 'Times New Roman', Times, serif; }
-        .font-mono { font-family: 'Courier New', Courier, monospace; }
-        
-        @keyframes tracking-line {
-          0% { top: -10%; opacity: 0; }
-          45% { opacity: 0; }
-          50% { opacity: 0.3; top: 50%; }
-          55% { opacity: 0; }
-          100% { top: 110%; opacity: 0; }
-        }
-
-        .vhs-jitter-subtle {
-          animation: vhs-jitter 0.25s infinite;
-        }
-
-        @keyframes vhs-jitter {
-          0%, 100% { transform: translate(0); }
-          50% { transform: translate(1.5px, -1px); filter: brightness(1.3) contrast(1.1); }
-        }
-      `}</style>
     </div>
   );
 };
