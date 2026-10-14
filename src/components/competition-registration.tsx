@@ -15,6 +15,7 @@ import {
   useValidatePromoCode,
 } from "@/src/hooks/api/usePublicRegistration";
 import { useCompetition } from "@/src/hooks/api/useCompetitions";
+import { track } from "@/lib/analytics";
 
 function parseTeamSize(sizeStr: string): number[] {
   const normalized = String(sizeStr || "")
@@ -412,7 +413,21 @@ export default function CompetitionRegistration({
       }
 
       const checkoutUrl = extractCheckoutUrl(registrationResult);
+      track("competition_registration_submitted", {
+        competition_id: competitionId,
+        competition_title: competitionTitle,
+        mode: isMemberMode ? "member" : isSolo ? "solo" : "team",
+        team_size: isSolo || isMemberMode ? undefined : teamDetails.selectedTeamSize || undefined,
+        invites_sent: isSolo || isMemberMode ? 0 : teamDetails.inviteEmails.length,
+        has_promo_code: Boolean(promoCode),
+        has_referral_code: Boolean(referralCode),
+        requires_payment: Boolean(checkoutUrl),
+      });
       if (checkoutUrl && typeof window !== "undefined") {
+        track("payment_checkout_started", {
+          competition_id: competitionId,
+          source: "registration",
+        });
         setCheckoutRedirecting(true);
         window.location.assign(checkoutUrl);
         return;
@@ -602,6 +617,10 @@ export default function CompetitionRegistration({
             if (!pendingPaymentCheckoutUrl || typeof window === "undefined") {
               return;
             }
+            track("payment_checkout_started", {
+              competition_id: competitionId,
+              source: "pending_payment",
+            });
             setPendingPaymentRedirecting(true);
             window.location.assign(pendingPaymentCheckoutUrl);
           }}

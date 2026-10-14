@@ -6,6 +6,7 @@ import AuthLayout from "@/components/auth-layout";
 import { AuthButton } from "@/components/auth-components";
 import { motion } from "framer-motion";
 import { useVerifyEmail } from "@/src/hooks/api/useAuth";
+import { track } from "@/lib/analytics";
 
 function VerifyEmailContent() {
   const router = useRouter();
@@ -60,6 +61,7 @@ function VerifyEmailContent() {
         const response = await verifyMutation.mutateAsync({ token });
 
         if (response.success) {
+          track("email_verified");
           setVerificationSuccess(true);
           setTimeout(() => {
             router.push("/auth/signin");
