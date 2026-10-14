@@ -9,6 +9,7 @@ import {
   ReactNode,
 } from "react";
 import apiClient from "@/lib/axios";
+import { resetAnalytics, track } from "@/lib/analytics";
 import { usePathname, useRouter } from "next/navigation";
 import {
   initSocket,
@@ -176,6 +177,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const clearUserAndRedirect = useCallback((): void => {
     setUser(null);
     cacheUser(null);
+    resetAnalytics();
     disconnectSocket();
     if (!isAuthRoute()) {
       router.replace(getAuthRedirectPath());
@@ -285,6 +287,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       if (response.data.success) {
         setUser(response.data.data.user);
         cacheUser(response.data.data.user);
+        track("user_logged_in", { role: response.data.data.user?.role });
         connectSocket();
         await waitForSocketConnection(2000);
         return { success: true, user: response.data.data.user };
@@ -315,6 +318,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       disconnectSocket();
       setUser(null);
       cacheUser(null);
+      resetAnalytics();
       if (!isAuthRoute()) {
         router.replace(getAuthRedirectPath());
       }

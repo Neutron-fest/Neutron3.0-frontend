@@ -1,11 +1,12 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useRef } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import AuthLayout from "@/components/auth-layout";
 import { AuthButton } from "@/components/auth-components";
 import { motion } from "framer-motion";
+import { track } from "@/lib/analytics";
 
 type SearchParamsLike = { get: (key: string) => string | null };
 
@@ -30,6 +31,18 @@ export default function PaymentFailurePage() {
   const transactionId = getFirstParam(searchParams, ["transactionId", "transaction_id", "txnId", "txnid"]);
   const amount = getFirstParam(searchParams, ["amount", "total", "value"]);
   const currency = getFirstParam(searchParams, ["currency", "curr"]);
+
+  const trackedRef = useRef(false);
+  useEffect(() => {
+    if (trackedRef.current) return;
+    trackedRef.current = true;
+    const numericAmount = amount ? Number(amount) : NaN;
+    track("payment_failed", {
+      amount: Number.isFinite(numericAmount) ? numericAmount : undefined,
+      currency: currency ? currency.toUpperCase() : undefined,
+      reason: errorMessage ? errorMessage.slice(0, 120) : undefined,
+    });
+  }, [amount, currency, errorMessage]);
 
   const formattedAmount = amount
     ? `${currency ? currency.toUpperCase() + " " : ""}${amount}`

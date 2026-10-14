@@ -1,5 +1,20 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // PostHog reverse proxy: /ingest/* is forwarded to PostHog US so ad blockers don't drop events.
+  async rewrites() {
+    return [
+      {
+        source: "/ingest/static/:path*",
+        destination: "https://us-assets.i.posthog.com/static/:path*",
+      },
+      {
+        source: "/ingest/:path*",
+        destination: "https://us.i.posthog.com/:path*",
+      },
+    ];
+  },
+  // Required so PostHog API paths with trailing slashes (e.g. /ingest/e/) aren't redirected.
+  skipTrailingSlashRedirect: true,
   reactCompiler: true,
   images: {
     remotePatterns: [

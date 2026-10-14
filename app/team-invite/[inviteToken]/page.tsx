@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import { CircularProgress } from "@mui/material";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAcceptTeamInvite } from "@/src/hooks/api/usePublicRegistration";
+import { track } from "@/lib/analytics";
 
 type FlowState = "auth" | "accepting" | "redirecting" | "error";
 
@@ -69,6 +70,10 @@ export default function TeamInvitePage() {
           throw new Error("Could not resolve team invite destination.");
         }
 
+        track("team_invite_accepted", {
+          competition_id: acceptedCompetitionId,
+          team_id: acceptedTeamId,
+        });
         setFlowState("redirecting");
         router.replace(
           `/competitions/${acceptedCompetitionId}/register?mode=member&teamId=${acceptedTeamId}`,

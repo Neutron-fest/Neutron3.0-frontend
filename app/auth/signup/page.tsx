@@ -6,6 +6,7 @@ import AuthLayout from "@/components/auth-layout";
 import { AuthInput, AuthButton } from "@/components/auth-components";
 import { motion } from "framer-motion";
 import { useRouter, useSearchParams } from "next/navigation";
+import { track } from "@/lib/analytics";
 import {
   useRegister,
   useResendVerificationEmail,
@@ -40,6 +41,7 @@ function SignUpContent() {
       });
 
       if (response.success) {
+        track("signup_completed", { method: "email" });
         setIsSignedUp(true);
       } else {
         setSignupError(response.message || "Signup failed. Please try again.");

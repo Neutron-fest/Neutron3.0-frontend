@@ -16,6 +16,7 @@ import { QueryProvider } from "./QueryProvider";
 import { theme } from "@/src/theme";
 import EmotionRegistry from "./EmotionRegistry";
 import ClarityTracker from "@/src/components/analytics/ClarityTracker";
+import PostHogIdentify from "@/src/components/analytics/PostHogIdentify";
 import SupportIssueWidget from "@/src/components/support/SupportIssueWidget";
 import Support_Button from "@/src/components/Support_Button";
 
@@ -136,6 +137,7 @@ export function AppProviders({ children }: AppProvidersProps) {
           >
             <AuthProvider>
               <ClarityTracker />
+              <PostHogIdentify />
               {children}
               <SupportIssueWidget />
             </AuthProvider>
